@@ -13,6 +13,12 @@
       "skillPath": "skills/nestjs-best-practices/SKILL.md",
       "computedHash": "58f8a630637be3acce1f118c747d68160346ada8a43d76cb52a5b4c4edaa2d37"
     },
+    "spacing-system": {
+      "source": "owl-listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "ui-design/skills/spacing-system/SKILL.md",
+      "computedHash": "c92cabb28d763a64dbeb81579433337a5c3592fd665a00550cd91853ed7b9808"
+    },
     "turborepo": {
       "source": "vercel/turborepo",
       "sourceType": "github",

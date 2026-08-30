@@ -6,11 +6,11 @@ import { toast } from "sonner"
 
 import type { ProjectNote, User } from "@/lib/data/project-details"
 import { Button } from "@/components/ui/button"
-import { NoteCard } from "@/components/projects/NoteCard"
-import { NotesTable } from "@/components/projects/NotesTable"
-import { CreateNoteModal } from "@/components/projects/CreateNoteModal"
-import { UploadAudioModal } from "@/components/projects/UploadAudioModal"
-import { NotePreviewModal } from "@/components/projects/NotePreviewModal"
+import { NoteCard } from "@/components/projects/note-card"
+import { NotesTable } from "@/components/projects/notes-table"
+import { CreateNoteModal } from "@/components/projects/create-note-modal"
+import { UploadAudioModal } from "@/components/projects/upload-audio-modal"
+import { NotePreviewModal } from "@/components/projects/note-preview-modal"
 
 type NotesTabProps = {
     notes: ProjectNote[]

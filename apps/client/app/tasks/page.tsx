@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
-import { MyTasksPage } from "@/components/tasks/MyTasksPage"
+import { MyTasksPage } from "@/components/tasks/my-tasks-page"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 export default function TasksPage() {

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ClientStatusBadge } from "@/components/clients/ClientStatusBadge"
+import { ClientStatusBadge } from "@/components/clients/client-status-badge"
 import { clients, type ClientStatus } from "@/lib/data/clients"
 import { cn } from "@/lib/utils"
 

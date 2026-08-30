@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { FilterPopover } from "@/components/filter-popover"
 import { ChipOverflow } from "@/components/chip-overflow"
-import { TaskRowBase } from "@/components/tasks/TaskRowBase"
+import { TaskRowBase } from "@/components/tasks/task-row-base"
 import { cn } from "@/lib/utils"
 
 type ProjectTasksTabProps = {

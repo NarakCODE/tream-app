@@ -5,9 +5,9 @@ import { CircleDashed, Cube, User, Users } from "@phosphor-icons/react/dist/ssr"
 import type { BacklogSummary } from "@/lib/data/project-details"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { StatRow } from "@/components/projects/StatRow"
+import { StatRow } from "@/components/projects/stat-row"
 import { PriorityGlyphIcon } from "@/components/priority-badge"
-import { AvatarGroup } from "@/components/projects/AvatarGroup"
+import { AvatarGroup } from "@/components/projects/avatar-group"
 
 type BacklogCardProps = {
   backlog: BacklogSummary

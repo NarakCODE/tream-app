@@ -12,14 +12,14 @@ import { CSS } from "@dnd-kit/utilities"
 
 import type { Project, FilterCounts } from "@/lib/data/projects"
 import type { ProjectTask } from "@/lib/data/project-details"
-import { TaskRowBase } from "@/components/tasks/TaskRowBase"
+import { TaskRowBase } from "@/components/tasks/task-row-base"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ProgressCircle } from "@/components/progress-circle"
 import { cn } from "@/lib/utils"
 import type { FilterChip as FilterChipType } from "@/lib/view-options"
-import type { CreateTaskContext } from "@/components/tasks/TaskQuickCreateModal"
+import type { CreateTaskContext } from "@/components/tasks/task-quick-create-modal"
 
 export type ProjectTaskGroup = {
   project: Project

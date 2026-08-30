@@ -10,9 +10,9 @@ import { getProjectDetailsById } from '@/lib/data/project-details'
 import { getAvatarUrl } from '@/lib/assets/avatars'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { GenericPicker, DatePicker } from '@/components/project-wizard/steps/StepQuickCreate'
-import { ProjectDescriptionEditor } from '@/components/project-wizard/ProjectDescriptionEditor'
-import { QuickCreateModalLayout } from '@/components/QuickCreateModalLayout'
+import { GenericPicker, DatePicker } from '@/components/project-wizard/steps/step-quick-create'
+import { ProjectDescriptionEditor } from '@/components/project-wizard/project-description-editor'
+import { QuickCreateModalLayout } from '@/components/quick-create-modal-layout'
 import { toast } from 'sonner'
 
 export type CreateTaskContext = {

@@ -7,10 +7,10 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ClientStatusBadge } from "@/components/clients/ClientStatusBadge"
+import { ClientStatusBadge } from "@/components/clients/client-status-badge"
 import { getClientById, getProjectCountForClient, clients, type Client } from "@/lib/data/clients"
 import { projects } from "@/lib/data/projects"
-import { ClientWizard } from "@/components/clients/ClientWizard"
+import { ClientWizard } from "@/components/clients/client-wizard"
 import Link from "next/link"
 
 type ClientDetailsPageProps = {

@@ -19,7 +19,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { projects, type Project, type FilterCounts } from "@/lib/data/projects"
 import { getProjectDetailsById, getProjectTasks, type ProjectTask } from "@/lib/data/project-details"
 import { DEFAULT_VIEW_OPTIONS, type FilterChip as FilterChipType, type ViewOptions } from "@/lib/view-options"
-import { TaskWeekBoardView } from "@/components/tasks/TaskWeekBoardView"
+import { TaskWeekBoardView } from "@/components/tasks/task-week-board-view"
 import {
   ProjectTaskGroup,
   ProjectTaskListView,
@@ -27,7 +27,7 @@ import {
   computeTaskFilterCounts,
   ProjectTasksSection,
 } from "@/components/tasks/task-helpers"
-import { TaskRowBase } from "@/components/tasks/TaskRowBase"
+import { TaskRowBase } from "@/components/tasks/task-row-base"
 import { Button } from "@/components/ui/button"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Badge } from "@/components/ui/badge"
@@ -37,7 +37,7 @@ import { FilterPopover } from "@/components/filter-popover"
 import { ChipOverflow } from "@/components/chip-overflow"
 import { ViewOptionsPopover } from "@/components/view-options-popover"
 import { cn } from "@/lib/utils"
-import { TaskQuickCreateModal, type CreateTaskContext } from "@/components/tasks/TaskQuickCreateModal"
+import { TaskQuickCreateModal, type CreateTaskContext } from "@/components/tasks/task-quick-create-modal"
 
 export function MyTasksPage() {
   const [groups, setGroups] = useState<ProjectTaskGroup[]>(() => {

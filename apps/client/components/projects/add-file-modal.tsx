@@ -5,9 +5,9 @@ import { Paperclip, UploadSimple, X } from "@phosphor-icons/react/dist/ssr"
 
 import type { ProjectFile, QuickLink, User } from "@/lib/data/project-details"
 import { Button } from "@/components/ui/button"
-import { QuickCreateModalLayout } from "@/components/QuickCreateModalLayout"
-import { ProjectDescriptionEditor } from "@/components/project-wizard/ProjectDescriptionEditor"
-import { UploadAssetFilesModal } from "@/components/projects/UploadAssetFilesModal"
+import { QuickCreateModalLayout } from "@/components/quick-create-modal-layout"
+import { ProjectDescriptionEditor } from "@/components/project-wizard/project-description-editor"
+import { UploadAssetFilesModal } from "@/components/projects/upload-asset-files-modal"
 
 type AddFileModalProps = {
     open: boolean

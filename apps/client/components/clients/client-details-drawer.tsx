@@ -18,8 +18,8 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ClientStatusFilterPopover } from "@/components/clients/ClientStatusFilterPopover"
-import { FileLinkRow } from "@/components/projects/FileLinkRow"
+import { ClientStatusFilterPopover } from "@/components/clients/client-status-filter-popover"
+import { FileLinkRow } from "@/components/projects/file-link-row"
 import { cn } from "@/lib/utils"
 import {
   clients,
@@ -29,8 +29,8 @@ import {
 } from "@/lib/data/clients"
 import type { QuickLink } from "@/lib/data/project-details"
 import { projects } from "@/lib/data/projects"
-import { ClientWizard } from "@/components/clients/ClientWizard"
-import { ProjectWizard } from "@/components/project-wizard/ProjectWizard"
+import { ClientWizard } from "@/components/clients/client-wizard"
+import { ProjectWizard } from "@/components/project-wizard/project-wizard"
 
 interface ClientDetailsDrawerProps {
   clientId: string | null

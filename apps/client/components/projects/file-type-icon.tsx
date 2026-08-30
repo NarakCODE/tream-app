@@ -1,7 +1,7 @@
 import Image from "next/image"
 
 import type { QuickLink } from "@/lib/data/project-details"
-import { getFileIcon } from "@/components/projects/FileLinkRow"
+import { getFileIcon } from "@/components/projects/file-link-row"
 
 type FileTypeIconProps = {
     type: QuickLink["type"]

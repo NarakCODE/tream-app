@@ -24,8 +24,8 @@ import { CSS } from "@dnd-kit/utilities"
 
 import { Button } from "@/components/ui/button"
 import type { ProjectTask } from "@/lib/data/project-details"
-import { TaskBoardCard } from "@/components/tasks/TaskBoardCard"
-import type { CreateTaskContext } from "@/components/tasks/TaskQuickCreateModal"
+import { TaskBoardCard } from "@/components/tasks/task-board-card"
+import type { CreateTaskContext } from "@/components/tasks/task-quick-create-modal"
 import { cn } from "@/lib/utils"
 
 type DayColumn = {

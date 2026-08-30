@@ -3,7 +3,7 @@ import { CalendarBlank, Clock } from "@phosphor-icons/react/dist/ssr"
 import type { TimeSummary } from "@/lib/data/project-details"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { StatRow } from "@/components/projects/StatRow"
+import { StatRow } from "@/components/projects/stat-row"
 
 type TimeCardProps = {
   time: TimeSummary

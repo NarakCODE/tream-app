@@ -18,7 +18,7 @@ import {
   CommandList,
 } from "../../ui/command";
 import { Check, X, CornersOut, Star, CalendarBlank, UserCircle, Spinner, List, Paperclip, Microphone, Rows, ChartBar, Tag } from "@phosphor-icons/react/dist/ssr";
-import { ProjectDescriptionEditor } from "../ProjectDescriptionEditor";
+import { ProjectDescriptionEditor } from "../project-description-editor";
 import { clients, type Client } from "@/lib/data/clients";
 
 // --- Mock Data ---

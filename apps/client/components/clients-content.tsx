@@ -22,8 +22,8 @@ import Link from "next/link"
 import { useMemo, useState } from "react"
 import { clients, getProjectCountForClient, type ClientStatus } from "@/lib/data/clients"
 import { projects } from "@/lib/data/projects"
-import { ClientWizard } from "@/components/clients/ClientWizard"
-import { ClientDetailsDrawer } from "@/components/clients/ClientDetailsDrawer"
+import { ClientWizard } from "@/components/clients/client-wizard"
+import { ClientDetailsDrawer } from "@/components/clients/client-details-drawer"
 
 function statusLabel(status: ClientStatus): string {
   if (status === "prospect") return "Prospect"

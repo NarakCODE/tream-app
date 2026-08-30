@@ -3,7 +3,7 @@ import { DotsThree } from "@phosphor-icons/react/dist/ssr"
 import type { ProjectFile } from "@/lib/data/project-details"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { FileTypeIcon } from "@/components/projects/FileTypeIcon"
+import { FileTypeIcon } from "@/components/projects/file-type-icon"
 
 type RecentFileCardProps = {
     file: ProjectFile

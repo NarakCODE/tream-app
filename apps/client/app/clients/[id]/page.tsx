@@ -1,5 +1,5 @@
 import { AppSidebar } from "@/components/app-sidebar"
-import { ClientDetailsPage } from "@/components/clients/ClientDetailsPage"
+import { ClientDetailsPage } from "@/components/clients/client-details-page"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 type PageProps = {

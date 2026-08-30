@@ -1,9 +1,9 @@
 import type { ProjectDetails } from "@/lib/data/project-details"
-import { TimeCard } from "@/components/projects/TimeCard"
-import { BacklogCard } from "@/components/projects/BacklogCard"
-import { QuickLinksCard } from "@/components/projects/QuickLinksCard"
+import { TimeCard } from "@/components/projects/time-card"
+import { BacklogCard } from "@/components/projects/backlog-card"
+import { QuickLinksCard } from "@/components/projects/quick-links-card"
 import { Separator } from "@/components/ui/separator"
-import { ClientCard } from "@/components/projects/ClientCard"
+import { ClientCard } from "@/components/projects/client-card"
 import { getClientByName } from "@/lib/data/clients"
 
 type RightMetaPanelProps = {

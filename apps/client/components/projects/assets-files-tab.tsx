@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react"
 
 import type { ProjectFile, User } from "@/lib/data/project-details"
-import { RecentFileCard } from "@/components/projects/RecentFileCard"
-import { FilesTable } from "@/components/projects/FilesTable"
-import { AddFileModal } from "@/components/projects/AddFileModal"
+import { RecentFileCard } from "@/components/projects/recent-file-card"
+import { FilesTable } from "@/components/projects/files-table"
+import { AddFileModal } from "@/components/projects/add-file-modal"
 
 type AssetsFilesTabProps = {
     files: ProjectFile[]

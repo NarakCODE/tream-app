@@ -29,7 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { ProgressCircle } from "@/components/progress-circle"
 import { cn } from "@/lib/utils"
-import { TaskRowBase } from "@/components/tasks/TaskRowBase"
+import { TaskRowBase } from "@/components/tasks/task-row-base"
 
 type WorkstreamTabProps = {
   workstreams: WorkstreamGroup[] | undefined

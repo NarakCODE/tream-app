@@ -3,7 +3,7 @@ import { ArrowsClockwise, Globe, Timer } from "@phosphor-icons/react/dist/ssr"
 
 import type { ProjectDetails } from "@/lib/data/project-details"
 import { Separator } from "@/components/ui/separator"
-import { MetaChipsRow } from "@/components/projects/MetaChipsRow"
+import { MetaChipsRow } from "@/components/projects/meta-chips-row"
 import { Badge } from "@/components/ui/badge"
 import { PriorityBadge, type PriorityLevel } from "@/components/priority-badge"
 import { Button } from "@/components/ui/button"

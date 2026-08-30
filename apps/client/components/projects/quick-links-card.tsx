@@ -7,7 +7,7 @@ import type { QuickLink } from "@/lib/data/project-details"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { FileLinkRow } from "@/components/projects/FileLinkRow"
+import { FileLinkRow } from "@/components/projects/file-link-row"
 
 type QuickLinksCardProps = {
   links: QuickLink[]

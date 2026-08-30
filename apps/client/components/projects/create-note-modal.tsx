@@ -6,8 +6,8 @@ import { Paperclip, Microphone, UploadSimple, Tag, X } from "@phosphor-icons/rea
 import type { User } from "@/lib/data/project-details"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { QuickCreateModalLayout } from "@/components/QuickCreateModalLayout"
-import { ProjectDescriptionEditor } from "@/components/project-wizard/ProjectDescriptionEditor"
+import { QuickCreateModalLayout } from "@/components/quick-create-modal-layout"
+import { ProjectDescriptionEditor } from "@/components/project-wizard/project-description-editor"
 
 type CreateNoteModalProps = {
     open: boolean

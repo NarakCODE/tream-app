@@ -40,8 +40,8 @@ import {
   CaretUpDown,
 } from "@phosphor-icons/react/dist/ssr"
 import { activeProjects, footerItems, navItems, type NavItemId, type SidebarFooterItemId } from "@/lib/data/sidebar"
-import { SettingsDialog } from "@/components/settings/SettingsDialog"
-import { AuthDialog, type AuthMode } from "@/components/auth/AuthDialog"
+import { SettingsDialog } from "@/components/settings/settings-dialog"
+import { AuthDialog, type AuthMode } from "@/components/auth/auth-dialog"
 
 const navItemIcons: Record<NavItemId, React.ComponentType<{ className?: string }>> = {
   inbox: Tray,

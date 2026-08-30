@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
-import { InboxFilterPopover } from "./InboxFilterPopover"
+import { InboxFilterPopover } from "./inbox-filter-popover"
 
 type InboxItemType = "comment" | "task" | "client" | "project" | "system"
 

@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import type { ProjectTask } from "@/lib/data/project-details"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { TAG_OPTIONS } from "@/components/tasks/TaskQuickCreateModal"
+import { TAG_OPTIONS } from "@/components/tasks/task-quick-create-modal"
 
 type TaskBoardCardVariant = "default" | "completed" | "empty"
 

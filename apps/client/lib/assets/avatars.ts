@@ -1,12 +1,30 @@
-export function getAvatarUrl(name?: string): string | undefined {
-  if (!name) return undefined
-  const key = name.trim().toLowerCase()
+import { getUserAvatarUrl, getDicebearUrl, type DicebearOptions } from "@/lib/dicebear";
 
-  // Sync with avatar config in SidebarFooter (app-sidebar.tsx).
-  // In this demo, only the primary user uses a real photo; others fall back to initials.
+export {
+  getDicebearUrl,
+  getGlassAvatarUrl,
+  getUserAvatarUrl,
+  getCompanyLogoUrl,
+  getBotAvatarUrl,
+  getWorkspaceIconUrl,
+  getMockImageUrl,
+  type DicebearStyle,
+  type DicebearFormat,
+  type DicebearOptions,
+} from "@/lib/dicebear";
+
+/**
+ * Returns a profile photo or deterministic Dicebear glass avatar URL.
+ */
+export function getAvatarUrl(name?: string, options?: Omit<DicebearOptions, "seed">): string | undefined {
+  if (!name) return undefined;
+  const key = name.trim().toLowerCase();
+
+  // Custom photo overrides
   if (key === "jason duong" || key === "jason d" || key === "jd") {
-    return "/avatar-profile.jpg"
+    return "/avatar-profile.jpg";
   }
 
-  return undefined
+  // Generate deterministic Glass / Dicebear avatar
+  return getUserAvatarUrl(name, options);
 }

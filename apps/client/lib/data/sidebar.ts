@@ -16,6 +16,9 @@ export type ActiveProjectSummary = {
     progress: number
 }
 
+export type ActiveProject = ActiveProjectSummary
+
+
 export type SidebarFooterItem = {
     id: SidebarFooterItemId
     label: string

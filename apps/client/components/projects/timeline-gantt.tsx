@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react"
 import { addDays, differenceInDays, format, isWithinInterval, startOfWeek } from "date-fns"
 

@@ -1,3 +1,5 @@
+"use client"
+
 import React from "react";
 import { Lightning, Compass, Check, CaretRight, X } from '@phosphor-icons/react';
 import { Button } from "../../ui/button";

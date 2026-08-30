@@ -1,3 +1,5 @@
+"use client"
+
 import { ProjectData } from "../types";
 import { Card } from "../../ui/card";
 import { Separator } from "../../ui/separator";

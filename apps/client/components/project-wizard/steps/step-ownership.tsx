@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useMemo, useState } from "react";
 import { ProjectData, OwnershipEntry } from "../types";
 import { Label } from "../../ui/label";

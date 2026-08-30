@@ -1,3 +1,5 @@
+"use client"
+
 import { Rocket, Flask, Briefcase, Check } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 import { ProjectIntent } from "../types";

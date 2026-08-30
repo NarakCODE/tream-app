@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react";
 import { format, parse } from "date-fns";
 import { ProjectData, SuccessType, DeadlineType, ProjectDeliverable, ProjectMetric } from "../types";

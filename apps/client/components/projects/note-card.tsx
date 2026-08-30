@@ -1,3 +1,5 @@
+"use client"
+
 import { File, DotsThree, Waveform } from "@phosphor-icons/react/dist/ssr"
 import { format } from "date-fns"
 

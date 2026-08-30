@@ -33,3 +33,17 @@ NestJS uses Jest with `ts-jest`. Name unit tests `*.spec.ts` under `apps/server/
 ## Commits & Pull Requests
 
 The visible history contains only the initial scaffold, so no commit convention is established. Use short imperative subjects (for example, `Add workspace invitation endpoint`). Keep commits focused. Pull requests should summarize behavior, list validation commands, link the relevant issue, and include screenshots for visual web/docs changes. Call out configuration or migration changes explicitly.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs are tracked in GitHub Issues using the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the canonical `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix` labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+This repository uses a single-context domain documentation layout. See `docs/agents/domain.md`.

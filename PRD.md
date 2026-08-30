@@ -34,31 +34,37 @@ Brain is an **agent-native CRM and dynamic workspace platform** that integrates 
 
 ---
 
+
+
 # 2. Ubiquitous Language
 
-| Term | Context | Definition |
-| :--- | :--- | :--- |
-| **Workspace** | Identity | The root tenant boundary. All data, members, agents, and integrations belong to a single workspace. |
-| **Membership** | Identity | The association between a User and a Workspace, bound by a specific `Role` (`OWNER`, `ADMIN`, `MEMBER`, `GUEST`). |
-| **Database** | Dynamic Data | A user-defined relational schema definition containing custom typed fields and tabular records. |
-| **Field Definition**| Dynamic Data | A typed attribute within a database (`TEXT`, `NUMBER`, `SELECT`, `RELATION`, `DATE`, etc.) with validation constraints. |
-| **Record** | Dynamic Data | An individual row/entity in a Database holding validated attribute-value pairs. |
-| **Contact** | CRM | An individual person or correspondent tracked in the workspace CRM pipeline. |
-| **Company** | CRM | An organization or account associated with multiple contacts and deals. |
-| **Deal** | CRM | A sales opportunity moving through defined pipeline stages with monetary value. |
-| **Task** | CRM | An actionable item assigned to a member, optionally linked to a Contact, Deal, or Agent Run. |
-| **Integration** | Integration | An authenticated connection to a third-party service (e.g., Google Workspace/Gmail) with OAuth token lifecycle. |
-| **Anti-Corruption Layer (ACL)** | Integration | Translation boundary converting vendor-specific payloads (e.g., Gmail API) into clean domain models. |
-| **Domain Event** | Eventing | An immutable fact that occurred within a bounded context (`contact.created`, `email.received`). |
-| **Agent** | Core Agentic | An autonomous workflow definition with a system prompt, assigned tools (Skills), and an Approval Policy. |
-| **Trigger** | Core Agentic | An automated activation rule for an Agent (Event-based or Cron Schedule). |
-| **Trigger Condition** | Core Agentic | A predicate evaluated against event payloads to filter whether an Agent Run should be scheduled. |
-| **Skill** | Core Agentic | A deterministic capability/tool exposed to the LLM (e.g., `contacts.create`, `mail.create_draft`). |
-| **Agent Run** | Core Agentic | A stateful execution instance of an Agent responding to a Trigger or manual invocation. |
-| **Run Step** | Core Agentic | An individual execution node within an Agent Run (LLM inference, Tool invocation, Approval wait). |
-| **Approval Request**| Core Agentic | A Human-in-the-Loop barrier requiring explicit user sign-off before executing high-risk external actions. |
+
+| Term                            | Context      | Definition                                                                                                              |
+| ------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **Workspace**                   | Identity     | The root tenant boundary. All data, members, agents, and integrations belong to a single workspace.                     |
+| **Membership**                  | Identity     | The association between a User and a Workspace, bound by a specific `Role` (`OWNER`, `ADMIN`, `MEMBER`, `GUEST`).       |
+| **Database**                    | Dynamic Data | A user-defined relational schema definition containing custom typed fields and tabular records.                         |
+| **Field Definition**            | Dynamic Data | A typed attribute within a database (`TEXT`, `NUMBER`, `SELECT`, `RELATION`, `DATE`, etc.) with validation constraints. |
+| **Record**                      | Dynamic Data | An individual row/entity in a Database holding validated attribute-value pairs.                                         |
+| **Contact**                     | CRM          | An individual person or correspondent tracked in the workspace CRM pipeline.                                            |
+| **Company**                     | CRM          | An organization or account associated with multiple contacts and deals.                                                 |
+| **Deal**                        | CRM          | A sales opportunity moving through defined pipeline stages with monetary value.                                         |
+| **Task**                        | CRM          | An actionable item assigned to a member, optionally linked to a Contact, Deal, or Agent Run.                            |
+| **Integration**                 | Integration  | An authenticated connection to a third-party service (e.g., Google Workspace/Gmail) with OAuth token lifecycle.         |
+| **Anti-Corruption Layer (ACL)** | Integration  | Translation boundary converting vendor-specific payloads (e.g., Gmail API) into clean domain models.                    |
+| **Domain Event**                | Eventing     | An immutable fact that occurred within a bounded context (`contact.created`, `email.received`).                         |
+| **Agent**                       | Core Agentic | An autonomous workflow definition with a system prompt, assigned tools (Skills), and an Approval Policy.                |
+| **Trigger**                     | Core Agentic | An automated activation rule for an Agent (Event-based or Cron Schedule).                                               |
+| **Trigger Condition**           | Core Agentic | A predicate evaluated against event payloads to filter whether an Agent Run should be scheduled.                        |
+| **Skill**                       | Core Agentic | A deterministic capability/tool exposed to the LLM (e.g., `contacts.create`, `mail.create_draft`).                      |
+| **Agent Run**                   | Core Agentic | A stateful execution instance of an Agent responding to a Trigger or manual invocation.                                 |
+| **Run Step**                    | Core Agentic | An individual execution node within an Agent Run (LLM inference, Tool invocation, Approval wait).                       |
+| **Approval Request**            | Core Agentic | A Human-in-the-Loop barrier requiring explicit user sign-off before executing high-risk external actions.               |
+
 
 ---
+
+
 
 # 3. Context Map & Architectural Blueprint
 
@@ -119,45 +125,62 @@ flowchart TB
     SkillRegistry -->|Send / Draft via ACL| GmailACL
 ```
 
+
+
 ---
+
+
 
 # 4. API Conventions & Cross-Cutting Standards
 
+
+
 ### 4.1 Base URL & Content Negotiation
+
 - **Base URL:** `/api/v1`
 - **Headers:**
   - `Authorization: Bearer <jwt_access_token>`
   - `Content-Type: application/json`
   - `Idempotency-Key: <uuid_v4>` *(Required on mutating POST/PATCH actions)*
 
+
+
 ### 4.2 Prefixed Domain Identifiers (Type-Safe & Debuggable)
+
 All entity identifiers use unambiguous, URL-safe prefixed ULIDs/UUIDs:
 
-| Prefix | Entity | Example |
-| :--- | :--- | :--- |
-| `usr_` | User | `usr_01J8A4K...` |
-| `ws_` | Workspace | `ws_01J8A4M...` |
-| `mbr_` | Workspace Member | `mbr_01J8A4P...` |
-| `db_` | Database | `db_01J8A4R...` |
-| `fld_` | Database Field | `fld_01J8A4T...` |
-| `rec_` | Database Record | `rec_01J8A4V...` |
-| `con_` | Contact | `con_01J8A4W...` |
-| `cmp_` | Company | `cmp_01J8A4X...` |
-| `del_` | Deal | `del_01J8A4Y...` |
-| `tsk_` | Task | `tsk_01J8A4Z...` |
+
+| Prefix | Entity                 | Example          |
+| ------ | ---------------------- | ---------------- |
+| `usr_` | User                   | `usr_01J8A4K...` |
+| `ws_`  | Workspace              | `ws_01J8A4M...`  |
+| `mbr_` | Workspace Member       | `mbr_01J8A4P...` |
+| `db_`  | Database               | `db_01J8A4R...`  |
+| `fld_` | Database Field         | `fld_01J8A4T...` |
+| `rec_` | Database Record        | `rec_01J8A4V...` |
+| `con_` | Contact                | `con_01J8A4W...` |
+| `cmp_` | Company                | `cmp_01J8A4X...` |
+| `del_` | Deal                   | `del_01J8A4Y...` |
+| `tsk_` | Task                   | `tsk_01J8A4Z...` |
 | `int_` | Integration Connection | `int_01J8A50...` |
-| `evt_` | Domain Event | `evt_01J8A51...` |
-| `agt_` | Agent | `agt_01J8A52...` |
-| `trg_` | Agent Trigger | `trg_01J8A53...` |
-| `cnd_` | Trigger Condition | `cnd_01J8A54...` |
-| `skl_` | Skill / Tool | `skl_01J8A55...` |
-| `run_` | Agent Run | `run_01J8A56...` |
-| `stp_` | Run Step | `stp_01J8A57...` |
-| `app_` | Approval Request | `app_01J8A58...` |
+| `evt_` | Domain Event           | `evt_01J8A51...` |
+| `agt_` | Agent                  | `agt_01J8A52...` |
+| `trg_` | Agent Trigger          | `trg_01J8A53...` |
+| `cnd_` | Trigger Condition      | `cnd_01J8A54...` |
+| `skl_` | Skill / Tool           | `skl_01J8A55...` |
+| `run_` | Agent Run              | `run_01J8A56...` |
+| `stp_` | Run Step               | `stp_01J8A57...` |
+| `app_` | Approval Request       | `app_01J8A58...` |
+
+
+
 
 ### 4.3 Standard Envelope Responses
 
+
+
 #### Success (Single Entity)
+
 ```json
 {
   "data": {
@@ -172,7 +195,10 @@ All entity identifiers use unambiguous, URL-safe prefixed ULIDs/UUIDs:
 }
 ```
 
+
+
 #### Success (Cursor Paginated Collection)
+
 ```json
 {
   "data": [],
@@ -188,7 +214,10 @@ All entity identifiers use unambiguous, URL-safe prefixed ULIDs/UUIDs:
 }
 ```
 
+
+
 #### Standard Error Response
+
 ```json
 {
   "error": {
@@ -209,6 +238,8 @@ All entity identifiers use unambiguous, URL-safe prefixed ULIDs/UUIDs:
 `VALIDATION_FAILED`, `UNAUTHORIZED`, `FORBIDDEN`, `RESOURCE_NOT_FOUND`, `RESOURCE_CONFLICT`, `APPROVAL_REQUIRED`, `RATE_LIMITED`, `INTEGRATION_ERROR`, `AGENT_EXECUTION_ERROR`, `INTERNAL_ERROR`.
 
 ---
+
+
 
 # 5. Bounded Context 1: Identity & Access Management (IAM)
 
@@ -240,14 +271,24 @@ classDiagram
     Workspace "1" -- "1..*" Membership
 ```
 
+
+
+
+
 ### 5.1 Invariants & Business Rules
+
 1. Every workspace must have at least one member with the `OWNER` role.
 2. The last `OWNER` cannot leave or be deleted from a workspace.
 3. Workspace slugs are unique, lowercase alphanumeric with hyphens.
 
+
+
 ### 5.2 Endpoints
 
+
+
 #### Authentication
+
 - `POST /auth/signup` - Register new user account.
 - `POST /auth/login` - Authenticate with email and password (returns JWT access & refresh tokens).
 - `POST /auth/magic-link` - Request passwordless login token via email.
@@ -257,21 +298,30 @@ classDiagram
 - `GET /me` - Get current authenticated user profile.
 - `PATCH /me` - Update current user profile.
 
+
+
 #### Workspaces
+
 - `GET /workspaces` - List workspaces the current user belongs to.
 - `POST /workspaces` - Create a new workspace (creator automatically becomes `OWNER`).
 - `GET /workspaces/:workspaceId` - Get workspace details.
 - `PATCH /workspaces/:workspaceId` - Update workspace metadata (`ADMIN` or `OWNER` only).
 - `DELETE /workspaces/:workspaceId` - Soft-delete workspace (`OWNER` only).
 
+
+
 #### Workspace Members
+
 - `GET /workspaces/:workspaceId/members` - List workspace members.
 - `POST /workspaces/:workspaceId/members` - Invite member by email (`role: "ADMIN" | "MEMBER" | "GUEST"`).
 - `GET /workspaces/:workspaceId/members/:memberId` - Get member details.
 - `PATCH /workspaces/:workspaceId/members/:memberId` - Change member role (`ADMIN` or `OWNER` only).
 - `DELETE /workspaces/:workspaceId/members/:memberId` - Remove member from workspace.
 
+
+
 ### 5.3 Domain Events
+
 - `UserRegistered (userId, email)`
 - `WorkspaceCreated (workspaceId, ownerUserId, name, slug)`
 - `MemberJoined (workspaceId, memberId, userId, role)`
@@ -279,6 +329,8 @@ classDiagram
 - `MemberRemoved (workspaceId, memberId, userId)`
 
 ---
+
+
 
 # 6. Bounded Context 2: Dynamic Data Platform (Databases, Fields, Records)
 
@@ -315,18 +367,29 @@ classDiagram
     Database "1" *-- "0..*" Record
 ```
 
+
+
+
+
 ### 6.1 Supported Field Types (MVP)
+
 `TEXT`, `LONG_TEXT`, `NUMBER`, `CURRENCY`, `BOOLEAN`, `DATE`, `DATETIME`, `EMAIL`, `PHONE`, `URL`, `SELECT`, `MULTI_SELECT`, `STATUS`, `USER`, `RELATION`, `CREATED_AT`, `UPDATED_AT`.
 
 ### 6.2 Invariants & Business Rules
+
 1. Field `key` must be unique within a single database.
 2. Record values are strictly validated against active `FieldDefinition` rules on `POST` and `PATCH`.
 3. Deleting a field retains record JSONB history but removes validation enforcement.
 4. Soft-deleted records can be restored within 30 days.
 
+
+
 ### 6.3 Endpoints
 
+
+
 #### Databases
+
 - `GET /workspaces/:workspaceId/databases` - List databases in a workspace.
 - `POST /workspaces/:workspaceId/databases` - Create custom database.
 - `GET /databases/:databaseId` - Get database schema details.
@@ -334,14 +397,20 @@ classDiagram
 - `DELETE /databases/:databaseId` - Delete database and cascade its records.
 - `POST /databases/:databaseId/duplicate` - Duplicate schema structure.
 
+
+
 #### Database Fields
+
 - `GET /databases/:databaseId/fields` - List field definitions for a database.
 - `POST /databases/:databaseId/fields` - Add a field definition (`name`, `type`, `isRequired`, `config`).
 - `GET /database-fields/:fieldId` - Get single field definition.
 - `PATCH /database-fields/:fieldId` - Update field config or name.
 - `DELETE /database-fields/:fieldId` - Remove field definition.
 
+
+
 #### Database Records
+
 - `GET /databases/:databaseId/records` - List records (supports `limit`, `cursor`, `sortField`, `sortDirection`).
 - `POST /databases/:databaseId/records` - Create a single record (`values: { [fieldKey]: value }`).
 - `GET /records/:recordId` - Retrieve single record.
@@ -352,8 +421,12 @@ classDiagram
 - `PATCH /databases/:databaseId/records/bulk` - Batch update records.
 - `POST /databases/:databaseId/records/bulk-delete` - Batch delete records.
 
+
+
 #### Database Query Engine
+
 - `POST /databases/:databaseId/query` - Advanced AST filter query:
+
 ```json
 {
   "filter": {
@@ -368,7 +441,10 @@ classDiagram
 }
 ```
 
+
+
 ### 6.4 Domain Events
+
 - `DatabaseCreated (workspaceId, databaseId, name)`
 - `FieldCreated (databaseId, fieldId, key, type)`
 - `RecordCreated (workspaceId, databaseId, recordId, values)`
@@ -376,6 +452,8 @@ classDiagram
 - `RecordDeleted (workspaceId, databaseId, recordId)`
 
 ---
+
+
 
 # 7. Bounded Context 3: CRM Core Domain (Contacts, Companies, Deals, Tasks)
 
@@ -427,15 +505,25 @@ classDiagram
     Task "0..1" -- "0..1" Deal
 ```
 
+
+
+
+
 ### 7.1 Invariants & Business Rules
+
 1. Contact email must be unique per workspace (duplicate emails trigger merge recommendations).
 2. Deal amounts must be non-negative values.
 3. Deal stage transitions emit `DealStageChanged` domain events to trigger automated agent workflows.
 4. Tasks can be standalone or linked to a Contact, Company, or Deal.
 
+
+
 ### 7.2 Endpoints
 
+
+
 #### Contacts
+
 - `GET /workspaces/:workspaceId/contacts` - List contacts with cursor pagination.
 - `POST /workspaces/:workspaceId/contacts` - Create contact.
 - `GET /contacts/:contactId` - Get contact details.
@@ -445,7 +533,10 @@ classDiagram
 - `GET /contacts/:contactId/timeline` - Get aggregated timeline (emails, tasks, deals, agent notes).
 - `POST /contacts/:contactId/merge` - Merge duplicate contact (`{ "duplicateContactId": "con_..." }`).
 
+
+
 #### Companies
+
 - `GET /workspaces/:workspaceId/companies` - List companies.
 - `POST /workspaces/:workspaceId/companies` - Create company.
 - `GET /companies/:companyId` - Get company details.
@@ -455,7 +546,10 @@ classDiagram
 - `GET /companies/:companyId/contacts` - Get all contacts belonging to company.
 - `GET /companies/:companyId/deals` - Get all deals linked to company.
 
+
+
 #### Deals
+
 - `GET /workspaces/:workspaceId/deals` - List deals (supports filtering by `stage`, `companyId`).
 - `POST /workspaces/:workspaceId/deals` - Create new deal.
 - `GET /deals/:dealId` - Get deal details.
@@ -465,7 +559,10 @@ classDiagram
 - `POST /deals/:dealId/contacts` - Associate contact with deal.
 - `DELETE /deals/:dealId/contacts/:contactId` - Remove contact from deal.
 
+
+
 #### Tasks
+
 - `GET /workspaces/:workspaceId/tasks` - List tasks (`status: "TODO" | "IN_PROGRESS" | "DONE"`, `assigneeId`).
 - `POST /workspaces/:workspaceId/tasks` - Create task.
 - `GET /tasks/:taskId` - Get task details.
@@ -475,7 +572,10 @@ classDiagram
 - `POST /tasks/:taskId/complete` - Mark task as completed.
 - `POST /tasks/:taskId/reopen` - Reopen task.
 
+
+
 ### 7.3 Domain Events
+
 - `ContactCreated (workspaceId, contactId, email, name)`
 - `ContactUpdated (workspaceId, contactId, changedFields)`
 - `CompanyCreated (workspaceId, companyId, domain, name)`
@@ -485,6 +585,8 @@ classDiagram
 - `TaskCompleted (workspaceId, taskId, completedBy)`
 
 ---
+
+
 
 # 8. Bounded Context 4: External Integrations & Anti-Corruption Layer (Gmail)
 
@@ -512,14 +614,24 @@ flowchart LR
     Translator -->|Emit Normalized Event| DomainEvent
 ```
 
+
+
+
+
 ### 8.1 Invariants & Security Rules
+
 1. OAuth refresh and access tokens must be **encrypted at rest** (AES-256-GCM) with tenant-isolated key derivation.
 2. Direct Gmail API schemas must never leak into Core Domain models; all payloads are translated by the Gmail ACL.
 3. Outbound emails executed by Agents must strictly obey the workspace/agent `ApprovalPolicy`.
 
+
+
 ### 8.2 Endpoints
 
+
+
 #### Integrations Management
+
 - `GET /integration-providers` - List supported providers (`["gmail"]`).
 - `GET /workspaces/:workspaceId/integrations` - List active integration connections.
 - `GET /integrations/:integrationId` - Get integration connection status.
@@ -529,7 +641,10 @@ flowchart LR
 - `POST /integrations/:integrationId/reconnect` - Initiate re-authentication flow.
 - `DELETE /integrations/:integrationId` - Revoke tokens and disconnect integration.
 
+
+
 #### Gmail Normalized APIs (via ACL)
+
 - `GET /integrations/:integrationId/emails` - Search emails (`query`, `from`, `to`, `after`, `before`, `limit`).
 - `GET /integrations/:integrationId/emails/:messageId` - Get normalized email message.
 - `GET /integrations/:integrationId/email-threads/:threadId` - Get normalized thread messages.
@@ -538,13 +653,18 @@ flowchart LR
 - `POST /integrations/:integrationId/email-drafts/:draftId/send` - Send an existing draft.
 - `POST /integrations/:integrationId/emails/send` - Send direct email (requires approval if triggered by agent).
 
+
+
 ### 8.3 Integration Events
+
 - `IntegrationConnected (workspaceId, integrationId, provider: "gmail", accountEmail)`
 - `IntegrationAuthFailed (workspaceId, integrationId, provider: "gmail", reason)`
 - `EmailReceived (workspaceId, integrationId, messageId, threadId, from, to, subject, bodySnippet, date)`
 - `EmailSent (workspaceId, integrationId, messageId, threadId, to, subject)`
 
 ---
+
+
 
 # 9. Bounded Context 5: Eventing & Ingestion Backbone
 
@@ -564,31 +684,42 @@ sequenceDiagram
     Bus->>Agent: Deliver to matching Triggers
 ```
 
+
+
+
+
 ### 9.1 Standard MVP Event Catalog
 
-| Event Name | Producer Context | Description |
-| :--- | :--- | :--- |
-| `workspace.created` | IAM | A new workspace was provisioned. |
-| `database.record.created` | Dynamic Data | A record was added to a database. |
-| `database.record.updated` | Dynamic Data | A record was updated. |
-| `database.record.deleted` | Dynamic Data | A record was soft-deleted. |
-| `contact.created` | CRM | A contact was created. |
-| `contact.updated` | CRM | A contact's profile was modified. |
-| `deal.created` | CRM | A deal was created. |
-| `deal.stage_changed` | CRM | A deal transitioned to a new pipeline stage. |
-| `task.created` | CRM | A task was created. |
-| `task.completed` | CRM | A task was marked complete. |
-| `email.received` | Gmail ACL | A new email arrived in connected inbox. |
-| `email.sent` | Gmail ACL | An email was dispatched. |
-| `agent.run.completed` | Agent Core | An agent run completed successfully. |
-| `agent.run.failed` | Agent Core | An agent run failed. |
+
+| Event Name                | Producer Context | Description                                  |
+| ------------------------- | ---------------- | -------------------------------------------- |
+| `workspace.created`       | IAM              | A new workspace was provisioned.             |
+| `database.record.created` | Dynamic Data     | A record was added to a database.            |
+| `database.record.updated` | Dynamic Data     | A record was updated.                        |
+| `database.record.deleted` | Dynamic Data     | A record was soft-deleted.                   |
+| `contact.created`         | CRM              | A contact was created.                       |
+| `contact.updated`         | CRM              | A contact's profile was modified.            |
+| `deal.created`            | CRM              | A deal was created.                          |
+| `deal.stage_changed`      | CRM              | A deal transitioned to a new pipeline stage. |
+| `task.created`            | CRM              | A task was created.                          |
+| `task.completed`          | CRM              | A task was marked complete.                  |
+| `email.received`          | Gmail ACL        | A new email arrived in connected inbox.      |
+| `email.sent`              | Gmail ACL        | An email was dispatched.                     |
+| `agent.run.completed`     | Agent Core       | An agent run completed successfully.         |
+| `agent.run.failed`        | Agent Core       | An agent run failed.                         |
+
+
+
 
 ### 9.2 Endpoints
+
 - `GET /workspaces/:workspaceId/events` - Query event audit log (filters: `eventType`, `from`, `to`, `limit`, `cursor`).
 - `GET /events/:eventId` - Get event payload details.
 - `POST /events/:eventId/reprocess` - Manually re-dispatch event through trigger matcher.
 
 ---
+
+
 
 # 10. Bounded Context 6: Agentic Automation Engine (CORE DOMAIN)
 
@@ -619,11 +750,18 @@ stateDiagram-v2
     CANCELLED --> [*]
 ```
 
+
+
+
+
 ### 10.1 Approval Policies
+
 - `NONE` - Agent can execute all assigned skills autonomously.
 - `EXTERNAL_ACTIONS` - Agent can read/write internal CRM/DB, but external actions (`mail.send`, external webhooks) require approval. *(Default)*
 - `EVERY_WRITE` - Any mutation (CRM update, record creation, sending email) requires user approval.
 - `ALWAYS` - Every tool execution requires approval.
+
+
 
 ### 10.2 Built-In MVP Skills Catalog
 
@@ -647,17 +785,26 @@ tasks.create             -> Create task for member
 tasks.update             -> Update or complete task
 ```
 
+
+
 ### 10.3 Invariants & Business Rules
+
 1. An inactive agent (`isEnabled: false`) will ignore incoming triggers.
 2. Agents cannot execute skills outside their explicitly configured `skillPermissions`.
 3. If an action requires approval, the run transitions to `WAITING_FOR_APPROVAL` and pauses execution until approved or rejected.
 4. Approval requests timeout after 7 days if unaddressed, marking the run as `EXPIRED`.
 
+
+
 ### 10.4 Endpoints
 
+
+
 #### Agent Definitions
+
 - `GET /workspaces/:workspaceId/agents` - List agents in workspace.
 - `POST /workspaces/:workspaceId/agents` - Create agent:
+
 ```json
 {
   "name": "Lead Intake Agent",
@@ -668,6 +815,7 @@ tasks.update             -> Update or complete task
   "skills": ["mail.search", "mail.read_thread", "contacts.create", "tasks.create"]
 }
 ```
+
 - `GET /agents/:agentId` - Get agent configuration.
 - `PATCH /agents/:agentId` - Update agent prompt, policy, or skills.
 - `DELETE /agents/:agentId` - Delete agent.
@@ -675,9 +823,13 @@ tasks.update             -> Update or complete task
 - `POST /agents/:agentId/disable` - Deactivate agent.
 - `POST /agents/:agentId/duplicate` - Clone agent configuration.
 
+
+
 #### Agent Triggers & Conditions
+
 - `GET /agents/:agentId/triggers` - List triggers for agent.
 - `POST /agents/:agentId/triggers` - Add trigger (`type: "EVENT" | "SCHEDULE"`):
+
 ```json
 {
   "type": "EVENT",
@@ -685,10 +837,12 @@ tasks.update             -> Update or complete task
   "integrationId": "int_01J8A50..."
 }
 ```
+
 - `GET /agent-triggers/:triggerId` - Get trigger details.
 - `PATCH /agent-triggers/:triggerId` - Update trigger.
 - `DELETE /agent-triggers/:triggerId` - Remove trigger.
 - `POST /agent-triggers/:triggerId/conditions` - Add condition to trigger:
+
 ```json
 {
   "field": "from",
@@ -696,9 +850,13 @@ tasks.update             -> Update or complete task
   "value": "@mycompany.com"
 }
 ```
+
 - `DELETE /trigger-conditions/:conditionId` - Remove condition.
 
+
+
 #### Agent Runs & Observability
+
 - `POST /agents/:agentId/run` - Manually trigger an agent run (returns `202 Accepted` with `runId`).
 - `GET /workspaces/:workspaceId/agent-runs` - List runs (`agentId`, `status`, `from`, `to`, cursor).
 - `GET /agent-runs/:runId` - Get run status, token usage, and summary.
@@ -709,11 +867,15 @@ tasks.update             -> Update or complete task
 - `GET /agent-runs/:runId/logs` - Operational audit log stream (without exposing hidden chain-of-thought).
 - `GET /agent-runs/:runId/stream` - **SSE Real-time Stream** delivering real-time step events to the UI.
 
+
+
 #### Human-in-the-Loop Approvals
+
 - `GET /workspaces/:workspaceId/approvals` - List pending approvals (`status: "PENDING" | "APPROVED" | "REJECTED"`).
 - `GET /approvals/:approvalId` - Get approval details (action requested, tool name, input payload, diff).
 - `POST /approvals/:approvalId/approve` - Approve action and resume agent execution.
 - `POST /approvals/:approvalId/reject` - Reject action with optional feedback:
+
 ```json
 {
   "reason": "Draft body is too formal. Please revise."
@@ -721,6 +883,8 @@ tasks.update             -> Update or complete task
 ```
 
 ---
+
+
 
 # 11. Backend Architecture & NestJS Module Structure
 
@@ -781,6 +945,8 @@ apps/server/src/
 ```
 
 ---
+
+
 
 # 12. Drizzle ORM Database Schema Design (PostgreSQL)
 
@@ -1008,7 +1174,11 @@ export const approvals = pgTable('approvals', {
 });
 ```
 
+
+
 ---
+
+
 
 # 13. Background Jobs & Distributed Queue Architecture
 
@@ -1038,6 +1208,9 @@ flowchart TD
     GmailWorker -->|Pushes Raw Emails to ACL| EventQ
 ```
 
-1. **`event-dispatch-queue`**: Consumes normalized domain events, evaluates agent trigger conditions, and enqueues agent runs.
-2. **`agent-execution-queue`**: Drives the agent LLM step-loop, manages tool execution, checks approval policies, and updates run state.
-3. **`gmail-sync-queue`**: Periodically checks connected inboxes or processes Google Pub/Sub push notifications.
+
+
+1. `event-dispatch-queue`: Consumes normalized domain events, evaluates agent trigger conditions, and enqueues agent runs.
+2. `agent-execution-queue`: Drives the agent LLM step-loop, manages tool execution, checks approval policies, and updates run state.
+3. `gmail-sync-queue`: Periodically checks connected inboxes or processes Google Pub/Sub push notifications.
+

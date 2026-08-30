@@ -1,3 +1,5 @@
+"use client"
+
 import { Star, User, PencilSimpleLine } from "@phosphor-icons/react/dist/ssr"
 import { ArrowsClockwise, Globe, Timer } from "@phosphor-icons/react/dist/ssr"
 

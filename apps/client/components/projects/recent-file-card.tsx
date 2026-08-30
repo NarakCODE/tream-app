@@ -1,3 +1,5 @@
+"use client"
+
 import { DotsThree } from "@phosphor-icons/react/dist/ssr"
 
 import type { ProjectFile } from "@/lib/data/project-details"

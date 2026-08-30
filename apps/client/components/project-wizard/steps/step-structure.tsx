@@ -1,3 +1,5 @@
+"use client"
+
 import { ProjectData, WorkStructure } from "../types";
 import { cn } from "@/lib/utils";
 

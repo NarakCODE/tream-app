@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Check, SortV, Plus, Settings } from "reicon-react"
+import { getGlassAvatarUrl } from "@/lib/dicebear"
 import { cn } from "@/lib/utils"
 
 export interface Workspace {
@@ -34,17 +34,19 @@ const defaultWorkspaces: Workspace[] = [
     id: "1",
     name: "Workspace",
     plan: "Pro plan",
-    logo: "/logo-wrapper.png",
+    logo: getGlassAvatarUrl("Workspace"),
   },
   {
     id: "2",
     name: "Acme Inc",
     plan: "Free plan",
+    logo: getGlassAvatarUrl("Acme Inc"),
   },
   {
     id: "3",
     name: "Design Team",
     plan: "Team plan",
+    logo: getGlassAvatarUrl("Design Team"),
   },
 ]
 
@@ -58,6 +60,9 @@ export function WorkspaceSwitcher({
   const currentWorkspace =
     workspaces.find((w) => w.id === currentWorkspaceId) ?? workspaces[0]
 
+  const currentLogo =
+    currentWorkspace.logo || getGlassAvatarUrl(currentWorkspace.name)
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -69,27 +74,19 @@ export function WorkspaceSwitcher({
           )}
         >
           <div className="flex items-center gap-3">
-            <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-blue-800 text-primary-foreground shadow-[inset_0_-5px_6.6px_0_rgba(0,0,0,0.25)]">
-              {currentWorkspace.logo ? (
-                <Image
-                  src={currentWorkspace.logo}
-                  alt={currentWorkspace.name}
-                  width={16}
-                  height={16}
-                  className="object-contain"
-                />
-              ) : (
-                <span className="text-xs font-semibold">
-                  {currentWorkspace.name.charAt(0)}
-                </span>
-              )}
+            <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/40 shadow-xs">
+              <img
+                src={currentLogo}
+                alt={currentWorkspace.name}
+                className="h-full w-full object-cover"
+              />
             </div>
 
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-sm font-semibold leading-none">
                 {currentWorkspace.name}
               </span>
-              <span className="truncate text-xs text-muted-foreground">
+              <span className="truncate text-xs text-muted-foreground mt-1">
                 {currentWorkspace.plan}
               </span>
             </div>
@@ -100,7 +97,7 @@ export function WorkspaceSwitcher({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="w-[--radix-dropdown-menu-trigger-width] w-full"
+        className="w-[--radix-dropdown-menu-trigger-width] min-w-56"
         align="start"
         sideOffset={4}
       >
@@ -109,54 +106,54 @@ export function WorkspaceSwitcher({
         </DropdownMenuLabel>
 
         <DropdownMenuGroup>
-          {workspaces.map((workspace) => (
-            <DropdownMenuItem
-              key={workspace.id}
-              className="gap-3"
-              onSelect={() => onWorkspaceChange?.(workspace.id)}
-            >
-              <div className="relative flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md bg-blue-800 text-primary-foreground">
-                {workspace.logo ? (
-                  <Image
-                    src={workspace.logo}
+          {workspaces.map((workspace) => {
+            const logo =
+              workspace.logo || getGlassAvatarUrl(workspace.name)
+
+            return (
+              <DropdownMenuItem
+                key={workspace.id}
+                className="gap-3 cursor-pointer"
+                onSelect={() => onWorkspaceChange?.(workspace.id)}
+              >
+                <div className="relative flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border/40 shadow-xs">
+                  <img
+                    src={logo}
                     alt={workspace.name}
-                    width={14}
-                    height={14}
-                    className="object-contain"
+                    className="h-full w-full object-cover"
                   />
-                ) : (
-                  <span className="text-[10px] font-semibold">
-                    {workspace.name.charAt(0)}
+                </div>
+
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-sm leading-none">
+                    {workspace.name}
                   </span>
+                  <span className="truncate text-xs text-muted-foreground mt-0.5">
+                    {workspace.plan}
+                  </span>
+                </div>
+
+                {workspace.id === currentWorkspaceId && (
+                  <Check className="ml-auto h-4 w-4 shrink-0 text-primary" />
                 )}
-              </div>
-
-              <div className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-sm leading-none">
-                  {workspace.name}
-                </span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {workspace.plan}
-                </span>
-              </div>
-
-              {workspace.id === currentWorkspaceId && (
-                <Check className="ml-auto h-4 w-4 shrink-0" />
-              )}
-            </DropdownMenuItem>
-          ))}
+              </DropdownMenuItem>
+            )
+          })}
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onSelect={() => onCreateWorkspace?.()}>
-          <Plus />
-          Create workspace
+        <DropdownMenuItem
+          className="cursor-pointer gap-2"
+          onSelect={() => onCreateWorkspace?.()}
+        >
+          <Plus className="h-4 w-4" />
+          <span>Create workspace</span>
         </DropdownMenuItem>
 
-        <DropdownMenuItem>
-          <Settings />
-          Workspace settings
+        <DropdownMenuItem className="cursor-pointer gap-2">
+          <Settings className="h-4 w-4" />
+          <span>Workspace settings</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

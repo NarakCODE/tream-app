@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ChevronRight, Logout } from "reicon-react"
 import { AuthDialog, type AuthMode } from "@/components/auth/auth-dialog"
+import { getUserAvatarUrl } from "@/lib/dicebear"
 
 interface UserMenuProps {
   user?: {
@@ -24,7 +25,7 @@ interface UserMenuProps {
 const defaultUser = {
   name: "Jason D",
   email: "jason.duong@mail.com",
-  avatarUrl: "/avatar-profile.jpg",
+  avatarUrl: getUserAvatarUrl("Jason D"),
   initials: "JD",
 }
 

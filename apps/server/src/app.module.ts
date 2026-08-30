@@ -8,6 +8,7 @@ import { AppValidationPipe } from './common/pipes/validation.pipe';
 import { appConfig } from './config/app.config';
 import { validateEnvironment } from './config/env.validation';
 import { HealthModule } from './modules/health/health.module';
+import { IamModule } from './modules/iam/iam.module';
 import { UsersModule } from './modules/users/users.module';
 import { LoggerModule } from './shared/logger/logger.module';
 
@@ -22,6 +23,7 @@ import { LoggerModule } from './shared/logger/logger.module';
     RequestContextModule,
     LoggerModule,
     HealthModule,
+    IamModule,
     UsersModule,
   ],
   providers: [

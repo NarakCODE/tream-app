@@ -8,13 +8,20 @@ import {
 
 interface SettingsSidebarProps {
   activeItemId: SettingsItemId
-  onSelectItemId: (id: SettingsItemId) => void
+  onItemChange?: (id: SettingsItemId) => void
+  onSelectItemId?: (id: SettingsItemId) => void
 }
 
 export function SettingsSidebar({
   activeItemId,
+  onItemChange,
   onSelectItemId,
 }: SettingsSidebarProps) {
+  const handleSelect = (id: SettingsItemId) => {
+    onItemChange?.(id)
+    onSelectItemId?.(id)
+  }
+
   return (
     <aside className="w-full border-b border-border/60 bg-muted/40 px-4 py-4 sm:w-64 sm:border-b-0 sm:border-r">
       <div className="space-y-4 text-sm">
@@ -30,7 +37,7 @@ export function SettingsSidebar({
                   id={item.id}
                   label={item.label}
                   isActive={item.id === activeItemId}
-                  onClick={() => onSelectItemId(item.id)}
+                  onClick={() => handleSelect(item.id)}
                 />
               ))}
             </div>

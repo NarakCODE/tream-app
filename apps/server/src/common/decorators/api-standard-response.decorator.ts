@@ -31,3 +31,27 @@ export const ApiStandardResponse = <TModel extends Type<unknown>>(
       },
     }),
   );
+
+export const ApiStandardArrayResponse = <TModel extends Type<unknown>>(
+  model: TModel,
+  status: HttpStatus = 200,
+): MethodDecorator =>
+  applyDecorators(
+    ApiExtraModels(model, StandardMetaDto, StandardResponseDto),
+    ApiResponse({
+      status,
+      schema: {
+        allOf: [
+          { $ref: getSchemaPath(StandardResponseDto) },
+          {
+            properties: {
+              data: {
+                type: 'array',
+                items: { $ref: getSchemaPath(model) },
+              },
+            },
+          },
+        ],
+      },
+    }),
+  );

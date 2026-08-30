@@ -18,6 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { ApiPaginatedResponse } from '../../common/decorators/api-paginated-response.decorator';
 import { ApiStandardResponse } from '../../common/decorators/api-standard-response.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import type { PaginatedResult } from '../../common/interfaces/api-response.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
@@ -27,6 +28,7 @@ import { UsersService } from './users.service';
 
 @ApiTags('Users')
 @ApiBearerAuth()
+@Public()
 @Controller({ path: 'users', version: '1' })
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

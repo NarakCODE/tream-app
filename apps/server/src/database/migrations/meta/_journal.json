@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1788068351188,
+      "tag": "0000_authentication_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788082382889,
+      "tag": "0001_powerful_colossus",
+      "breakpoints": true
+    }
+  ]
+}

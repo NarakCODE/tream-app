@@ -37,17 +37,17 @@ const configureSwagger = (app: NestFastifyApplication): void => {
   SwaggerModule.setup('docs', app, document);
 };
 
-export const createApplication = async (): Promise<NestFastifyApplication> => {
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter({
-      logger: false,
-      requestIdHeader: 'x-request-id',
-      genReqId: (request: { headers: IncomingHttpHeaders }) =>
-        createRequestId(getRequestHeader(request)),
-    }),
-    { bufferLogs: true },
-  );
+export const createFastifyAdapter = (): FastifyAdapter =>
+  new FastifyAdapter({
+    logger: false,
+    requestIdHeader: 'x-request-id',
+    genReqId: (request: { headers: IncomingHttpHeaders }) =>
+      createRequestId(getRequestHeader(request)),
+  });
+
+export const configureApplication = async (
+  app: NestFastifyApplication,
+): Promise<NestFastifyApplication> => {
   const config = app.get(ConfigService<ApplicationConfiguration, true>);
   const requestContext = app.get(RequestContextService);
   const logger = app.get(PinoNestLogger);
@@ -100,3 +100,12 @@ export const createApplication = async (): Promise<NestFastifyApplication> => {
   await app.getHttpAdapter().getInstance().ready();
   return app;
 };
+
+export const createApplication = async (): Promise<NestFastifyApplication> =>
+  configureApplication(
+    await NestFactory.create<NestFastifyApplication>(
+      AppModule,
+      createFastifyAdapter(),
+      { bufferLogs: true },
+    ),
+  );

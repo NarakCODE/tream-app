@@ -151,7 +151,7 @@ export function StepMode({ selected, onSelect, onCancel, onContinue, onClose }: 
             <Button
               type="button"
               onClick={onContinue}
-              className="h-10 px-4 rounded-xl gap-2"
+
             >
               <span className="text-sm font-medium">Continue</span>
               <CaretRight className="size-4" />

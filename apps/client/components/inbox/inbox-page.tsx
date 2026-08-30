@@ -7,7 +7,8 @@ import { Bell, ChatCircleDots, CheckCircle, EnvelopeSimple } from "@phosphor-ico
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getUserAvatarUrl } from "@/lib/dicebear"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { InboxFilterPopover } from "./inbox-filter-popover"
@@ -297,6 +298,10 @@ export function InboxPage() {
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-start gap-3">
                                     <Avatar className="h-9 w-9">
+                                        <AvatarImage
+                                            src={getUserAvatarUrl(selected.client ?? selected.project ?? selected.title)}
+                                            alt={selected.title}
+                                        />
                                         <AvatarFallback className="text-xs font-semibold">
                                             {selected.client?.[0] ?? selected.project?.[0] ?? "N"}
                                         </AvatarFallback>

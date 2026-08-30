@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getUserAvatarUrl } from "@/lib/dicebear"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import {
@@ -402,6 +403,10 @@ export function ClientsContent() {
                         >
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
+                              <AvatarImage
+                                src={getUserAvatarUrl(displayContactName)}
+                                alt={displayContactName}
+                              />
                               <AvatarFallback className="text-xs font-medium">
                                 {displayContactName
                                   .split(" ")

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getUserAvatarUrl } from "@/lib/dicebear"
 import { ClientStatusBadge } from "@/components/clients/client-status-badge"
 import { getClientById, getProjectCountForClient, clients, type Client } from "@/lib/data/clients"
 import { projects } from "@/lib/data/projects"
@@ -55,6 +56,7 @@ export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
           <SidebarTrigger className="h-8 w-8 rounded-lg hover:bg-accent text-muted-foreground" />
           <div className="flex items-center gap-3 min-w-0">
             <Avatar className="h-11 w-11">
+              <AvatarImage src={getUserAvatarUrl(displayName)} alt={displayName} />
               <AvatarFallback className="text-sm font-semibold">{initials}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-0.5 min-w-0">

@@ -16,7 +16,7 @@ import { UserMenu } from "./user-menu"
 export function AppSidebar() {
   return (
     <Sidebar className="border-border/40 border-r-0 shadow-none border-none">
-      <SidebarHeader className="p-4">
+      <SidebarHeader >
         <WorkspaceSwitcher />
       </SidebarHeader>
 

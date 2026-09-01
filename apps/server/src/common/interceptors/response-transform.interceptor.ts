@@ -10,12 +10,34 @@ import { map, type Observable } from 'rxjs';
 import { RequestContextService } from '../context/request-context.service';
 import { SKIP_RESPONSE_TRANSFORM } from '../decorators/skip-transform.decorator';
 import {
+  createCursorPaginationMeta,
   createPaginationMeta,
   type ApiResponse,
+  type CursorPaginatedApiResponse,
+  type CursorPaginatedResult,
   type PaginatedApiResponse,
   type PaginatedResult,
   type ResponseMeta,
 } from '../interfaces/api-response.interface';
+
+const isCursorPaginatedResult = (
+  value: unknown,
+): value is CursorPaginatedResult<unknown> => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const result = value as Record<string, unknown>;
+  return (
+    result.paginationType === 'cursor' &&
+    Array.isArray(result.items) &&
+    (typeof result.cursor === 'string' || result.cursor === null) &&
+    (typeof result.nextCursor === 'string' || result.nextCursor === null) &&
+    typeof result.hasNext === 'boolean' &&
+    typeof result.limit === 'number' &&
+    typeof result.total === 'number'
+  );
+};
 
 const isPaginatedResult = (
   value: unknown,
@@ -55,7 +77,11 @@ export class ResponseTransformInterceptor implements NestInterceptor {
       map(
         (
           data: unknown,
-        ): ApiResponse<unknown> | PaginatedApiResponse<unknown> | undefined => {
+        ):
+          | ApiResponse<unknown>
+          | PaginatedApiResponse<unknown>
+          | CursorPaginatedApiResponse<unknown>
+          | undefined => {
           if (reply.statusCode === 204) {
             return undefined;
           }
@@ -63,6 +89,13 @@ export class ResponseTransformInterceptor implements NestInterceptor {
             requestId: this.requestContext.getRequestId(),
             timestamp: new Date().toISOString(),
           };
+
+          if (isCursorPaginatedResult(data)) {
+            return {
+              data: data.items,
+              meta: createCursorPaginationMeta(data, meta),
+            };
+          }
 
           if (isPaginatedResult(data)) {
             return {

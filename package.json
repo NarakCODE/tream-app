@@ -5,7 +5,8 @@
     "build": "turbo run build",
     "dev": "turbo run dev --filter=server --filter=client",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "check-types": "turbo run check-types"
   },
   "devDependencies": {

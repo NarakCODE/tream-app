@@ -15,6 +15,41 @@
       "when": 1788082382889,
       "tag": "0001_powerful_colossus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788084278233,
+      "tag": "0002_tough_ben_urich",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788085839789,
+      "tag": "0003_vengeful_dragon_lord",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788087864192,
+      "tag": "0004_workable_spectrum",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788156944715,
+      "tag": "0005_fancy_swarm",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788190766009,
+      "tag": "0006_outgoing_groot",
+      "breakpoints": true
     }
   ]
 }

@@ -22,9 +22,32 @@ export interface PaginatedApiResponse<T> {
   meta: PaginationMeta;
 }
 
+export interface CursorPaginationMeta extends ResponseMeta {
+  cursor: string | null;
+  nextCursor: string | null;
+  hasNext: boolean;
+  limit: number;
+  total: number;
+}
+
+export interface CursorPaginatedApiResponse<T> {
+  data: T[];
+  meta: CursorPaginationMeta;
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   page: number;
+  limit: number;
+  total: number;
+}
+
+export interface CursorPaginatedResult<T> {
+  paginationType: 'cursor';
+  items: T[];
+  cursor: string | null;
+  nextCursor: string | null;
+  hasNext: boolean;
   limit: number;
   total: number;
 }
@@ -54,3 +77,15 @@ export const createPaginationMeta = (
     hasPrevious: result.page > 1,
   };
 };
+
+export const createCursorPaginationMeta = (
+  result: CursorPaginatedResult<unknown>,
+  responseMeta: ResponseMeta,
+): CursorPaginationMeta => ({
+  ...responseMeta,
+  cursor: result.cursor,
+  nextCursor: result.nextCursor,
+  hasNext: result.hasNext,
+  limit: result.limit,
+  total: result.total,
+});

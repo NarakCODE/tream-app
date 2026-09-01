@@ -51,5 +51,6 @@ import { WorkspacesController } from './presentation/workspaces.controller';
     { provide: WORKSPACE_REPOSITORY, useExisting: DrizzleWorkspaceRepository },
     { provide: APP_GUARD, useExisting: JwtAuthGuard },
   ],
+  exports: [WorkspaceMembershipGuard, WORKSPACE_REPOSITORY],
 })
 export class IamModule {}

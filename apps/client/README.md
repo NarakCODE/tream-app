@@ -1,27 +1,49 @@
-# Client App (`apps/client`)
+# Circle
 
-Frontend Next.js application for Tream App, featuring project management, timeline gantt views, task boards, and workspace settings.
+<br />
+<a href="https://vercel.com/oss">
+  <img alt="Vercel OSS Program" src="https://vercel.com/oss/program-badge.svg" />
+</a>
 
-## Getting Started
+<br />
+<br />
 
-From the monorepo root:
+Project management interface inspired by Linear. Built with Next.js and shadcn/ui, this application allows tracking of issues, projects and teams with a modern, responsive UI.
 
-```bash
-# Run in development mode (alongside apps/server)
+> The BaseUI code is available on [Square UI Pro](https://pro.lndevui.com/templates/circle-baseui).
+
+## 🛠️ Technologies
+
+- **Framework**: [Next.js](https://nextjs.org/)
+- **Langage**: [TypeScript](https://www.typescriptlang.org/)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+
+### 📦 Installation
+
+```shell
+git clone https://github.com/ln-dev7/circle.git
+cd circle
+```
+
+### Install dependencies
+
+```shell
+pnpm install
+```
+
+### Start the development server
+
+```shell
 pnpm dev
-
-# Or run client only
-pnpm --filter client dev
 ```
 
-The application runs on [http://localhost:3000](http://localhost:3000).
+## Star History
 
-## Building & Typechecking
-
-```bash
-# Type check
-pnpm --filter client check-types
-
-# Production build
-pnpm --filter client build
-```
+<a href="https://www.star-history.com/#ln-dev7/circle&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ln-dev7/circle&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ln-dev7/circle&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ln-dev7/circle&type=Date" />
+ </picture>
+</a>

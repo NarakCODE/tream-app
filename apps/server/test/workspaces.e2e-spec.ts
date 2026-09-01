@@ -5,10 +5,15 @@ import {
   configureApplication,
   createFastifyAdapter,
 } from '../src/application.factory';
+import { IdempotencyRepository } from '../src/common/idempotency/idempotency.repository';
 import { AUTH_REPOSITORY } from '../src/modules/iam/application/ports/auth-repository.port';
 import { MAGIC_LINK_SENDER } from '../src/modules/iam/application/ports/magic-link-sender.port';
 import { WORKSPACE_REPOSITORY } from '../src/modules/iam/application/ports/workspace-repository.port';
 import { InMemoryAuthRepository } from './helpers/in-memory-auth.repository';
+import {
+  idempotentBearer,
+  InMemoryIdempotencyRepository,
+} from './helpers/in-memory-idempotency.repository';
 import { InMemoryWorkspaceRepository } from './helpers/in-memory-workspace.repository';
 import { RecordingMagicLinkSender } from './helpers/recording-magic-link.sender';
 
@@ -48,6 +53,7 @@ describe('Workspace and RBAC API (e2e)', () => {
   let app: NestFastifyApplication;
   let authRepository: InMemoryAuthRepository;
   let workspaceRepository: InMemoryWorkspaceRepository;
+  let idempotencyRepository: InMemoryIdempotencyRepository;
 
   beforeAll(async () => {
     process.env.NODE_ENV = 'test';
@@ -56,6 +62,7 @@ describe('Workspace and RBAC API (e2e)', () => {
       'test-access-secret-that-is-at-least-32-characters';
     authRepository = new InMemoryAuthRepository();
     workspaceRepository = new InMemoryWorkspaceRepository(authRepository);
+    idempotencyRepository = new InMemoryIdempotencyRepository();
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -64,6 +71,8 @@ describe('Workspace and RBAC API (e2e)', () => {
       .useValue(authRepository)
       .overrideProvider(WORKSPACE_REPOSITORY)
       .useValue(workspaceRepository)
+      .overrideProvider(IdempotencyRepository)
+      .useValue(idempotencyRepository)
       .overrideProvider(MAGIC_LINK_SENDER)
       .useValue(new RecordingMagicLinkSender())
       .compile();
@@ -78,6 +87,7 @@ describe('Workspace and RBAC API (e2e)', () => {
   beforeEach(() => {
     authRepository.reset();
     workspaceRepository.reset();
+    idempotencyRepository.reset();
   });
 
   afterAll(async () => {
@@ -98,7 +108,7 @@ describe('Workspace and RBAC API (e2e)', () => {
   };
 
   const bearer = (session: SessionResponse): Record<string, string> => ({
-    authorization: `Bearer ${session.accessToken}`,
+    ...idempotentBearer(session.accessToken),
   });
 
   const createWorkspace = async (

@@ -3,7 +3,7 @@
 **Version:** 1.0.0-MVP  
 **Architecture Style:** Domain-Driven Design (DDD) + Event-Driven Architecture + REST / SSE  
 **Backend Framework:** NestJS (Fastify Adapter) + TypeScript + Drizzle ORM + PostgreSQL + BullMQ (Redis)  
-**Base URL:** `/api/v1`  
+**Base URL:** `/api/v1`
 
 ---
 
@@ -34,10 +34,7 @@ Brain is an **agent-native CRM and dynamic workspace platform** that integrates 
 
 ---
 
-
-
 # 2. Ubiquitous Language
-
 
 | Term                            | Context      | Definition                                                                                                              |
 | ------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------- |
@@ -61,10 +58,7 @@ Brain is an **agent-native CRM and dynamic workspace platform** that integrates 
 | **Run Step**                    | Core Agentic | An individual execution node within an Agent Run (LLM inference, Tool invocation, Approval wait).                       |
 | **Approval Request**            | Core Agentic | A Human-in-the-Loop barrier requiring explicit user sign-off before executing high-risk external actions.               |
 
-
 ---
-
-
 
 # 3. Context Map & Architectural Blueprint
 
@@ -125,15 +119,9 @@ flowchart TB
     SkillRegistry -->|Send / Draft via ACL| GmailACL
 ```
 
-
-
 ---
 
-
-
 # 4. API Conventions & Cross-Cutting Standards
-
-
 
 ### 4.1 Base URL & Content Negotiation
 
@@ -141,14 +129,11 @@ flowchart TB
 - **Headers:**
   - `Authorization: Bearer <jwt_access_token>`
   - `Content-Type: application/json`
-  - `Idempotency-Key: <uuid_v4>` *(Required on mutating POST/PATCH actions)*
-
-
+  - `Idempotency-Key: <uuid_v4>` _(Required on mutating POST/PATCH actions)_
 
 ### 4.2 Prefixed Domain Identifiers (Type-Safe & Debuggable)
 
 All entity identifiers use unambiguous, URL-safe prefixed ULIDs/UUIDs:
-
 
 | Prefix | Entity                 | Example          |
 | ------ | ---------------------- | ---------------- |
@@ -172,12 +157,7 @@ All entity identifiers use unambiguous, URL-safe prefixed ULIDs/UUIDs:
 | `stp_` | Run Step               | `stp_01J8A57...` |
 | `app_` | Approval Request       | `app_01J8A58...` |
 
-
-
-
 ### 4.3 Standard Envelope Responses
-
-
 
 #### Success (Single Entity)
 
@@ -194,8 +174,6 @@ All entity identifiers use unambiguous, URL-safe prefixed ULIDs/UUIDs:
   }
 }
 ```
-
-
 
 #### Success (Cursor Paginated Collection)
 
@@ -214,8 +192,6 @@ All entity identifiers use unambiguous, URL-safe prefixed ULIDs/UUIDs:
 }
 ```
 
-
-
 #### Standard Error Response
 
 ```json
@@ -223,9 +199,7 @@ All entity identifiers use unambiguous, URL-safe prefixed ULIDs/UUIDs:
   "error": {
     "code": "VALIDATION_FAILED",
     "message": "Field 'email' must be a valid email address.",
-    "details": [
-      { "field": "email", "issue": "INVALID_FORMAT" }
-    ]
+    "details": [{ "field": "email", "issue": "INVALID_FORMAT" }]
   },
   "meta": {
     "requestId": "req_01J8A6...",
@@ -238,8 +212,6 @@ All entity identifiers use unambiguous, URL-safe prefixed ULIDs/UUIDs:
 `VALIDATION_FAILED`, `UNAUTHORIZED`, `FORBIDDEN`, `RESOURCE_NOT_FOUND`, `RESOURCE_CONFLICT`, `APPROVAL_REQUIRED`, `RATE_LIMITED`, `INTEGRATION_ERROR`, `AGENT_EXECUTION_ERROR`, `INTERNAL_ERROR`.
 
 ---
-
-
 
 # 5. Bounded Context 1: Identity & Access Management (IAM)
 
@@ -271,21 +243,13 @@ classDiagram
     Workspace "1" -- "1..*" Membership
 ```
 
-
-
-
-
 ### 5.1 Invariants & Business Rules
 
 1. Every workspace must have at least one member with the `OWNER` role.
 2. The last `OWNER` cannot leave or be deleted from a workspace.
 3. Workspace slugs are unique, lowercase alphanumeric with hyphens.
 
-
-
 ### 5.2 Endpoints
-
-
 
 #### Authentication
 
@@ -298,8 +262,6 @@ classDiagram
 - `GET /me` - Get current authenticated user profile.
 - `PATCH /me` - Update current user profile.
 
-
-
 #### Workspaces
 
 - `GET /workspaces` - List workspaces the current user belongs to.
@@ -308,8 +270,6 @@ classDiagram
 - `PATCH /workspaces/:workspaceId` - Update workspace metadata (`ADMIN` or `OWNER` only).
 - `DELETE /workspaces/:workspaceId` - Soft-delete workspace (`OWNER` only).
 
-
-
 #### Workspace Members
 
 - `GET /workspaces/:workspaceId/members` - List workspace members.
@@ -317,8 +277,6 @@ classDiagram
 - `GET /workspaces/:workspaceId/members/:memberId` - Get member details.
 - `PATCH /workspaces/:workspaceId/members/:memberId` - Change member role (`ADMIN` or `OWNER` only).
 - `DELETE /workspaces/:workspaceId/members/:memberId` - Remove member from workspace.
-
-
 
 ### 5.3 Domain Events
 
@@ -329,8 +287,6 @@ classDiagram
 - `MemberRemoved (workspaceId, memberId, userId)`
 
 ---
-
-
 
 # 6. Bounded Context 2: Dynamic Data Platform (Databases, Fields, Records)
 
@@ -367,10 +323,6 @@ classDiagram
     Database "1" *-- "0..*" Record
 ```
 
-
-
-
-
 ### 6.1 Supported Field Types (MVP)
 
 `TEXT`, `LONG_TEXT`, `NUMBER`, `CURRENCY`, `BOOLEAN`, `DATE`, `DATETIME`, `EMAIL`, `PHONE`, `URL`, `SELECT`, `MULTI_SELECT`, `STATUS`, `USER`, `RELATION`, `CREATED_AT`, `UPDATED_AT`.
@@ -382,11 +334,7 @@ classDiagram
 3. Deleting a field retains record JSONB history but removes validation enforcement.
 4. Soft-deleted records can be restored within 30 days.
 
-
-
 ### 6.3 Endpoints
-
-
 
 #### Databases
 
@@ -397,8 +345,6 @@ classDiagram
 - `DELETE /databases/:databaseId` - Delete database and cascade its records.
 - `POST /databases/:databaseId/duplicate` - Duplicate schema structure.
 
-
-
 #### Database Fields
 
 - `GET /databases/:databaseId/fields` - List field definitions for a database.
@@ -406,8 +352,6 @@ classDiagram
 - `GET /database-fields/:fieldId` - Get single field definition.
 - `PATCH /database-fields/:fieldId` - Update field config or name.
 - `DELETE /database-fields/:fieldId` - Remove field definition.
-
-
 
 #### Database Records
 
@@ -420,8 +364,6 @@ classDiagram
 - `POST /databases/:databaseId/records/bulk` - Batch insert records (max 250 records per call).
 - `PATCH /databases/:databaseId/records/bulk` - Batch update records.
 - `POST /databases/:databaseId/records/bulk-delete` - Batch delete records.
-
-
 
 #### Database Query Engine
 
@@ -441,8 +383,6 @@ classDiagram
 }
 ```
 
-
-
 ### 6.4 Domain Events
 
 - `DatabaseCreated (workspaceId, databaseId, name)`
@@ -452,8 +392,6 @@ classDiagram
 - `RecordDeleted (workspaceId, databaseId, recordId)`
 
 ---
-
-
 
 # 7. Bounded Context 3: CRM Core Domain (Contacts, Companies, Deals, Tasks)
 
@@ -505,10 +443,6 @@ classDiagram
     Task "0..1" -- "0..1" Deal
 ```
 
-
-
-
-
 ### 7.1 Invariants & Business Rules
 
 1. Contact email must be unique per workspace (duplicate emails trigger merge recommendations).
@@ -516,11 +450,7 @@ classDiagram
 3. Deal stage transitions emit `DealStageChanged` domain events to trigger automated agent workflows.
 4. Tasks can be standalone or linked to a Contact, Company, or Deal.
 
-
-
 ### 7.2 Endpoints
-
-
 
 #### Contacts
 
@@ -533,8 +463,6 @@ classDiagram
 - `GET /contacts/:contactId/timeline` - Get aggregated timeline (emails, tasks, deals, agent notes).
 - `POST /contacts/:contactId/merge` - Merge duplicate contact (`{ "duplicateContactId": "con_..." }`).
 
-
-
 #### Companies
 
 - `GET /workspaces/:workspaceId/companies` - List companies.
@@ -545,8 +473,6 @@ classDiagram
 - `GET /workspaces/:workspaceId/companies/by-domain/:domain` - Find company by web domain.
 - `GET /companies/:companyId/contacts` - Get all contacts belonging to company.
 - `GET /companies/:companyId/deals` - Get all deals linked to company.
-
-
 
 #### Deals
 
@@ -559,8 +485,6 @@ classDiagram
 - `POST /deals/:dealId/contacts` - Associate contact with deal.
 - `DELETE /deals/:dealId/contacts/:contactId` - Remove contact from deal.
 
-
-
 #### Tasks
 
 - `GET /workspaces/:workspaceId/tasks` - List tasks (`status: "TODO" | "IN_PROGRESS" | "DONE"`, `assigneeId`).
@@ -571,8 +495,6 @@ classDiagram
 - `POST /tasks/:taskId/assign` - Assign task to workspace member (`{ "memberId": "mbr_..." }`).
 - `POST /tasks/:taskId/complete` - Mark task as completed.
 - `POST /tasks/:taskId/reopen` - Reopen task.
-
-
 
 ### 7.3 Domain Events
 
@@ -585,8 +507,6 @@ classDiagram
 - `TaskCompleted (workspaceId, taskId, completedBy)`
 
 ---
-
-
 
 # 8. Bounded Context 4: External Integrations & Anti-Corruption Layer (Gmail)
 
@@ -614,21 +534,13 @@ flowchart LR
     Translator -->|Emit Normalized Event| DomainEvent
 ```
 
-
-
-
-
 ### 8.1 Invariants & Security Rules
 
 1. OAuth refresh and access tokens must be **encrypted at rest** (AES-256-GCM) with tenant-isolated key derivation.
 2. Direct Gmail API schemas must never leak into Core Domain models; all payloads are translated by the Gmail ACL.
 3. Outbound emails executed by Agents must strictly obey the workspace/agent `ApprovalPolicy`.
 
-
-
 ### 8.2 Endpoints
-
-
 
 #### Integrations Management
 
@@ -641,8 +553,6 @@ flowchart LR
 - `POST /integrations/:integrationId/reconnect` - Initiate re-authentication flow.
 - `DELETE /integrations/:integrationId` - Revoke tokens and disconnect integration.
 
-
-
 #### Gmail Normalized APIs (via ACL)
 
 - `GET /integrations/:integrationId/emails` - Search emails (`query`, `from`, `to`, `after`, `before`, `limit`).
@@ -653,8 +563,6 @@ flowchart LR
 - `POST /integrations/:integrationId/email-drafts/:draftId/send` - Send an existing draft.
 - `POST /integrations/:integrationId/emails/send` - Send direct email (requires approval if triggered by agent).
 
-
-
 ### 8.3 Integration Events
 
 - `IntegrationConnected (workspaceId, integrationId, provider: "gmail", accountEmail)`
@@ -663,8 +571,6 @@ flowchart LR
 - `EmailSent (workspaceId, integrationId, messageId, threadId, to, subject)`
 
 ---
-
-
 
 # 9. Bounded Context 5: Eventing & Ingestion Backbone
 
@@ -684,12 +590,7 @@ sequenceDiagram
     Bus->>Agent: Deliver to matching Triggers
 ```
 
-
-
-
-
 ### 9.1 Standard MVP Event Catalog
-
 
 | Event Name                | Producer Context | Description                                  |
 | ------------------------- | ---------------- | -------------------------------------------- |
@@ -708,9 +609,6 @@ sequenceDiagram
 | `agent.run.completed`     | Agent Core       | An agent run completed successfully.         |
 | `agent.run.failed`        | Agent Core       | An agent run failed.                         |
 
-
-
-
 ### 9.2 Endpoints
 
 - `GET /workspaces/:workspaceId/events` - Query event audit log (filters: `eventType`, `from`, `to`, `limit`, `cursor`).
@@ -718,8 +616,6 @@ sequenceDiagram
 - `POST /events/:eventId/reprocess` - Manually re-dispatch event through trigger matcher.
 
 ---
-
-
 
 # 10. Bounded Context 6: Agentic Automation Engine (CORE DOMAIN)
 
@@ -729,7 +625,7 @@ The central intelligence and execution system: manages Agents, Triggers, Conditi
 stateDiagram-v2
     [*] --> QUEUED : Trigger Fired / Manual Run
     QUEUED --> RUNNING : Worker Picks Up Job
-    
+
     state RUNNING {
         [*] --> LLM_INFERENCE
         LLM_INFERENCE --> TOOL_EXECUTION : Decides to call tool
@@ -739,7 +635,7 @@ stateDiagram-v2
     RUNNING --> WAITING_FOR_APPROVAL : Policy requires approval
     WAITING_FOR_APPROVAL --> RUNNING : Approved by user
     WAITING_FOR_APPROVAL --> REJECTED : Rejected by user
-    
+
     RUNNING --> COMPLETED : Goal achieved
     RUNNING --> FAILED : Error encountered
     RUNNING --> CANCELLED : User aborted run
@@ -750,18 +646,12 @@ stateDiagram-v2
     CANCELLED --> [*]
 ```
 
-
-
-
-
 ### 10.1 Approval Policies
 
 - `NONE` - Agent can execute all assigned skills autonomously.
-- `EXTERNAL_ACTIONS` - Agent can read/write internal CRM/DB, but external actions (`mail.send`, external webhooks) require approval. *(Default)*
+- `EXTERNAL_ACTIONS` - Agent can read/write internal CRM/DB, but external actions (`mail.send`, external webhooks) require approval. _(Default)_
 - `EVERY_WRITE` - Any mutation (CRM update, record creation, sending email) requires user approval.
 - `ALWAYS` - Every tool execution requires approval.
-
-
 
 ### 10.2 Built-In MVP Skills Catalog
 
@@ -785,8 +675,6 @@ tasks.create             -> Create task for member
 tasks.update             -> Update or complete task
 ```
 
-
-
 ### 10.3 Invariants & Business Rules
 
 1. An inactive agent (`isEnabled: false`) will ignore incoming triggers.
@@ -794,11 +682,7 @@ tasks.update             -> Update or complete task
 3. If an action requires approval, the run transitions to `WAITING_FOR_APPROVAL` and pauses execution until approved or rejected.
 4. Approval requests timeout after 7 days if unaddressed, marking the run as `EXPIRED`.
 
-
-
 ### 10.4 Endpoints
-
-
 
 #### Agent Definitions
 
@@ -812,7 +696,12 @@ tasks.update             -> Update or complete task
   "systemPrompt": "You are a CRM assistant. Extract lead information and create contacts.",
   "model": "gpt-4o",
   "approvalPolicy": "EXTERNAL_ACTIONS",
-  "skills": ["mail.search", "mail.read_thread", "contacts.create", "tasks.create"]
+  "skills": [
+    "mail.search",
+    "mail.read_thread",
+    "contacts.create",
+    "tasks.create"
+  ]
 }
 ```
 
@@ -822,8 +711,6 @@ tasks.update             -> Update or complete task
 - `POST /agents/:agentId/enable` - Activate agent.
 - `POST /agents/:agentId/disable` - Deactivate agent.
 - `POST /agents/:agentId/duplicate` - Clone agent configuration.
-
-
 
 #### Agent Triggers & Conditions
 
@@ -853,8 +740,6 @@ tasks.update             -> Update or complete task
 
 - `DELETE /trigger-conditions/:conditionId` - Remove condition.
 
-
-
 #### Agent Runs & Observability
 
 - `POST /agents/:agentId/run` - Manually trigger an agent run (returns `202 Accepted` with `runId`).
@@ -866,8 +751,6 @@ tasks.update             -> Update or complete task
 - `GET /agent-runs/:runId/tool-calls` - List detailed tool invocations, inputs, and outputs.
 - `GET /agent-runs/:runId/logs` - Operational audit log stream (without exposing hidden chain-of-thought).
 - `GET /agent-runs/:runId/stream` - **SSE Real-time Stream** delivering real-time step events to the UI.
-
-
 
 #### Human-in-the-Loop Approvals
 
@@ -883,8 +766,6 @@ tasks.update             -> Update or complete task
 ```
 
 ---
-
-
 
 # 11. Backend Architecture & NestJS Module Structure
 
@@ -946,239 +827,365 @@ apps/server/src/
 
 ---
 
-
-
 # 12. Drizzle ORM Database Schema Design (PostgreSQL)
 
 ```typescript
 // Core PostgreSQL Schema Definitions (Drizzle ORM)
 
-import { pgTable, text, timestamp, boolean, jsonb, numeric, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  jsonb,
+  numeric,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 // --- IAM Tables ---
-export const users = pgTable('users', {
-  id: text('id').primaryKey(), // usr_...
-  email: text('email').notNull().unique(),
-  passwordHash: text('password_hash'),
-  fullName: text('full_name').notNull(),
-  avatarUrl: text('avatar_url'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+export const users = pgTable("users", {
+  id: text("id").primaryKey(), // usr_...
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash"),
+  fullName: text("full_name").notNull(),
+  avatarUrl: text("avatar_url"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
-export const workspaces = pgTable('workspaces', {
-  id: text('id').primaryKey(), // ws_...
-  name: text('name').notNull(),
-  slug: text('slug').notNull().unique(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+export const workspaces = pgTable("workspaces", {
+  id: text("id").primaryKey(), // ws_...
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
-export const memberships = pgTable('memberships', {
-  id: text('id').primaryKey(), // mbr_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  role: text('role').notNull().$type<'OWNER' | 'ADMIN' | 'MEMBER' | 'GUEST'>(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-}, (t) => [
-  uniqueIndex('workspace_user_idx').on(t.workspaceId, t.userId),
-]);
+export const memberships = pgTable(
+  "memberships",
+  {
+    id: text("id").primaryKey(), // mbr_...
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role")
+      .notNull()
+      .$type<"OWNER" | "ADMIN" | "MEMBER" | "GUEST">(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [uniqueIndex("workspace_user_idx").on(t.workspaceId, t.userId)],
+);
 
 // --- Dynamic Data Platform Tables ---
-export const databases = pgTable('databases', {
-  id: text('id').primaryKey(), // db_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  icon: text('icon'),
-  description: text('description'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+export const databases = pgTable("databases", {
+  id: text("id").primaryKey(), // db_...
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  icon: text("icon"),
+  description: text("description"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
-export const databaseFields = pgTable('database_fields', {
-  id: text('id').primaryKey(), // fld_...
-  databaseId: text('database_id').notNull().references(() => databases.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  key: text('key').notNull(),
-  type: text('type').notNull(),
-  isRequired: boolean('is_required').default(false).notNull(),
-  config: jsonb('config').default({}).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-}, (t) => [
-  uniqueIndex('db_field_key_idx').on(t.databaseId, t.key),
-]);
+export const databaseFields = pgTable(
+  "database_fields",
+  {
+    id: text("id").primaryKey(), // fld_...
+    databaseId: text("database_id")
+      .notNull()
+      .references(() => databases.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    key: text("key").notNull(),
+    type: text("type").notNull(),
+    isRequired: boolean("is_required").default(false).notNull(),
+    config: jsonb("config").default({}).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [uniqueIndex("db_field_key_idx").on(t.databaseId, t.key)],
+);
 
-export const records = pgTable('records', {
-  id: text('id').primaryKey(), // rec_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  databaseId: text('database_id').notNull().references(() => databases.id, { onDelete: 'cascade' }),
-  values: jsonb('values').notNull().default({}),
-  createdBy: text('created_by').references(() => users.id),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
-}, (t) => [
-  index('record_workspace_db_idx').on(t.workspaceId, t.databaseId),
-  index('record_values_gin_idx').using('gin', t.values),
-]);
+export const records = pgTable(
+  "records",
+  {
+    id: text("id").primaryKey(), // rec_...
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    databaseId: text("database_id")
+      .notNull()
+      .references(() => databases.id, { onDelete: "cascade" }),
+    values: jsonb("values").notNull().default({}),
+    createdBy: text("created_by").references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("record_workspace_db_idx").on(t.workspaceId, t.databaseId),
+    index("record_values_gin_idx").using("gin", t.values),
+  ],
+);
 
 // --- CRM Tables ---
-export const contacts = pgTable('contacts', {
-  id: text('id').primaryKey(), // con_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  companyId: text('company_id'),
-  firstName: text('first_name'),
-  lastName: text('last_name'),
-  email: text('email').notNull(),
-  phone: text('phone'),
-  status: text('status').default('LEAD').notNull(),
-  attributes: jsonb('attributes').default({}).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-}, (t) => [
-  uniqueIndex('contact_ws_email_idx').on(t.workspaceId, t.email),
-]);
+export const contacts = pgTable(
+  "contacts",
+  {
+    id: text("id").primaryKey(), // con_...
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    companyId: text("company_id"),
+    firstName: text("first_name"),
+    lastName: text("last_name"),
+    email: text("email").notNull(),
+    phone: text("phone"),
+    status: text("status").default("LEAD").notNull(),
+    attributes: jsonb("attributes").default({}).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [uniqueIndex("contact_ws_email_idx").on(t.workspaceId, t.email)],
+);
 
-export const companies = pgTable('companies', {
-  id: text('id').primaryKey(), // cmp_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  domain: text('domain'),
-  industry: text('industry'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-}, (t) => [
-  index('company_ws_domain_idx').on(t.workspaceId, t.domain),
-]);
+export const companies = pgTable(
+  "companies",
+  {
+    id: text("id").primaryKey(), // cmp_...
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    domain: text("domain"),
+    industry: text("industry"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [index("company_ws_domain_idx").on(t.workspaceId, t.domain)],
+);
 
-export const deals = pgTable('deals', {
-  id: text('id').primaryKey(), // del_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  companyId: text('company_id').references(() => companies.id),
-  title: text('title').notNull(),
-  amount: numeric('amount', { precision: 12, scale: 2 }).default('0').notNull(),
-  currency: text('currency').default('USD').notNull(),
-  stage: text('stage').default('DISCOVERY').notNull(),
-  closeDate: timestamp('close_date', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+export const deals = pgTable("deals", {
+  id: text("id").primaryKey(), // del_...
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  companyId: text("company_id").references(() => companies.id),
+  title: text("title").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).default("0").notNull(),
+  currency: text("currency").default("USD").notNull(),
+  stage: text("stage").default("DISCOVERY").notNull(),
+  closeDate: timestamp("close_date", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
-export const tasks = pgTable('tasks', {
-  id: text('id').primaryKey(), // tsk_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  contactId: text('contact_id').references(() => contacts.id, { onDelete: 'set null' }),
-  dealId: text('deal_id').references(() => deals.id, { onDelete: 'set null' }),
-  assigneeId: text('assignee_id').references(() => memberships.id, { onDelete: 'set null' }),
-  title: text('title').notNull(),
-  status: text('status').default('TODO').notNull(), // TODO, IN_PROGRESS, DONE
-  dueDate: timestamp('due_date', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+export const tasks = pgTable("tasks", {
+  id: text("id").primaryKey(), // tsk_...
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  contactId: text("contact_id").references(() => contacts.id, {
+    onDelete: "set null",
+  }),
+  dealId: text("deal_id").references(() => deals.id, { onDelete: "set null" }),
+  assigneeId: text("assignee_id").references(() => memberships.id, {
+    onDelete: "set null",
+  }),
+  title: text("title").notNull(),
+  status: text("status").default("TODO").notNull(), // TODO, IN_PROGRESS, DONE
+  dueDate: timestamp("due_date", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
 // --- Integrations & Eventing Tables ---
-export const integrations = pgTable('integrations', {
-  id: text('id').primaryKey(), // int_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  provider: text('provider').notNull(), // "gmail"
-  accountEmail: text('account_email').notNull(),
-  encryptedTokens: text('encrypted_tokens').notNull(), // AES-256-GCM encrypted payload
-  status: text('status').default('ACTIVE').notNull(), // ACTIVE, EXPIRED, REVOKED
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+export const integrations = pgTable("integrations", {
+  id: text("id").primaryKey(), // int_...
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  provider: text("provider").notNull(), // "gmail"
+  accountEmail: text("account_email").notNull(),
+  encryptedTokens: text("encrypted_tokens").notNull(), // AES-256-GCM encrypted payload
+  status: text("status").default("ACTIVE").notNull(), // ACTIVE, EXPIRED, REVOKED
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
-export const events = pgTable('events', {
-  id: text('id').primaryKey(), // evt_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  eventType: text('event_type').notNull(),
-  payload: jsonb('payload').notNull(),
-  idempotencyKey: text('idempotency_key'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-}, (t) => [
-  index('event_ws_type_idx').on(t.workspaceId, t.eventType),
-]);
+export const events = pgTable(
+  "events",
+  {
+    id: text("id").primaryKey(), // evt_...
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    eventType: text("event_type").notNull(),
+    payload: jsonb("payload").notNull(),
+    idempotencyKey: text("idempotency_key"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [index("event_ws_type_idx").on(t.workspaceId, t.eventType)],
+);
 
 // --- Agent Core Tables (CORE DOMAIN) ---
-export const agents = pgTable('agents', {
-  id: text('id').primaryKey(), // agt_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  description: text('description'),
-  systemPrompt: text('system_prompt').notNull(),
-  model: text('model').default('gpt-4o').notNull(),
-  approvalPolicy: text('approval_policy').default('EXTERNAL_ACTIONS').notNull(),
-  skillPermissions: jsonb('skill_permissions').$type<string[]>().default([]).notNull(),
-  isEnabled: boolean('is_enabled').default(true).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+export const agents = pgTable("agents", {
+  id: text("id").primaryKey(), // agt_...
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  systemPrompt: text("system_prompt").notNull(),
+  model: text("model").default("gpt-4o").notNull(),
+  approvalPolicy: text("approval_policy").default("EXTERNAL_ACTIONS").notNull(),
+  skillPermissions: jsonb("skill_permissions")
+    .$type<string[]>()
+    .default([])
+    .notNull(),
+  isEnabled: boolean("is_enabled").default(true).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
-export const agentTriggers = pgTable('agent_triggers', {
-  id: text('id').primaryKey(), // trg_...
-  agentId: text('agent_id').notNull().references(() => agents.id, { onDelete: 'cascade' }),
-  type: text('type').notNull(), // EVENT, SCHEDULE
-  eventType: text('event_type'),
-  cronExpression: text('cron_expression'),
-  integrationId: text('integration_id').references(() => integrations.id, { onDelete: 'cascade' }),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+export const agentTriggers = pgTable("agent_triggers", {
+  id: text("id").primaryKey(), // trg_...
+  agentId: text("agent_id")
+    .notNull()
+    .references(() => agents.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // EVENT, SCHEDULE
+  eventType: text("event_type"),
+  cronExpression: text("cron_expression"),
+  integrationId: text("integration_id").references(() => integrations.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
-export const triggerConditions = pgTable('trigger_conditions', {
-  id: text('id').primaryKey(), // cnd_...
-  triggerId: text('trigger_id').notNull().references(() => agentTriggers.id, { onDelete: 'cascade' }),
-  field: text('field').notNull(),
-  operator: text('operator').notNull(), // eq, neq, contains, starts_with, ends_with, gte, lte
-  value: text('value').notNull(),
+export const triggerConditions = pgTable("trigger_conditions", {
+  id: text("id").primaryKey(), // cnd_...
+  triggerId: text("trigger_id")
+    .notNull()
+    .references(() => agentTriggers.id, { onDelete: "cascade" }),
+  field: text("field").notNull(),
+  operator: text("operator").notNull(), // eq, neq, contains, starts_with, ends_with, gte, lte
+  value: text("value").notNull(),
 });
 
-export const agentRuns = pgTable('agent_runs', {
-  id: text('id').primaryKey(), // run_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  agentId: text('agent_id').notNull().references(() => agents.id, { onDelete: 'cascade' }),
-  triggerId: text('trigger_id').references(() => agentTriggers.id, { onDelete: 'set null' }),
-  status: text('status').default('QUEUED').notNull(), // QUEUED, RUNNING, WAITING_FOR_APPROVAL, COMPLETED, FAILED, CANCELLED
-  inputContext: jsonb('input_context').default({}).notNull(),
-  outputSummary: text('output_summary'),
-  tokenUsage: jsonb('token_usage').default({ promptTokens: 0, completionTokens: 0, totalTokens: 0 }).notNull(),
-  startedAt: timestamp('started_at', { withTimezone: true }),
-  completedAt: timestamp('completed_at', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+export const agentRuns = pgTable("agent_runs", {
+  id: text("id").primaryKey(), // run_...
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  agentId: text("agent_id")
+    .notNull()
+    .references(() => agents.id, { onDelete: "cascade" }),
+  triggerId: text("trigger_id").references(() => agentTriggers.id, {
+    onDelete: "set null",
+  }),
+  status: text("status").default("QUEUED").notNull(), // QUEUED, RUNNING, WAITING_FOR_APPROVAL, COMPLETED, FAILED, CANCELLED
+  inputContext: jsonb("input_context").default({}).notNull(),
+  outputSummary: text("output_summary"),
+  tokenUsage: jsonb("token_usage")
+    .default({ promptTokens: 0, completionTokens: 0, totalTokens: 0 })
+    .notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
-export const agentRunSteps = pgTable('agent_run_steps', {
-  id: text('id').primaryKey(), // stp_...
-  runId: text('run_id').notNull().references(() => agentRuns.id, { onDelete: 'cascade' }),
-  stepNumber: numeric('step_number').notNull(),
-  type: text('type').notNull(), // INFERENCE, TOOL_CALL, APPROVAL
-  toolName: text('tool_name'),
-  toolInput: jsonb('tool_input'),
-  toolOutput: jsonb('tool_output'),
-  durationMs: numeric('duration_ms'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+export const agentRunSteps = pgTable("agent_run_steps", {
+  id: text("id").primaryKey(), // stp_...
+  runId: text("run_id")
+    .notNull()
+    .references(() => agentRuns.id, { onDelete: "cascade" }),
+  stepNumber: numeric("step_number").notNull(),
+  type: text("type").notNull(), // INFERENCE, TOOL_CALL, APPROVAL
+  toolName: text("tool_name"),
+  toolInput: jsonb("tool_input"),
+  toolOutput: jsonb("tool_output"),
+  durationMs: numeric("duration_ms"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
-export const approvals = pgTable('approvals', {
-  id: text('id').primaryKey(), // app_...
-  workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  runId: text('run_id').notNull().references(() => agentRuns.id, { onDelete: 'cascade' }),
-  stepId: text('step_id').notNull().references(() => agentRunSteps.id, { onDelete: 'cascade' }),
-  actionType: text('action_type').notNull(), // e.g. "mail.send", "contacts.delete"
-  payload: jsonb('payload').notNull(),
-  status: text('status').default('PENDING').notNull(), // PENDING, APPROVED, REJECTED, EXPIRED
-  decidedBy: text('decided_by').references(() => users.id),
-  rejectionReason: text('rejection_reason'),
-  decidedAt: timestamp('decided_at', { withTimezone: true }),
-  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+export const approvals = pgTable("approvals", {
+  id: text("id").primaryKey(), // app_...
+  workspaceId: text("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  runId: text("run_id")
+    .notNull()
+    .references(() => agentRuns.id, { onDelete: "cascade" }),
+  stepId: text("step_id")
+    .notNull()
+    .references(() => agentRunSteps.id, { onDelete: "cascade" }),
+  actionType: text("action_type").notNull(), // e.g. "mail.send", "contacts.delete"
+  payload: jsonb("payload").notNull(),
+  status: text("status").default("PENDING").notNull(), // PENDING, APPROVED, REJECTED, EXPIRED
+  decidedBy: text("decided_by").references(() => users.id),
+  rejectionReason: text("rejection_reason"),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 ```
 
-
-
 ---
-
-
 
 # 13. Background Jobs & Distributed Queue Architecture
 
@@ -1200,17 +1207,14 @@ flowchart TD
 
     EventQ --> EventWorker
     EventWorker -->|Matches Triggers| AgentRunQ
-    
+
     AgentRunQ --> AgentWorker
     AgentWorker -->|Executes Tools & LLM Steps| DB[(PostgreSQL)]
-    
+
     GmailSyncQ --> GmailWorker
     GmailWorker -->|Pushes Raw Emails to ACL| EventQ
 ```
 
-
-
 1. `event-dispatch-queue`: Consumes normalized domain events, evaluates agent trigger conditions, and enqueues agent runs.
 2. `agent-execution-queue`: Drives the agent LLM step-loop, manages tool execution, checks approval policies, and updates run state.
 3. `gmail-sync-queue`: Periodically checks connected inboxes or processes Google Pub/Sub push notifications.
-

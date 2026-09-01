@@ -5,10 +5,15 @@ import {
   configureApplication,
   createFastifyAdapter,
 } from '../src/application.factory';
+import { IdempotencyRepository } from '../src/common/idempotency/idempotency.repository';
 import { AUTH_REPOSITORY } from '../src/modules/iam/application/ports/auth-repository.port';
 import { MAGIC_LINK_SENDER } from '../src/modules/iam/application/ports/magic-link-sender.port';
 import { TokenService } from '../src/modules/iam/application/token.service';
 import { InMemoryAuthRepository } from './helpers/in-memory-auth.repository';
+import {
+  idempotentBearer,
+  InMemoryIdempotencyRepository,
+} from './helpers/in-memory-idempotency.repository';
 import { RecordingMagicLinkSender } from './helpers/recording-magic-link.sender';
 
 interface ResponseEnvelope<T> {
@@ -44,6 +49,7 @@ describe('Authentication API (e2e)', () => {
   let app: NestFastifyApplication;
   let repository: InMemoryAuthRepository;
   let magicLinkSender: RecordingMagicLinkSender;
+  let idempotencyRepository: InMemoryIdempotencyRepository;
   let tokenService: TokenService;
 
   beforeAll(async () => {
@@ -53,12 +59,15 @@ describe('Authentication API (e2e)', () => {
       'test-access-secret-that-is-at-least-32-characters';
     repository = new InMemoryAuthRepository();
     magicLinkSender = new RecordingMagicLinkSender();
+    idempotencyRepository = new InMemoryIdempotencyRepository();
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
       .overrideProvider(AUTH_REPOSITORY)
       .useValue(repository)
+      .overrideProvider(IdempotencyRepository)
+      .useValue(idempotencyRepository)
       .overrideProvider(MAGIC_LINK_SENDER)
       .useValue(magicLinkSender)
       .compile();
@@ -74,6 +83,7 @@ describe('Authentication API (e2e)', () => {
   beforeEach(() => {
     repository.reset();
     magicLinkSender.reset();
+    idempotencyRepository.reset();
   });
 
   afterAll(async () => {
@@ -125,7 +135,7 @@ describe('Authentication API (e2e)', () => {
     const updated = await app.inject({
       method: 'PATCH',
       url: '/api/v1/me',
-      headers: { authorization: `Bearer ${signupBody.data.accessToken}` },
+      headers: idempotentBearer(signupBody.data.accessToken),
       payload: {
         fullName: 'Ada Byron',
         avatarUrl: 'https://example.com/ada.png',
@@ -177,7 +187,7 @@ describe('Authentication API (e2e)', () => {
     const logout = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/logout',
-      headers: { authorization: `Bearer ${refreshBody.data.accessToken}` },
+      headers: idempotentBearer(refreshBody.data.accessToken),
       payload: { refreshToken: refreshBody.data.refreshToken },
     });
     expect(logout.statusCode).toBe(204);

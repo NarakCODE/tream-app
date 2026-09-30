@@ -8,14 +8,33 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - '127.0.0.1:5432:5432'
     volumes:
       - tream-postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-test-database.sql:/docker-entrypoint-initdb.d/01-test-database.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d tream"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d tream']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  mailpit:
+    image: axllent/mailpit:v1.31.3
+    container_name: tream-mailpit
+    restart: unless-stopped
+    environment:
+      MP_DATABASE: /data/mailpit.db
+    ports:
+      - '127.0.0.1:1025:1025'
+      - '127.0.0.1:8025:8025'
+    volumes:
+      - tream-mailpit-data:/data
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
       interval: 5s
       timeout: 5s
       retries: 12
 
 volumes:
   tream-postgres-data:
+  tream-mailpit-data:

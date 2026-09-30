@@ -4,6 +4,7 @@ import {
   type ExecutionContext,
 } from '@nestjs/common';
 import { of, lastValueFrom } from 'rxjs';
+import { TRANSACTIONAL_COMMAND } from '../decorators/transactional-command.decorator';
 import { IS_PUBLIC_ROUTE } from '../decorators/public.decorator';
 import { SKIP_IDEMPOTENCY } from '../decorators/skip-idempotency.decorator';
 import { IdempotencyService } from '../idempotency/idempotency.service';
@@ -56,6 +57,40 @@ describe('IdempotencyInterceptor', () => {
       reflector as never,
       idempotency as unknown as IdempotencyService,
     );
+  });
+
+  it('passes command identity without reserving outside a marked transaction', async () => {
+    reflector.getAllAndOverride.mockImplementation(
+      (metadataKey: string) => metadataKey === TRANSACTIONAL_COMMAND,
+    );
+    const reply = createReply();
+    const request: Record<string, unknown> = {
+      method: 'DELETE',
+      headers: { 'idempotency-key': key },
+      body: { b: 2, a: 1 },
+      user: { id: 'usr_01' },
+      url: '/api/v1/workspaces/ws_02',
+    };
+    const context = {
+      getClass: () => class TestController {},
+      getHandler: () => () => undefined,
+      switchToHttp: () => ({
+        getRequest: () => request,
+        getResponse: () => reply,
+      }),
+    } as unknown as ExecutionContext;
+    await lastValueFrom(interceptor.intercept(context, handler()));
+    expect(request.commandIdentity).toEqual(
+      expect.objectContaining({
+        userId: 'usr_01',
+        method: 'DELETE',
+        route: '/api/v1/workspaces/ws_02',
+        key,
+        requestHash: expect.any(String) as unknown,
+      }),
+    );
+    expect(idempotency.reserve).not.toHaveBeenCalled();
+    expect(idempotency.complete).not.toHaveBeenCalled();
   });
 
   it('requires a UUID v4 key for authenticated POST requests', () => {

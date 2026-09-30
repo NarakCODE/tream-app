@@ -1,0 +1,2422 @@
+// Use DBML to define your database structure
+
+// Docs: https://dbml.dbdiagram.io/docs
+
+// Proposed target schema; not a dump of the existing database. No AI agent entities.
+
+// IDs are text with entity prefixes and ULIDs. Records use readable demo IDs only.
+
+Project tream_linear {
+  database_type: 'PostgreSQL'
+  Note: 'Linear-inspired Tream target model. Workspace is the tenant boundary. CRM and Dynamic Data are optional extensions.'
+}
+
+Enum workspace_role {
+  OWNER
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+Enum membership_state {
+  ACTIVE
+  SUSPENDED
+  LEFT
+}
+
+Enum work_priority {
+  NO_PRIORITY
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+Enum issue_status_category {
+  BACKLOG
+  UNSTARTED
+  STARTED
+  COMPLETED
+  CANCELED
+  DUPLICATE
+}
+
+Enum project_status_category {
+  PLANNED
+  STARTED
+  PAUSED
+  COMPLETED
+  CANCELED
+}
+
+Enum initiative_status {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELED
+}
+
+Enum issue_relation_type {
+  BLOCKS
+  RELATED
+  DUPLICATES
+}
+
+Enum update_health {
+  ON_TRACK
+  AT_RISK
+  OFF_TRACK
+}
+
+Enum view_resource {
+  ISSUES
+  PROJECTS
+}
+
+Enum view_visibility {
+  PRIVATE
+  WORKSPACE
+}
+
+Enum notification_channel {
+  IN_APP
+  EMAIL
+}
+
+Enum delivery_status {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+}
+
+Enum integration_status {
+  PENDING
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
+Enum pull_request_status {
+  OPEN
+  MERGED
+  CLOSED
+}
+
+Enum review_state {
+  COMMENTED
+  APPROVED
+  CHANGES_REQUESTED
+  DISMISSED
+}
+
+Enum task_status {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+Enum dynamic_field_type {
+  TEXT
+  LONG_TEXT
+  NUMBER
+  CURRENCY
+  BOOLEAN
+  DATE
+  DATETIME
+  EMAIL
+  PHONE
+  URL
+  SELECT
+  MULTI_SELECT
+  STATUS
+  USER
+  RELATION
+  CREATED_AT
+  UPDATED_AT
+}
+
+Enum idempotency_status {
+  PENDING
+  COMPLETED
+}
+
+Table users {
+  id text [pk]
+  email text [not null, unique]
+  password_hash text
+  full_name text [not null]
+  avatar_url text
+  email_verified_at timestamptz
+  disabled_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  Note: 'Normalize email before storing. Password hashes use a modern password KDF; never plaintext.'
+  checks {
+    `btrim(email) <> ''` [name: 'users_state_1']
+  }
+}
+
+Table refresh_sessions {
+  id text [pk]
+  user_id text [not null]
+  token_hash text [not null, unique]
+  expires_at timestamptz [not null]
+  revoked_at timestamptz
+  last_used_at timestamptz
+  user_agent text
+  ip_address inet
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  checks {
+    `expires_at > created_at`
+  }
+}
+
+Table auth_tokens {
+  id text [pk]
+  user_id text [not null]
+  purpose text [not null, note: 'MAGIC_LINK, PASSWORD_RESET, EMAIL_VERIFY']
+  token_hash text [not null, unique]
+  expires_at timestamptz [not null]
+  consumed_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  checks {
+    `consumed_at IS NULL OR (consumed_at >= created_at AND consumed_at < expires_at)` [name: 'auth_tokens_state_1']
+    `purpose IN ('MAGIC_LINK', 'PASSWORD_RESET', 'EMAIL_VERIFY')`
+    `expires_at > created_at`
+  }
+}
+
+Table user_preferences {
+  id text [pk]
+  user_id text [not null, unique]
+  theme jsonb [not null, default: `'{}'::jsonb`]
+  locale text [not null, default: 'en']
+  timezone text [not null, default: 'UTC']
+  preferences jsonb [not null, default: `'{}'::jsonb`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table workspaces {
+  id text [pk]
+  name text [not null]
+  slug text [not null, unique]
+  settings jsonb [not null, default: `'{}'::jsonb`]
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  checks {
+    `slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'` [name: 'workspaces_state_1']
+  }
+}
+
+Table memberships {
+  id text [pk]
+  workspace_id text [not null]
+  user_id text [not null]
+  role workspace_role [not null]
+  state membership_state [not null, default: 'ACTIVE']
+  joined_at timestamptz [not null, default: `now()`]
+  left_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, user_id) [unique]
+  }
+  Note: 'Preserve historical memberships; suspend or mark LEFT instead of deleting referenced authors. Active membership is checked by authorization.'
+  checks {
+    `left_at IS NULL OR left_at >= joined_at` [name: 'memberships_state_2']
+    `(state = 'LEFT') = (left_at IS NOT NULL)` [name: 'memberships_state_1']
+  }
+}
+
+Table workspace_invitations {
+  id text [pk]
+  workspace_id text [not null]
+  email text [not null]
+  role workspace_role [not null]
+  invited_by_id text [not null]
+  token_hash text [not null, unique]
+  expires_at timestamptz [not null]
+  accepted_by_id text
+  accepted_at timestamptz
+  revoked_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `revoked_at IS NULL OR revoked_at >= created_at` [name: 'workspace_invitations_state_3']
+    `accepted_at IS NULL OR (accepted_at >= created_at AND accepted_at < expires_at)` [name: 'workspace_invitations_state_2']
+    `accepted_at IS NULL OR revoked_at IS NULL` [name: 'workspace_invitations_state_1']
+    `expires_at > created_at`
+    `(accepted_at IS NULL) = (accepted_by_id IS NULL)`
+  }
+  Note: 'One active invitation per normalized workspace/email requires a partial unique index in SQL.'
+}
+
+Table workspace_preferences {
+  id text [pk]
+  workspace_id text [not null]
+  membership_id text [not null]
+  sidebar jsonb [not null, default: `'{}'::jsonb`]
+  display_preferences jsonb [not null, default: `'{}'::jsonb`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, membership_id) [unique]
+  }
+}
+
+Table teams {
+  id text [pk]
+  workspace_id text [not null]
+  name text [not null]
+  key text [not null]
+  description text
+  visibility text [not null, default: 'WORKSPACE']
+  timezone text [not null, default: 'UTC']
+  cycles_enabled boolean [not null, default: false]
+  cycle_duration_weeks integer [not null, default: 2]
+  cycle_start_day integer [not null, default: 1]
+  cycle_cooldown_days integer [not null, default: 0]
+  upcoming_cycles_count integer [not null, default: 3]
+  next_issue_number bigint [not null, default: 1]
+  retired_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, key) [unique]
+  }
+  checks {
+    `key ~ '^[A-Z][A-Z0-9]{0,9}$'` [name: 'teams_state_1']
+    `next_issue_number >= 1`
+    `cycle_duration_weeks >= 1`
+    `cycle_start_day BETWEEN 0 AND 6`
+    `cycle_cooldown_days >= 0`
+    `upcoming_cycles_count >= 0`
+    `visibility IN ('WORKSPACE', 'PRIVATE')`
+  }
+  Note: 'Team keys are reserved permanently to avoid reusing historical issue identifiers. Number allocation requires row locking.'
+}
+
+Table team_memberships {
+  id text [pk]
+  workspace_id text [not null]
+  team_id text [not null]
+  membership_id text [not null]
+  role text [not null, default: 'MEMBER']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, team_id, membership_id) [unique]
+  }
+  checks {
+    `role IN ('ADMIN', 'MEMBER')`
+  }
+}
+
+Table issue_statuses {
+  id text [pk]
+  workspace_id text [not null]
+  team_id text [not null]
+  name text [not null]
+  category issue_status_category [not null]
+  color text
+  position integer [not null]
+  is_default boolean [not null, default: false]
+  archived_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, team_id, id) [unique]
+    (workspace_id, team_id, name) [unique]
+    (workspace_id, team_id, position) [unique]
+  }
+  Note: 'SQL partial uniqueness allows one non-archived default per team; services require at least one default.'
+}
+
+Table project_statuses {
+  id text [pk]
+  workspace_id text [not null]
+  name text [not null]
+  category project_status_category [not null]
+  color text
+  position integer [not null]
+  is_default boolean [not null, default: false]
+  archived_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, name) [unique]
+    (workspace_id, position) [unique]
+  }
+}
+
+Table projects {
+  id text [pk]
+  workspace_id text [not null]
+  name text [not null]
+  summary text
+  description text
+  status_id text [not null]
+  priority work_priority [not null, default: 'NO_PRIORITY']
+  lead_id text
+  created_by_id text [not null]
+  start_date date
+  target_date date
+  completed_at timestamptz
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `btrim(name) <> ''` [name: 'projects_state_1']
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'projects_lifecycle_exclusive']
+    `start_date IS NULL OR target_date IS NULL OR target_date >= start_date`
+  }
+  Note: 'Progress and issue counts are computed, not persisted. Requires at least one project team at transaction commit.'
+}
+
+Table project_teams {
+  id text [pk]
+  workspace_id text [not null]
+  project_id text [not null]
+  team_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, project_id, team_id) [unique]
+  }
+}
+
+Table project_members {
+  id text [pk]
+  workspace_id text [not null]
+  project_id text [not null]
+  membership_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, project_id, membership_id) [unique]
+  }
+}
+
+Table project_milestones {
+  id text [pk]
+  workspace_id text [not null]
+  project_id text [not null]
+  name text [not null]
+  description text
+  target_date date
+  position integer [not null]
+  completed_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, project_id, id) [unique]
+  }
+}
+
+Table project_updates {
+  id text [pk]
+  workspace_id text [not null]
+  project_id text [not null]
+  author_id text [not null]
+  body text [not null]
+  health update_health [not null]
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+}
+
+Table project_subscribers {
+  id text [pk]
+  workspace_id text [not null]
+  project_id text [not null]
+  membership_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, project_id, membership_id) [unique]
+  }
+}
+
+Table cycles {
+  id text [pk]
+  workspace_id text [not null]
+  team_id text [not null]
+  number integer [not null]
+  name text [not null]
+  description text
+  starts_at timestamptz [not null]
+  ends_at timestamptz [not null]
+  completed_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, team_id, id) [unique]
+    (workspace_id, team_id, number) [unique]
+  }
+  checks {
+    `completed_at IS NULL OR completed_at >= starts_at` [name: 'cycles_state_1']
+    `number >= 1`
+    `ends_at > starts_at`
+  }
+  Note: 'Require PostgreSQL exclusion constraint for non-overlapping half-open team cycle windows.'
+}
+
+Table issues {
+  id text [pk]
+  workspace_id text [not null]
+  team_id text [not null]
+  number bigint [not null]
+  identifier text [not null]
+  title text [not null]
+  description text
+  status_id text [not null]
+  priority work_priority [not null, default: 'NO_PRIORITY']
+  assignee_id text
+  created_by_id text [not null]
+  project_id text
+  milestone_id text
+  cycle_id text
+  parent_id text
+  estimate integer
+  due_date date
+  sort_order decimal(20,8) [not null, default: 0]
+  completed_at timestamptz
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, team_id, id) [unique]
+    (workspace_id, team_id, number) [unique]
+    (workspace_id, identifier) [unique]
+    (workspace_id, assignee_id)
+    (workspace_id, project_id)
+    (workspace_id, cycle_id)
+  }
+  checks {
+    `btrim(title) <> ''` [name: 'issues_state_1']
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'issues_lifecycle_exclusive']
+    `number >= 1`
+    `estimate IS NULL OR estimate >= 0`
+    `parent_id IS NULL OR parent_id <> id`
+    `milestone_id IS NULL OR project_id IS NOT NULL`
+  }
+  Note: 'Team changes are explicit transactional transfers; preserve identifier history via issue_identifiers. Reject parent hierarchy cycles in a trigger/service.'
+}
+
+Table issue_identifiers {
+  id text [pk]
+  workspace_id text [not null]
+  issue_id text [not null]
+  identifier text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, identifier) [unique]
+    (workspace_id, issue_id, identifier) [unique]
+  }
+  Note: 'Registry contains current and previous identifiers. SQL trigger reserves every issues.identifier here on create/transfer; prevents reuse across both tables.'
+}
+
+Table issue_relations {
+  id text [pk]
+  workspace_id text [not null]
+  source_issue_id text [not null]
+  target_issue_id text [not null]
+  type issue_relation_type [not null]
+  created_by_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, source_issue_id, target_issue_id, type) [unique]
+  }
+  checks {
+    `source_issue_id <> target_issue_id`
+  }
+  Note: 'BLOCKS and DUPLICATES are directional. Canonicalize unordered RELATED pairs; reject dependency cycles.'
+}
+
+Table issue_comments {
+  id text [pk]
+  workspace_id text [not null]
+  issue_id text [not null]
+  author_id text [not null]
+  parent_comment_id text
+  body text [not null]
+  edited_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, issue_id, id) [unique]
+  }
+  checks {
+    `parent_comment_id IS NULL OR parent_comment_id <> id`
+  }
+}
+
+Table comment_reactions {
+  id text [pk]
+  workspace_id text [not null]
+  comment_id text [not null]
+  membership_id text [not null]
+  emoji text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, comment_id, membership_id, emoji) [unique]
+  }
+}
+
+Table issue_subscribers {
+  id text [pk]
+  workspace_id text [not null]
+  issue_id text [not null]
+  membership_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, issue_id, membership_id) [unique]
+  }
+}
+
+Table labels {
+  id text [pk]
+  workspace_id text [not null]
+  name text [not null]
+  color text [not null]
+  description text
+  team_id text
+  group_name text
+  archived_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  Note: 'Nullable team means workspace label. SQL partial unique indexes scope normalized name to workspace or team. Team-label applicability is validated transactionally.'
+}
+
+Table issue_labels {
+  id text [pk]
+  workspace_id text [not null]
+  issue_id text [not null]
+  label_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, issue_id, label_id) [unique]
+  }
+}
+
+Table project_labels {
+  id text [pk]
+  workspace_id text [not null]
+  project_id text [not null]
+  label_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, project_id, label_id) [unique]
+  }
+  Note: 'Only workspace-scoped labels apply to projects; enforce in a trigger/service.'
+}
+
+Table issue_activity {
+  id text [pk]
+  workspace_id text [not null]
+  issue_id text [not null]
+  actor_id text
+  event_id text [not null]
+  action text [not null]
+  changes jsonb [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, event_id, issue_id) [unique]
+  }
+  Note: 'Append-only human-readable activity derived transactionally from events; changes are historical snapshots, not relational FK claims.'
+}
+
+Table issue_templates {
+  id text [pk]
+  workspace_id text [not null]
+  team_id text
+  name text [not null]
+  description text
+  title_template text
+  body_template text
+  defaults jsonb [not null, default: `'{}'::jsonb`]
+  created_by_id text [not null]
+  archived_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  Note: 'Defaults are validated against the selected issue team and workspace when applying the template.'
+}
+
+Table cycle_rollovers {
+  id text [pk]
+  workspace_id text [not null]
+  team_id text [not null]
+  issue_id text [not null]
+  from_cycle_id text [not null]
+  to_cycle_id text [not null]
+  rolled_at timestamptz [not null, default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, issue_id, from_cycle_id) [unique]
+  }
+  checks {
+    `from_cycle_id <> to_cycle_id`
+  }
+  Note: 'Immutable rollover history. Complete cycle, create target cycle and move eligible issues atomically.'
+}
+
+Table initiatives {
+  id text [pk]
+  workspace_id text [not null]
+  name text [not null]
+  description text
+  status initiative_status [not null, default: 'PLANNED']
+  owner_id text
+  created_by_id text [not null]
+  target_date date
+  position integer [not null, default: 0]
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'initiatives_lifecycle_exclusive']
+  }
+}
+
+Table initiative_projects {
+  id text [pk]
+  workspace_id text [not null]
+  initiative_id text [not null]
+  project_id text [not null]
+  position integer [not null, default: 0]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, initiative_id, project_id) [unique]
+  }
+}
+
+Table initiative_updates {
+  id text [pk]
+  workspace_id text [not null]
+  initiative_id text [not null]
+  author_id text [not null]
+  body text [not null]
+  health update_health [not null]
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+}
+
+Table documents {
+  id text [pk]
+  workspace_id text [not null]
+  title text [not null]
+  body text [not null]
+  author_id text [not null]
+  project_id text
+  team_id text
+  initiative_id text
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'documents_lifecycle_exclusive']
+    `num_nonnulls(project_id, team_id, initiative_id) = 1`
+  }
+  Note: 'Exactly one typed owner; workspace-level standalone documents can be added as a separate explicit use case.'
+}
+
+Table files {
+  id text [pk]
+  workspace_id text [not null]
+  uploaded_by_id text [not null]
+  storage_key text [not null, unique]
+  filename text [not null]
+  mime_type text [not null]
+  size_bytes bigint [not null]
+  checksum_sha256 text
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `size_bytes >= 0`
+  }
+  Note: 'Private object storage. Generate signed URLs after authorization; do not store public access URLs.'
+}
+
+Table attachments {
+  id text [pk]
+  workspace_id text [not null]
+  file_id text [not null]
+  issue_id text
+  comment_id text
+  project_id text
+  document_id text
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `num_nonnulls(issue_id, comment_id, project_id, document_id) = 1`
+  }
+  Note: 'One explicit owner per attachment. SQL partial unique indexes prevent duplicate file/owner associations.'
+}
+
+Table saved_views {
+  id text [pk]
+  workspace_id text [not null]
+  name text [not null]
+  description text
+  owner_id text [not null]
+  team_id text
+  project_id text
+  resource view_resource [not null]
+  visibility view_visibility [not null, default: 'PRIVATE']
+  filters jsonb [not null, default: `'{}'::jsonb`]
+  display jsonb [not null, default: `'{}'::jsonb`]
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  Note: 'Validate filter schema and same-workspace IDs; authorization also applies to each returned resource.'
+  checks {
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'saved_views_lifecycle_exclusive']
+  }
+}
+
+Table favorites {
+  id text [pk]
+  workspace_id text [not null]
+  membership_id text [not null]
+  issue_id text
+  project_id text
+  team_id text
+  initiative_id text
+  view_id text
+  position integer [not null, default: 0]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `num_nonnulls(issue_id, project_id, team_id, initiative_id, view_id) = 1`
+  }
+  Note: 'SQL partial unique indexes deduplicate each typed target per membership.'
+}
+
+Table notifications {
+  id text [pk]
+  workspace_id text [not null]
+  recipient_id text [not null]
+  actor_id text
+  event_id text [not null]
+  kind text [not null]
+  issue_id text
+  project_id text
+  initiative_id text
+  pull_request_id text
+  title text [not null]
+  body text
+  read_at timestamptz
+  archived_at timestamptz
+  snoozed_until timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, recipient_id, event_id, kind) [unique]
+    (workspace_id, recipient_id, read_at, created_at)
+  }
+  checks {
+    `num_nonnulls(issue_id, project_id, initiative_id, pull_request_id) <= 1`
+  }
+  Note: 'Zero typed targets supports workspace notices. Authorize the linked resource before presenting sensitive content.'
+}
+
+Table notification_preferences {
+  id text [pk]
+  workspace_id text [not null]
+  membership_id text [not null]
+  kind text [not null]
+  channel notification_channel [not null]
+  enabled boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, membership_id, kind, channel) [unique]
+  }
+}
+
+Table notification_deliveries {
+  id text [pk]
+  workspace_id text [not null]
+  notification_id text [not null]
+  channel notification_channel [not null]
+  status delivery_status [not null, default: 'PENDING']
+  attempt_count integer [not null, default: 0]
+  available_at timestamptz [not null, default: `now()`]
+  locked_at timestamptz
+  locked_by text
+  provider_message_id text
+  sent_at timestamptz
+  last_error text
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, notification_id, channel) [unique]
+  }
+  checks {
+    `(status = 'SUCCEEDED') = (sent_at IS NOT NULL)` [name: 'notification_deliveries_state_3']
+    `(locked_at IS NULL) = (locked_by IS NULL)` [name: 'notification_deliveries_state_2']
+    `(status = 'PROCESSING') = (locked_at IS NOT NULL AND locked_by IS NOT NULL)` [name: 'notification_deliveries_state_1']
+    `attempt_count >= 0`
+  }
+}
+
+Table integrations {
+  id text [pk]
+  workspace_id text [not null]
+  provider text [not null, note: 'gmail, github, gitlab; provider adapter must exist']
+  external_account_id text [not null]
+  account_email text
+  connected_by_id text [not null]
+  encrypted_tokens text
+  granted_scopes jsonb [not null, default: `'[]'::jsonb`]
+  status integration_status [not null, default: 'PENDING']
+  last_tested_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, provider, external_account_id) [unique]
+  }
+}
+
+Table integration_oauth_states {
+  id text [pk]
+  workspace_id text [not null]
+  integration_id text
+  initiated_by_id text [not null]
+  provider text [not null]
+  state_hash text [not null, unique]
+  encrypted_code_verifier text [not null]
+  redirect_uri text [not null]
+  expires_at timestamptz [not null]
+  consumed_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `consumed_at IS NULL OR (consumed_at >= created_at AND consumed_at < expires_at)` [name: 'integration_oauth_states_state_1']
+    `expires_at > created_at`
+  }
+  Note: 'integration_id is null on initial connection; create integration only after validated OAuth callback.'
+}
+
+Table webhook_endpoints {
+  id text [pk]
+  workspace_id text [not null]
+  created_by_id text [not null]
+  url text [not null]
+  encrypted_signing_secret text [not null]
+  event_types jsonb [not null]
+  enabled boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  Note: 'Outbound workspace subscriptions; validate HTTPS destination and prevent SSRF. Signing secret must be recoverable encrypted material.'
+}
+
+Table webhook_deliveries {
+  id text [pk]
+  workspace_id text [not null]
+  endpoint_id text [not null]
+  event_id text [not null]
+  status delivery_status [not null, default: 'PENDING']
+  attempt_count integer [not null, default: 0]
+  available_at timestamptz [not null, default: `now()`]
+  locked_at timestamptz
+  locked_by text
+  response_status integer
+  last_error text
+  delivered_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, endpoint_id, event_id) [unique]
+  }
+  checks {
+    `attempt_count >= 0`
+  }
+}
+
+Table integration_webhook_receipts {
+  id text [pk]
+  workspace_id text [not null]
+  integration_id text [not null]
+  external_delivery_id text [not null]
+  event_type text [not null]
+  payload jsonb [not null]
+  received_at timestamptz [not null, default: `now()`]
+  processed_at timestamptz
+  last_error text
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, integration_id, external_delivery_id) [unique]
+  }
+  Note: 'Verified incoming provider webhooks; signature verification occurs before accepting payload. Apply retention/redaction.'
+}
+
+Table git_repositories {
+  id text [pk]
+  workspace_id text [not null]
+  integration_id text [not null]
+  external_id text [not null]
+  full_name text [not null]
+  url text [not null]
+  default_branch text
+  archived_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, integration_id, external_id) [unique]
+  }
+}
+
+Table pull_requests {
+  id text [pk]
+  workspace_id text [not null]
+  repository_id text [not null]
+  external_id text [not null]
+  number integer [not null]
+  title text [not null]
+  body text
+  url text [not null]
+  status pull_request_status [not null]
+  is_draft boolean [not null, default: false]
+  author_external_id text [not null]
+  author_membership_id text
+  head_sha text
+  base_sha text
+  opened_at timestamptz [not null]
+  merged_at timestamptz
+  closed_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, repository_id, number) [unique]
+    (workspace_id, repository_id, external_id) [unique]
+  }
+  checks {
+    `number > 0`
+  }
+  Note: 'External author ID remains valid even when author is not a workspace member. Diff contents are fetched from provider, not duplicated here.'
+}
+
+Table issue_pull_requests {
+  id text [pk]
+  workspace_id text [not null]
+  issue_id text [not null]
+  pull_request_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, issue_id, pull_request_id) [unique]
+  }
+}
+
+Table pull_request_reviews {
+  id text [pk]
+  workspace_id text [not null]
+  pull_request_id text [not null]
+  external_id text [not null]
+  reviewer_external_id text [not null]
+  reviewer_membership_id text
+  state review_state [not null]
+  body text
+  commit_sha text
+  submitted_at timestamptz [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, pull_request_id, external_id) [unique]
+  }
+}
+
+Table events {
+  id text [pk]
+  workspace_id text [not null]
+  event_type text [not null]
+  schema_version integer [not null]
+  aggregate_type text [not null]
+  aggregate_id text [not null]
+  aggregate_version bigint [not null]
+  correlation_id text
+  actor_id text
+  payload jsonb [not null]
+  idempotency_key text [note: 'Command correlation only; one command may emit several events. Command deduplication is owned by idempotency_keys.']
+  occurred_at timestamptz [not null, default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, idempotency_key)
+    (workspace_id, aggregate_type, aggregate_id, aggregate_version, id)
+    (workspace_id, occurred_at, id)
+  }
+  Note: 'Append-only facts written with state mutations. Payload resource IDs are immutable snapshots, not foreign keys; Validate the registered (event_type, schema_version) contract before insertion. actor_id maps to actor_membership_id in the event envelope.'
+  checks {
+    `jsonb_typeof(payload) = 'object'` [name: 'events_state_1']
+    `schema_version > 0` [name: 'events_schema_version_positive']
+    `aggregate_version > 0` [name: 'events_aggregate_version_positive']
+  }
+}
+
+// Durable revision counters are historical stream identities, not polymorphic resource FKs.
+Table event_aggregate_heads {
+  id text [pk]
+  workspace_id text [not null]
+  aggregate_type text [not null]
+  aggregate_id text [not null]
+  current_version bigint [not null, default: 0]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, aggregate_type, aggregate_id) [unique]
+  }
+  checks {
+    `current_version >= 0`
+  }
+  Note: 'Lock this row before changing its aggregate; increment once per committed revision with business state and events. Several events may share a revision. Never reset or recycle a stream; resource IDs are immutable snapshots.'
+}
+
+Table event_consumer_receipts {
+  id text [pk]
+  workspace_id text [not null]
+  event_id text [not null]
+  consumer_key text [not null]
+  processed_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, event_id, consumer_key) [unique]
+  }
+  Note: 'Insert this receipt with same-database side effects in one transaction. External providers need a stable event-derived idempotency key or reconciliation; this receipt alone cannot guarantee external exactly-once effects.'
+}
+
+Table event_dispatch_attempts {
+  id text [pk]
+  workspace_id text [not null]
+  event_id text [not null]
+  consumer_key text [not null]
+  status delivery_status [not null, default: 'PENDING']
+  attempt_count integer [not null, default: 0]
+  available_at timestamptz [not null, default: `now()`]
+  locked_at timestamptz
+  locked_by text
+  completed_at timestamptz
+  last_error text
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, event_id, consumer_key) [unique]
+    (status, available_at, created_at)
+  }
+  checks {
+    `(status = 'SUCCEEDED') = (completed_at IS NOT NULL)` [name: 'event_dispatch_attempts_state_3']
+    `(locked_at IS NULL) = (locked_by IS NULL)` [name: 'event_dispatch_attempts_state_2']
+    `(status = 'PROCESSING') = (locked_at IS NOT NULL AND locked_by IS NOT NULL)` [name: 'event_dispatch_attempts_state_1']
+    `attempt_count >= 0`
+  }
+  Note: 'One durable queue job per event/consumer. Retry counter is state, not per-attempt history. Claim with SKIP LOCKED and recover stale leases.'
+}
+
+Table idempotency_keys {
+  id text [pk]
+  user_id text [not null]
+  method text [not null]
+  route text [not null]
+  key uuid [not null]
+  request_hash text [not null]
+  status idempotency_status [not null, default: 'PENDING']
+  response_status integer
+  response_body jsonb
+  response_headers jsonb [not null, default: `'{}'::jsonb`]
+  completed_at timestamptz
+  expires_at timestamptz [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (user_id, method, route, key) [unique]
+  }
+  checks {
+    `status <> 'PENDING' OR response_body IS NULL` [name: 'idempotency_keys_state_4']
+    `response_status IS NULL OR response_status BETWEEN 100 AND 599` [name: 'idempotency_keys_state_3']
+    `(status = 'COMPLETED') = (response_status IS NOT NULL)` [name: 'idempotency_keys_state_2']
+    `(status = 'COMPLETED') = (completed_at IS NOT NULL)` [name: 'idempotency_keys_state_1']
+    `expires_at > created_at`
+  }
+  Note: 'Global user request scope also supports signup/workspace creation; workspace-scoped routes must contain tenant in canonical route identity. Do not cache secrets.'
+}
+
+Table audit_logs {
+  id text [pk]
+  workspace_id text [not null]
+  actor_id text
+  action text [not null]
+  resource_type text [not null]
+  resource_id text
+  request_id text
+  ip_address inet
+  metadata jsonb [not null, default: `'{}'::jsonb`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  Note: 'Append-only security history. resource_id is a historical identifier, explicitly not a polymorphic FK. Redact sensitive values and enforce retention.'
+}
+
+Table companies {
+  id text [pk]
+  workspace_id text [not null]
+  name text [not null]
+  domain text
+  industry text
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'companies_lifecycle_exclusive']
+  }
+}
+
+Table contacts {
+  id text [pk]
+  workspace_id text [not null]
+  company_id text
+  first_name text
+  last_name text
+  email text [not null]
+  phone text
+  status text [not null, default: 'LEAD']
+  attributes jsonb [not null, default: `'{}'::jsonb`]
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  Note: 'Current CRM status is LEAD. Partial lower(email) uniqueness per active workspace is implemented in SQL.'
+  checks {
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'contacts_lifecycle_exclusive']
+  }
+}
+
+Table deals {
+  id text [pk]
+  workspace_id text [not null]
+  company_id text
+  title text [not null]
+  amount decimal(12,2) [not null, default: 0]
+  currency char(3) [not null, default: 'USD']
+  stage text [not null, default: 'DISCOVERY']
+  close_date date
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'deals_lifecycle_exclusive']
+    `amount >= 0`
+    `currency ~ '^[A-Z]{3}$'`
+  }
+  Note: 'DISCOVERY is the current stage; expanding pipeline stages is a separate domain decision.'
+}
+
+Table deal_contacts {
+  id text [pk]
+  workspace_id text [not null]
+  deal_id text [not null]
+  contact_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, deal_id, contact_id) [unique]
+  }
+}
+
+Table crm_tasks {
+  id text [pk]
+  workspace_id text [not null]
+  contact_id text
+  deal_id text
+  assignee_id text
+  title text [not null]
+  description text
+  status task_status [not null, default: 'TODO']
+  due_at timestamptz
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  Note: 'Existing physical table is tasks. Dedicated CRM entity, never reused as a product issue.'
+  checks {
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'crm_tasks_lifecycle_exclusive']
+  }
+}
+
+Table dynamic_databases {
+  id text [pk]
+  workspace_id text [not null]
+  name text [not null]
+  icon text
+  description text
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'dynamic_databases_lifecycle_exclusive']
+  }
+}
+
+Table dynamic_fields {
+  id text [pk]
+  workspace_id text [not null]
+  database_id text [not null]
+  name text [not null]
+  key text [not null]
+  type dynamic_field_type [not null]
+  is_required boolean [not null, default: false]
+  config jsonb [not null, default: `'{}'::jsonb`]
+  position integer [not null, default: 0]
+  relation_database_id text
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, database_id, id) [unique]
+    (workspace_id, database_id, key) [unique]
+  }
+  checks {
+    `(type = 'RELATION') = (relation_database_id IS NOT NULL)`
+  }
+  Note: 'Field keys reserved after deletion. Config defines select options and validation; JSON values require schema validation.'
+}
+
+Table dynamic_records {
+  id text [pk]
+  workspace_id text [not null]
+  database_id text [not null]
+  values jsonb [not null, default: `'{}'::jsonb`]
+  created_by_id text [not null]
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, database_id, id) [unique]
+  }
+  Note: 'JSON values hold scalar/select fields only; USER and RELATION references use typed link tables.'
+  checks {
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'dynamic_records_lifecycle_exclusive']
+  }
+}
+
+Table dynamic_record_relations {
+  id text [pk]
+  workspace_id text [not null]
+  database_id text [not null]
+  record_id text [not null]
+  field_id text [not null]
+  target_database_id text [not null]
+  target_record_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, record_id, field_id, target_record_id) [unique]
+  }
+  Note: 'SQL guards verify RELATION type and configured target database on link and field edits; service validates required/cardinality rules.'
+}
+
+Table dynamic_record_users {
+  id text [pk]
+  workspace_id text [not null]
+  database_id text [not null]
+  record_id text [not null]
+  field_id text [not null]
+  membership_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, record_id, field_id, membership_id) [unique]
+  }
+  Note: 'SQL guards verify USER type on link and field edits; service validates single/multiple cardinality.'
+}
+
+Table intake_requests {
+  id text [pk]
+  workspace_id text [not null]
+  team_id text [not null]
+  submitted_by_id text [not null]
+  title text [not null]
+  body text
+  state text [not null, default: 'SUBMITTED']
+  converted_issue_id text
+  resolved_by_id text
+  resolved_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `state IN ('SUBMITTED', 'ACCEPTED', 'DECLINED')`
+    `converted_issue_id IS NULL OR state = 'ACCEPTED'`
+  }
+  Note: 'Asks-style member intake. Conversion creates an issue transactionally; optional feature beyond current API.'
+}
+
+Table customer_requests {
+  id text [pk]
+  workspace_id text [not null]
+  contact_id text [not null]
+  submitted_by_id text [not null]
+  title text [not null]
+  body text
+  source text
+  external_reference text
+  state text [not null, default: 'OPEN']
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'customer_requests_lifecycle_exclusive']
+    `state IN ('OPEN', 'PLANNED', 'DELIVERED', 'DECLINED')`
+  }
+  Note: 'Optional bridge from CRM customer feedback to product planning; not a CRM Task.'
+}
+
+Table customer_request_links {
+  id text [pk]
+  workspace_id text [not null]
+  request_id text [not null]
+  issue_id text
+  project_id text
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `num_nonnulls(issue_id, project_id) = 1`
+  }
+  Note: 'SQL partial unique indexes deduplicate each request/issue or request/project.'
+}
+
+Table releases {
+  id text [pk]
+  workspace_id text [not null]
+  name text [not null]
+  description text
+  version text
+  state text [not null, default: 'PLANNED']
+  target_date date
+  released_at timestamptz
+  created_by_id text [not null]
+  archived_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `archived_at IS NULL OR deleted_at IS NULL` [name: 'releases_lifecycle_exclusive']
+    `state IN ('PLANNED', 'IN_PROGRESS', 'RELEASED', 'CANCELED')`
+  }
+  Note: 'Product release planning; separate from deployment environments or CI execution.'
+}
+
+Table release_projects {
+  id text [pk]
+  workspace_id text [not null]
+  release_id text [not null]
+  project_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, release_id, project_id) [unique]
+  }
+}
+
+Table release_issues {
+  id text [pk]
+  workspace_id text [not null]
+  release_id text [not null]
+  issue_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, release_id, issue_id) [unique]
+  }
+}
+
+Table sla_policies {
+  id text [pk]
+  workspace_id text [not null]
+  team_id text [not null]
+  name text [not null]
+  priority work_priority [not null]
+  response_minutes integer [not null]
+  resolution_minutes integer [not null]
+  enabled boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, team_id, id) [unique]
+    (workspace_id, team_id, priority) [unique]
+  }
+  checks {
+    `response_minutes > 0`
+    `resolution_minutes >= response_minutes`
+  }
+  Note: 'Simple elapsed-time SLA. Business-hours calendars and policy versioning are outside this model.'
+}
+
+Table issue_sla_targets {
+  id text [pk]
+  workspace_id text [not null]
+  issue_id text [not null]
+  team_id text [not null]
+  policy_id text [not null]
+  response_due_at timestamptz [not null]
+  resolution_due_at timestamptz [not null]
+  responded_at timestamptz
+  resolved_at timestamptz
+  breached_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, issue_id) [unique]
+  }
+  checks {
+    `resolution_due_at >= response_due_at`
+  }
+  Note: 'Snapshot computed deadlines when applying policy; update transactionally on team transfers. Scheduler emits breach notifications.'
+}
+
+Table project_templates {
+  id text [pk]
+  workspace_id text [not null]
+  name text [not null]
+  description text
+  body_template text
+  defaults jsonb [not null, default: `'{}'::jsonb`]
+  milestone_templates jsonb [not null, default: `'[]'::jsonb`]
+  created_by_id text [not null]
+  archived_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  Note: 'Validated snapshots; apply by creating project, teams and milestones atomically. No fake FKs for IDs embedded in JSON.'
+}
+
+Table custom_emojis {
+  id text [pk]
+  workspace_id text [not null]
+  name text [not null]
+  file_id text [not null]
+  created_by_id text [not null]
+  archived_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, name) [unique]
+  }
+  Note: 'Names reserved after archival. Reactions preserve their emoji token; validate custom tokens against this catalog when created.'
+}
+
+Table initiative_subscribers {
+  id text [pk]
+  workspace_id text [not null]
+  initiative_id text [not null]
+  membership_id text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, initiative_id, membership_id) [unique]
+  }
+}
+
+Table passkeys {
+  id text [pk]
+  user_id text [not null]
+  credential_id text [not null, unique]
+  public_key bytea [not null]
+  sign_count bigint [not null, default: 0]
+  name text
+  transports jsonb [not null, default: `'[]'::jsonb`]
+  backup_eligible boolean [not null, default: false]
+  backed_up boolean [not null, default: false]
+  last_used_at timestamptz
+  revoked_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  checks {
+    `sign_count >= 0`
+    `NOT backed_up OR backup_eligible`
+  }
+  Note: 'WebAuthn credential public material only. One-time challenge state and origin/RP verification belong to the authentication adapter. Counter rollback handling must account for synced passkeys.'
+}
+
+Table personal_api_keys {
+  id text [pk]
+  workspace_id text [not null]
+  membership_id text [not null]
+  name text [not null]
+  token_prefix text [not null]
+  token_hash text [not null, unique]
+  scopes jsonb [not null]
+  expires_at timestamptz
+  last_used_at timestamptz
+  revoked_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  Note: 'Workspace-scoped personal key. Show raw secret once; require active membership and current role plus granted scopes at each request.'
+  checks {
+    `expires_at IS NULL OR expires_at > created_at` [name: 'personal_api_keys_state_1']
+  }
+}
+
+Table planning_comments {
+  id text [pk]
+  workspace_id text [not null]
+  project_id text
+  initiative_id text
+  project_update_id text
+  initiative_update_id text
+  author_id text [not null]
+  body text [not null]
+  edited_at timestamptz
+  deleted_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+  }
+  checks {
+    `num_nonnulls(project_id, initiative_id, project_update_id, initiative_update_id) = 1`
+  }
+  Note: 'Supports a direct project/initiative discussion or a comment on a health update, with exactly one typed owner.'
+}
+
+Table planning_comment_reactions {
+  id text [pk]
+  workspace_id text [not null]
+  comment_id text [not null]
+  membership_id text [not null]
+  emoji text [not null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, comment_id, membership_id, emoji) [unique]
+  }
+}
+
+Table pull_request_review_requests {
+  id text [pk]
+  workspace_id text [not null]
+  pull_request_id text [not null]
+  reviewer_external_id text [not null]
+  reviewer_membership_id text
+  requested_by_id text
+  requested_at timestamptz [not null, default: `now()`]
+  resolved_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, pull_request_id, reviewer_external_id) [unique]
+  }
+  Note: 'Outstanding provider request exists before a submitted review. Resolve after matching provider review/webhook; repeat requests update this state.'
+}
+
+Table review_file_progress {
+  id text [pk]
+  workspace_id text [not null]
+  pull_request_id text [not null]
+  membership_id text [not null]
+  file_path text [not null]
+  head_sha text [not null]
+  viewed_at timestamptz [not null, default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  indexes {
+    (workspace_id, id) [unique]
+    (workspace_id, pull_request_id, membership_id, head_sha, file_path) [unique]
+  }
+  Note: 'Personal viewed-file markers tied to reviewed revision. Provider adapters supply file lists/diffs and inline review threads; the review guide is presentation derived from those files.'
+}
+
+Ref: refresh_sessions.user_id > users.id
+
+Ref: auth_tokens.user_id > users.id
+
+Ref: user_preferences.user_id > users.id
+
+Ref: memberships.workspace_id > workspaces.id
+
+Ref: memberships.user_id > users.id
+
+Ref: workspace_invitations.workspace_id > workspaces.id
+
+Ref: workspace_invitations.(workspace_id, invited_by_id) > memberships.(workspace_id, id)
+
+Ref: workspace_invitations.(workspace_id, accepted_by_id) > memberships.(workspace_id, id)
+
+Ref: workspace_preferences.workspace_id > workspaces.id
+
+Ref: workspace_preferences.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: teams.workspace_id > workspaces.id
+
+Ref: team_memberships.workspace_id > workspaces.id
+
+Ref: team_memberships.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: team_memberships.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: issue_statuses.workspace_id > workspaces.id
+
+Ref: issue_statuses.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: project_statuses.workspace_id > workspaces.id
+
+Ref: projects.workspace_id > workspaces.id
+
+Ref: projects.(workspace_id, status_id) > project_statuses.(workspace_id, id)
+
+Ref: projects.(workspace_id, lead_id) > memberships.(workspace_id, id)
+
+Ref: projects.(workspace_id, created_by_id) > memberships.(workspace_id, id)
+
+Ref: project_teams.workspace_id > workspaces.id
+
+Ref: project_teams.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: project_teams.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: project_members.workspace_id > workspaces.id
+
+Ref: project_members.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: project_members.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: project_milestones.workspace_id > workspaces.id
+
+Ref: project_milestones.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: project_updates.workspace_id > workspaces.id
+
+Ref: project_updates.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: project_updates.(workspace_id, author_id) > memberships.(workspace_id, id)
+
+Ref: project_subscribers.workspace_id > workspaces.id
+
+Ref: project_subscribers.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: project_subscribers.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: cycles.workspace_id > workspaces.id
+
+Ref: cycles.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: issues.workspace_id > workspaces.id
+
+Ref: issues.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: issues.(workspace_id, assignee_id) > memberships.(workspace_id, id)
+
+Ref: issues.(workspace_id, created_by_id) > memberships.(workspace_id, id)
+
+Ref: issues.(workspace_id, parent_id) > issues.(workspace_id, id)
+
+Ref: issues.(workspace_id, team_id, status_id) > issue_statuses.(workspace_id, team_id, id)
+
+Ref: issues.(workspace_id, team_id, cycle_id) > cycles.(workspace_id, team_id, id)
+
+Ref: issues.(workspace_id, project_id, team_id) > project_teams.(workspace_id, project_id, team_id)
+
+Ref: issues.(workspace_id, project_id, milestone_id) > project_milestones.(workspace_id, project_id, id)
+
+Ref: issue_identifiers.workspace_id > workspaces.id
+
+Ref: issue_identifiers.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: issue_relations.workspace_id > workspaces.id
+
+Ref: issue_relations.(workspace_id, source_issue_id) > issues.(workspace_id, id)
+
+Ref: issue_relations.(workspace_id, target_issue_id) > issues.(workspace_id, id)
+
+Ref: issue_relations.(workspace_id, created_by_id) > memberships.(workspace_id, id)
+
+Ref: issue_comments.workspace_id > workspaces.id
+
+Ref: issue_comments.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: issue_comments.(workspace_id, author_id) > memberships.(workspace_id, id)
+
+Ref: issue_comments.(workspace_id, issue_id, parent_comment_id) > issue_comments.(workspace_id, issue_id, id)
+
+Ref: comment_reactions.workspace_id > workspaces.id
+
+Ref: comment_reactions.(workspace_id, comment_id) > issue_comments.(workspace_id, id)
+
+Ref: comment_reactions.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: issue_subscribers.workspace_id > workspaces.id
+
+Ref: issue_subscribers.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: issue_subscribers.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: labels.workspace_id > workspaces.id
+
+Ref: labels.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: issue_labels.workspace_id > workspaces.id
+
+Ref: issue_labels.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: issue_labels.(workspace_id, label_id) > labels.(workspace_id, id)
+
+Ref: project_labels.workspace_id > workspaces.id
+
+Ref: project_labels.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: project_labels.(workspace_id, label_id) > labels.(workspace_id, id)
+
+Ref: issue_activity.workspace_id > workspaces.id
+
+Ref: issue_activity.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: issue_activity.(workspace_id, actor_id) > memberships.(workspace_id, id)
+
+Ref: issue_activity.(workspace_id, event_id) > events.(workspace_id, id)
+
+Ref: issue_templates.workspace_id > workspaces.id
+
+Ref: issue_templates.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: issue_templates.(workspace_id, created_by_id) > memberships.(workspace_id, id)
+
+Ref: cycle_rollovers.workspace_id > workspaces.id
+
+Ref: cycle_rollovers.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: cycle_rollovers.(workspace_id, team_id, from_cycle_id) > cycles.(workspace_id, team_id, id)
+
+Ref: cycle_rollovers.(workspace_id, team_id, to_cycle_id) > cycles.(workspace_id, team_id, id)
+
+Ref: initiatives.workspace_id > workspaces.id
+
+Ref: initiatives.(workspace_id, owner_id) > memberships.(workspace_id, id)
+
+Ref: initiatives.(workspace_id, created_by_id) > memberships.(workspace_id, id)
+
+Ref: initiative_projects.workspace_id > workspaces.id
+
+Ref: initiative_projects.(workspace_id, initiative_id) > initiatives.(workspace_id, id)
+
+Ref: initiative_projects.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: initiative_updates.workspace_id > workspaces.id
+
+Ref: initiative_updates.(workspace_id, initiative_id) > initiatives.(workspace_id, id)
+
+Ref: initiative_updates.(workspace_id, author_id) > memberships.(workspace_id, id)
+
+Ref: documents.workspace_id > workspaces.id
+
+Ref: documents.(workspace_id, author_id) > memberships.(workspace_id, id)
+
+Ref: documents.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: documents.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: documents.(workspace_id, initiative_id) > initiatives.(workspace_id, id)
+
+Ref: files.workspace_id > workspaces.id
+
+Ref: files.(workspace_id, uploaded_by_id) > memberships.(workspace_id, id)
+
+Ref: attachments.workspace_id > workspaces.id
+
+Ref: attachments.(workspace_id, file_id) > files.(workspace_id, id)
+
+Ref: attachments.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: attachments.(workspace_id, comment_id) > issue_comments.(workspace_id, id)
+
+Ref: attachments.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: attachments.(workspace_id, document_id) > documents.(workspace_id, id)
+
+Ref: saved_views.workspace_id > workspaces.id
+
+Ref: saved_views.(workspace_id, owner_id) > memberships.(workspace_id, id)
+
+Ref: saved_views.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: saved_views.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: favorites.workspace_id > workspaces.id
+
+Ref: favorites.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: favorites.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: favorites.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: favorites.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: favorites.(workspace_id, initiative_id) > initiatives.(workspace_id, id)
+
+Ref: favorites.(workspace_id, view_id) > saved_views.(workspace_id, id)
+
+Ref: notifications.workspace_id > workspaces.id
+
+Ref: notifications.(workspace_id, recipient_id) > memberships.(workspace_id, id)
+
+Ref: notifications.(workspace_id, actor_id) > memberships.(workspace_id, id)
+
+Ref: notifications.(workspace_id, event_id) > events.(workspace_id, id)
+
+Ref: notifications.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: notifications.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: notifications.(workspace_id, initiative_id) > initiatives.(workspace_id, id)
+
+Ref: notifications.(workspace_id, pull_request_id) > pull_requests.(workspace_id, id)
+
+Ref: notification_preferences.workspace_id > workspaces.id
+
+Ref: notification_preferences.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: notification_deliveries.workspace_id > workspaces.id
+
+Ref: notification_deliveries.(workspace_id, notification_id) > notifications.(workspace_id, id)
+
+Ref: integrations.workspace_id > workspaces.id
+
+Ref: integrations.(workspace_id, connected_by_id) > memberships.(workspace_id, id)
+
+Ref: integration_oauth_states.workspace_id > workspaces.id
+
+Ref: integration_oauth_states.(workspace_id, integration_id) > integrations.(workspace_id, id)
+
+Ref: integration_oauth_states.(workspace_id, initiated_by_id) > memberships.(workspace_id, id)
+
+Ref: webhook_endpoints.workspace_id > workspaces.id
+
+Ref: webhook_endpoints.(workspace_id, created_by_id) > memberships.(workspace_id, id)
+
+Ref: webhook_deliveries.workspace_id > workspaces.id
+
+Ref: webhook_deliveries.(workspace_id, endpoint_id) > webhook_endpoints.(workspace_id, id)
+
+Ref: webhook_deliveries.(workspace_id, event_id) > events.(workspace_id, id)
+
+Ref: integration_webhook_receipts.workspace_id > workspaces.id
+
+Ref: integration_webhook_receipts.(workspace_id, integration_id) > integrations.(workspace_id, id)
+
+Ref: git_repositories.workspace_id > workspaces.id
+
+Ref: git_repositories.(workspace_id, integration_id) > integrations.(workspace_id, id)
+
+Ref: pull_requests.workspace_id > workspaces.id
+
+Ref: pull_requests.(workspace_id, repository_id) > git_repositories.(workspace_id, id)
+
+Ref: pull_requests.(workspace_id, author_membership_id) > memberships.(workspace_id, id)
+
+Ref: issue_pull_requests.workspace_id > workspaces.id
+
+Ref: issue_pull_requests.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: issue_pull_requests.(workspace_id, pull_request_id) > pull_requests.(workspace_id, id)
+
+Ref: pull_request_reviews.workspace_id > workspaces.id
+
+Ref: pull_request_reviews.(workspace_id, pull_request_id) > pull_requests.(workspace_id, id)
+
+Ref: pull_request_reviews.(workspace_id, reviewer_membership_id) > memberships.(workspace_id, id)
+
+Ref: events.workspace_id > workspaces.id
+
+Ref: events.(workspace_id, actor_id) > memberships.(workspace_id, id)
+
+Ref: event_dispatch_attempts.workspace_id > workspaces.id
+
+Ref: event_dispatch_attempts.(workspace_id, event_id) > events.(workspace_id, id)
+
+Ref: idempotency_keys.user_id > users.id
+
+Ref: audit_logs.workspace_id > workspaces.id
+
+Ref: audit_logs.(workspace_id, actor_id) > memberships.(workspace_id, id)
+
+Ref: companies.workspace_id > workspaces.id
+
+Ref: contacts.workspace_id > workspaces.id
+
+Ref: contacts.(workspace_id, company_id) > companies.(workspace_id, id)
+
+Ref: deals.workspace_id > workspaces.id
+
+Ref: deals.(workspace_id, company_id) > companies.(workspace_id, id)
+
+Ref: deal_contacts.workspace_id > workspaces.id
+
+Ref: deal_contacts.(workspace_id, deal_id) > deals.(workspace_id, id)
+
+Ref: deal_contacts.(workspace_id, contact_id) > contacts.(workspace_id, id)
+
+Ref: crm_tasks.workspace_id > workspaces.id
+
+Ref: crm_tasks.(workspace_id, contact_id) > contacts.(workspace_id, id)
+
+Ref: crm_tasks.(workspace_id, deal_id) > deals.(workspace_id, id)
+
+Ref: crm_tasks.(workspace_id, assignee_id) > memberships.(workspace_id, id)
+
+Ref: dynamic_databases.workspace_id > workspaces.id
+
+Ref: dynamic_fields.workspace_id > workspaces.id
+
+Ref: dynamic_fields.(workspace_id, database_id) > dynamic_databases.(workspace_id, id)
+
+Ref: dynamic_fields.(workspace_id, relation_database_id) > dynamic_databases.(workspace_id, id)
+
+Ref: dynamic_records.workspace_id > workspaces.id
+
+Ref: dynamic_records.(workspace_id, database_id) > dynamic_databases.(workspace_id, id)
+
+Ref: dynamic_records.(workspace_id, created_by_id) > memberships.(workspace_id, id)
+
+Ref: dynamic_record_relations.workspace_id > workspaces.id
+
+Ref: dynamic_record_relations.(workspace_id, database_id, record_id) > dynamic_records.(workspace_id, database_id, id)
+
+Ref: dynamic_record_relations.(workspace_id, database_id, field_id) > dynamic_fields.(workspace_id, database_id, id)
+
+Ref: dynamic_record_relations.(workspace_id, target_database_id, target_record_id) > dynamic_records.(workspace_id, database_id, id)
+
+Ref: dynamic_record_users.workspace_id > workspaces.id
+
+Ref: dynamic_record_users.(workspace_id, database_id, record_id) > dynamic_records.(workspace_id, database_id, id)
+
+Ref: dynamic_record_users.(workspace_id, database_id, field_id) > dynamic_fields.(workspace_id, database_id, id)
+
+Ref: dynamic_record_users.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: intake_requests.workspace_id > workspaces.id
+
+Ref: intake_requests.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: intake_requests.(workspace_id, submitted_by_id) > memberships.(workspace_id, id)
+
+Ref: intake_requests.(workspace_id, resolved_by_id) > memberships.(workspace_id, id)
+
+Ref: intake_requests.(workspace_id, converted_issue_id) > issues.(workspace_id, id)
+
+Ref: customer_requests.workspace_id > workspaces.id
+
+Ref: customer_requests.(workspace_id, contact_id) > contacts.(workspace_id, id)
+
+Ref: customer_requests.(workspace_id, submitted_by_id) > memberships.(workspace_id, id)
+
+Ref: customer_request_links.workspace_id > workspaces.id
+
+Ref: customer_request_links.(workspace_id, request_id) > customer_requests.(workspace_id, id)
+
+Ref: customer_request_links.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: customer_request_links.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: releases.workspace_id > workspaces.id
+
+Ref: releases.(workspace_id, created_by_id) > memberships.(workspace_id, id)
+
+Ref: release_projects.workspace_id > workspaces.id
+
+Ref: release_projects.(workspace_id, release_id) > releases.(workspace_id, id)
+
+Ref: release_projects.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: release_issues.workspace_id > workspaces.id
+
+Ref: release_issues.(workspace_id, release_id) > releases.(workspace_id, id)
+
+Ref: release_issues.(workspace_id, issue_id) > issues.(workspace_id, id)
+
+Ref: sla_policies.workspace_id > workspaces.id
+
+Ref: sla_policies.(workspace_id, team_id) > teams.(workspace_id, id)
+
+Ref: issue_sla_targets.workspace_id > workspaces.id
+
+Ref: issue_sla_targets.(workspace_id, team_id, issue_id) > issues.(workspace_id, team_id, id)
+
+Ref: issue_sla_targets.(workspace_id, team_id, policy_id) > sla_policies.(workspace_id, team_id, id)
+
+Ref: project_templates.workspace_id > workspaces.id
+
+Ref: project_templates.(workspace_id, created_by_id) > memberships.(workspace_id, id)
+
+Ref: custom_emojis.workspace_id > workspaces.id
+
+Ref: custom_emojis.(workspace_id, file_id) > files.(workspace_id, id)
+
+Ref: custom_emojis.(workspace_id, created_by_id) > memberships.(workspace_id, id)
+
+Ref: initiative_subscribers.workspace_id > workspaces.id
+
+Ref: initiative_subscribers.(workspace_id, initiative_id) > initiatives.(workspace_id, id)
+
+Ref: initiative_subscribers.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: passkeys.user_id > users.id
+
+Ref: personal_api_keys.workspace_id > workspaces.id
+
+Ref: personal_api_keys.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: planning_comments.workspace_id > workspaces.id
+
+Ref: planning_comments.(workspace_id, project_id) > projects.(workspace_id, id)
+
+Ref: planning_comments.(workspace_id, initiative_id) > initiatives.(workspace_id, id)
+
+Ref: planning_comments.(workspace_id, project_update_id) > project_updates.(workspace_id, id)
+
+Ref: planning_comments.(workspace_id, initiative_update_id) > initiative_updates.(workspace_id, id)
+
+Ref: planning_comments.(workspace_id, author_id) > memberships.(workspace_id, id)
+
+Ref: planning_comment_reactions.workspace_id > workspaces.id
+
+Ref: planning_comment_reactions.(workspace_id, comment_id) > planning_comments.(workspace_id, id)
+
+Ref: planning_comment_reactions.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+Ref: pull_request_review_requests.workspace_id > workspaces.id
+
+Ref: pull_request_review_requests.(workspace_id, pull_request_id) > pull_requests.(workspace_id, id)
+
+Ref: pull_request_review_requests.(workspace_id, reviewer_membership_id) > memberships.(workspace_id, id)
+
+Ref: pull_request_review_requests.(workspace_id, requested_by_id) > memberships.(workspace_id, id)
+
+Ref: review_file_progress.workspace_id > workspaces.id
+
+Ref: review_file_progress.(workspace_id, pull_request_id) > pull_requests.(workspace_id, id)
+
+Ref: review_file_progress.(workspace_id, membership_id) > memberships.(workspace_id, id)
+
+TableGroup Identity_and_access {
+  users
+  refresh_sessions
+  auth_tokens
+  user_preferences
+  workspaces
+  memberships
+  workspace_invitations
+  workspace_preferences
+  passkeys
+  personal_api_keys
+}
+
+TableGroup Teams_and_workflows {
+  teams
+  team_memberships
+  issue_statuses
+}
+
+TableGroup Projects {
+  project_statuses
+  projects
+  project_teams
+  project_members
+  project_milestones
+  project_updates
+  project_subscribers
+}
+
+TableGroup Cycles {
+  cycles
+  cycle_rollovers
+}
+
+TableGroup Issues {
+  issues
+  issue_identifiers
+  issue_relations
+  issue_comments
+  comment_reactions
+  issue_subscribers
+  labels
+  issue_labels
+  project_labels
+  issue_activity
+  issue_templates
+}
+
+TableGroup Initiatives_and_documents {
+  initiatives
+  initiative_projects
+  initiative_updates
+  documents
+  files
+  attachments
+  initiative_subscribers
+  planning_comments
+  planning_comment_reactions
+}
+
+TableGroup Views_and_navigation {
+  saved_views
+  favorites
+}
+
+TableGroup Notifications {
+  notifications
+  notification_preferences
+  notification_deliveries
+}
+
+TableGroup Integrations_and_reviews {
+  integrations
+  integration_oauth_states
+  webhook_endpoints
+  webhook_deliveries
+  integration_webhook_receipts
+  git_repositories
+  pull_requests
+  issue_pull_requests
+  pull_request_reviews
+  pull_request_review_requests
+  review_file_progress
+}
+
+TableGroup Events_and_audit {
+  event_aggregate_heads
+  event_consumer_receipts
+  events
+  event_dispatch_attempts
+  idempotency_keys
+  audit_logs
+}
+
+TableGroup CRM_extension {
+  companies
+  contacts
+  deals
+  deal_contacts
+  crm_tasks
+}
+
+TableGroup Dynamic_data_extension {
+  dynamic_databases
+  dynamic_fields
+  dynamic_records
+  dynamic_record_relations
+  dynamic_record_users
+}
+
+TableGroup Intake_and_customer_requests_optional {
+  intake_requests
+  customer_requests
+  customer_request_links
+}
+
+TableGroup Releases_and_SLA_optional {
+  releases
+  release_projects
+  release_issues
+  sla_policies
+  issue_sla_targets
+}
+
+TableGroup Templates_and_customization_optional {
+  project_templates
+  custom_emojis
+}
+
+// Readable examples only; these IDs deliberately are not production ULIDs.
+Records users(id, email, full_name) {
+  'usr_demo_alice', 'alice@example.test', 'Alice'
+  'usr_demo_bob', 'bob@example.test', 'Bob'
+}
+Records workspaces(id, name, slug) {
+  'wsp_demo', 'Tream Demo', 'tream-demo'
+}
+Records memberships(id, workspace_id, user_id, role) {
+  'mem_demo_alice', 'wsp_demo', 'usr_demo_alice', 'OWNER'
+  'mem_demo_bob', 'wsp_demo', 'usr_demo_bob', 'MEMBER'
+}
+Records teams(id, workspace_id, name, key, next_issue_number) {
+  'tea_demo_eng', 'wsp_demo', 'Engineering', 'ENG', 2
+}
+Records team_memberships(id, workspace_id, team_id, membership_id) {
+  'tmem_demo_bob', 'wsp_demo', 'tea_demo_eng', 'mem_demo_bob'
+}
+Records issue_statuses(id, workspace_id, team_id, name, category, position, is_default) {
+  'ist_demo_todo', 'wsp_demo', 'tea_demo_eng', 'Todo', 'UNSTARTED', 0, true
+}
+Records project_statuses(id, workspace_id, name, category, position, is_default) {
+  'pst_demo_planned', 'wsp_demo', 'Planned', 'PLANNED', 0, true
+}
+Records projects(id, workspace_id, name, status_id, created_by_id) {
+  'prj_demo_mvp', 'wsp_demo', 'Launch MVP', 'pst_demo_planned', 'mem_demo_alice'
+}
+Records project_teams(id, workspace_id, project_id, team_id) {
+  'ptm_demo', 'wsp_demo', 'prj_demo_mvp', 'tea_demo_eng'
+}
+Records cycles(id, workspace_id, team_id, number, name, starts_at, ends_at) {
+  'cyc_demo_1', 'wsp_demo', 'tea_demo_eng', 1, 'Cycle 1', '2026-10-01T00:00:00Z', '2026-10-15T00:00:00Z'
+}
+Records issues(id, workspace_id, team_id, number, identifier, title, status_id, assignee_id, created_by_id, project_id, cycle_id) {
+  'iss_demo_1', 'wsp_demo', 'tea_demo_eng', 1, 'ENG-1', 'Connect issue screens to API', 'ist_demo_todo', 'mem_demo_bob', 'mem_demo_alice', 'prj_demo_mvp', 'cyc_demo_1'
+}
+Records issue_identifiers(id, workspace_id, issue_id, identifier) {
+  'iid_demo_1', 'wsp_demo', 'iss_demo_1', 'ENG-1'
+}
+
+Ref: event_aggregate_heads.workspace_id > workspaces.id
+Ref: events.(workspace_id, aggregate_type, aggregate_id) > event_aggregate_heads.(workspace_id, aggregate_type, aggregate_id)
+Ref: event_consumer_receipts.workspace_id > workspaces.id
+Ref: event_consumer_receipts.(workspace_id, event_id) > events.(workspace_id, id)

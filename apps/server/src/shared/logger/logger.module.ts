@@ -16,6 +16,13 @@ import { AppLoggerService } from './logger.service';
           ) === 'production';
         const baseOptions = {
           level: isProduction ? 'info' : 'debug',
+          serializers: {
+            req: (request: { id?: string; method?: string; url?: string }) => ({
+              id: request.id,
+              method: request.method,
+              path: request.url?.split('?')[0],
+            }),
+          },
           redact: {
             paths: [
               'req.headers.authorization',
@@ -23,6 +30,10 @@ import { AppLoggerService } from './logger.service';
               'req.body.password',
               'req.body.token',
               'req.body.secret',
+              'req.body.refreshToken',
+              'req.body.newPassword',
+              'req.query',
+              'res.headers["set-cookie"]',
             ],
             remove: true,
           },

@@ -1,0 +1,301 @@
+{
+  "catalog_version": 1,
+  "schema_file": "event-v1.schema.json",
+  "status": "proposed-contracts-not-runtime-enforced",
+  "events": [
+    {
+      "event_type": "workspace.created",
+      "schema_version": 1,
+      "aggregate_type": "workspace",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/workspace_created_v1"
+    },
+    {
+      "event_type": "team.created",
+      "schema_version": 1,
+      "aggregate_type": "team",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/team_created_v1"
+    },
+    {
+      "event_type": "team.updated",
+      "schema_version": 1,
+      "aggregate_type": "team",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/team_updated_v1"
+    },
+    {
+      "event_type": "team.retired",
+      "schema_version": 1,
+      "aggregate_type": "team",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/team_retired_v1"
+    },
+    {
+      "event_type": "issue.created",
+      "schema_version": 1,
+      "aggregate_type": "issue",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/issue_created_v1"
+    },
+    {
+      "event_type": "issue.updated",
+      "schema_version": 1,
+      "aggregate_type": "issue",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/issue_updated_v1"
+    },
+    {
+      "event_type": "issue.assigned",
+      "schema_version": 1,
+      "aggregate_type": "issue",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/issue_assigned_v1"
+    },
+    {
+      "event_type": "issue.status_changed",
+      "schema_version": 1,
+      "aggregate_type": "issue",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/issue_status_changed_v1"
+    },
+    {
+      "event_type": "issue.deleted",
+      "schema_version": 1,
+      "aggregate_type": "issue",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/issue_deleted_v1"
+    },
+    {
+      "event_type": "issue.restored",
+      "schema_version": 1,
+      "aggregate_type": "issue",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/issue_restored_v1"
+    },
+    {
+      "event_type": "issue.archived",
+      "schema_version": 1,
+      "aggregate_type": "issue",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/issue_archived_v1"
+    },
+    {
+      "event_type": "issue.transferred",
+      "schema_version": 1,
+      "aggregate_type": "issue",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/issue_transferred_v1"
+    },
+    {
+      "event_type": "project.created",
+      "schema_version": 1,
+      "aggregate_type": "project",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/project_created_v1"
+    },
+    {
+      "event_type": "project.updated",
+      "schema_version": 1,
+      "aggregate_type": "project",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/project_updated_v1"
+    },
+    {
+      "event_type": "project.completed",
+      "schema_version": 1,
+      "aggregate_type": "project",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/project_completed_v1"
+    },
+    {
+      "event_type": "project.canceled",
+      "schema_version": 1,
+      "aggregate_type": "project",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/project_canceled_v1"
+    },
+    {
+      "event_type": "cycle.created",
+      "schema_version": 1,
+      "aggregate_type": "cycle",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/cycle_created_v1"
+    },
+    {
+      "event_type": "cycle.started",
+      "schema_version": 1,
+      "aggregate_type": "cycle",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/cycle_started_v1"
+    },
+    {
+      "event_type": "cycle.completed",
+      "schema_version": 1,
+      "aggregate_type": "cycle",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/cycle_completed_v1"
+    },
+    {
+      "event_type": "database.record.created",
+      "schema_version": 1,
+      "aggregate_type": "database_record",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/database_record_created_v1"
+    },
+    {
+      "event_type": "database.record.updated",
+      "schema_version": 1,
+      "aggregate_type": "database_record",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/database_record_updated_v1"
+    },
+    {
+      "event_type": "database.record.deleted",
+      "schema_version": 1,
+      "aggregate_type": "database_record",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/database_record_deleted_v1"
+    },
+    {
+      "event_type": "contact.created",
+      "schema_version": 1,
+      "aggregate_type": "contact",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/contact_created_v1"
+    },
+    {
+      "event_type": "contact.updated",
+      "schema_version": 1,
+      "aggregate_type": "contact",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/contact_updated_v1"
+    },
+    {
+      "event_type": "deal.created",
+      "schema_version": 1,
+      "aggregate_type": "deal",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/deal_created_v1"
+    },
+    {
+      "event_type": "deal.stage_changed",
+      "schema_version": 1,
+      "aggregate_type": "deal",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/deal_stage_changed_v1"
+    },
+    {
+      "event_type": "task.created",
+      "schema_version": 1,
+      "aggregate_type": "crm_task",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/task_created_v1"
+    },
+    {
+      "event_type": "task.completed",
+      "schema_version": 1,
+      "aggregate_type": "crm_task",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/task_completed_v1"
+    },
+    {
+      "event_type": "email.received",
+      "schema_version": 1,
+      "aggregate_type": "email",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/email_received_v1"
+    },
+    {
+      "event_type": "email.sent",
+      "schema_version": 1,
+      "aggregate_type": "email",
+      "status": "declared-runtime",
+      "payload_schema": "event-v1.schema.json#/$defs/email_sent_v1"
+    },
+    {
+      "event_type": "comment.created",
+      "schema_version": 1,
+      "aggregate_type": "issue_comment",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/comment_created_v1"
+    },
+    {
+      "event_type": "comment.updated",
+      "schema_version": 1,
+      "aggregate_type": "issue_comment",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/comment_updated_v1"
+    },
+    {
+      "event_type": "comment.deleted",
+      "schema_version": 1,
+      "aggregate_type": "issue_comment",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/comment_deleted_v1"
+    },
+    {
+      "event_type": "issue.label_added",
+      "schema_version": 1,
+      "aggregate_type": "issue",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/issue_label_added_v1"
+    },
+    {
+      "event_type": "issue.label_removed",
+      "schema_version": 1,
+      "aggregate_type": "issue",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/issue_label_removed_v1"
+    },
+    {
+      "event_type": "document.created",
+      "schema_version": 1,
+      "aggregate_type": "document",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/document_created_v1"
+    },
+    {
+      "event_type": "document.updated",
+      "schema_version": 1,
+      "aggregate_type": "document",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/document_updated_v1"
+    },
+    {
+      "event_type": "document.archived",
+      "schema_version": 1,
+      "aggregate_type": "document",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/document_archived_v1"
+    },
+    {
+      "event_type": "initiative.created",
+      "schema_version": 1,
+      "aggregate_type": "initiative",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/initiative_created_v1"
+    },
+    {
+      "event_type": "initiative.updated",
+      "schema_version": 1,
+      "aggregate_type": "initiative",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/initiative_updated_v1"
+    },
+    {
+      "event_type": "initiative.archived",
+      "schema_version": 1,
+      "aggregate_type": "initiative",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/initiative_archived_v1"
+    },
+    {
+      "event_type": "notification.created",
+      "schema_version": 1,
+      "aggregate_type": "notification",
+      "status": "proposed",
+      "payload_schema": "event-v1.schema.json#/$defs/notification_created_v1"
+    }
+  ]
+}

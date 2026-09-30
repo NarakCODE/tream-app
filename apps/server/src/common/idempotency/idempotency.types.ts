@@ -20,3 +20,5 @@ export type IdempotencyReservation =
   | { kind: 'replay'; response: StoredIdempotencyResponse }
   | { kind: 'payload-conflict' }
   | { kind: 'in-progress' };
+
+export type CommandIdentity = IdempotencyReservationInput;

@@ -1,0 +1,59 @@
+name: Backend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tream_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tream_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      BACKGROUND_WORKERS_ENABLED: "false"
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/tream_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.23.0
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm --filter server lint
+      - name: Typecheck
+        run: pnpm --filter server check-types
+      - name: Unit and contract tests
+        run: pnpm --filter server test
+      - name: HTTP bootstrap tests
+        run: pnpm --filter server test:e2e
+      - name: Build
+        run: pnpm --filter server build
+      - name: PostgreSQL integration and migration tests
+        run: pnpm --filter server test:integration

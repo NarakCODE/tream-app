@@ -1,0 +1,1712 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tream.example/events/event-v1.schema.json",
+  "title": "Tream proposed version 1 domain-event envelope",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "workspace_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor_membership_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "aggregate_type": {
+      "type": "string"
+    },
+    "aggregate_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "aggregate_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "id",
+    "workspace_id",
+    "event_type",
+    "schema_version",
+    "occurred_at",
+    "actor_membership_id",
+    "aggregate_type",
+    "aggregate_id",
+    "aggregate_version",
+    "payload"
+  ],
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "properties": {
+        "event_type": {
+          "const": "workspace.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "workspace"
+        },
+        "payload": {
+          "$ref": "#/$defs/workspace_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "team.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/team_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "team.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/team_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "team.retired"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/team_retired_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.assigned"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_assigned_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.status_changed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_status_changed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.deleted"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_deleted_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.restored"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_restored_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.archived"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_archived_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.transferred"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_transferred_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.completed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_completed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.canceled"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_canceled_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "cycle.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "cycle"
+        },
+        "payload": {
+          "$ref": "#/$defs/cycle_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "cycle.started"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "cycle"
+        },
+        "payload": {
+          "$ref": "#/$defs/cycle_started_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "cycle.completed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "cycle"
+        },
+        "payload": {
+          "$ref": "#/$defs/cycle_completed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "database.record.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "database_record"
+        },
+        "payload": {
+          "$ref": "#/$defs/database_record_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "database.record.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "database_record"
+        },
+        "payload": {
+          "$ref": "#/$defs/database_record_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "database.record.deleted"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "database_record"
+        },
+        "payload": {
+          "$ref": "#/$defs/database_record_deleted_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "contact.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "contact"
+        },
+        "payload": {
+          "$ref": "#/$defs/contact_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "contact.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "contact"
+        },
+        "payload": {
+          "$ref": "#/$defs/contact_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "deal.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "deal"
+        },
+        "payload": {
+          "$ref": "#/$defs/deal_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "deal.stage_changed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "deal"
+        },
+        "payload": {
+          "$ref": "#/$defs/deal_stage_changed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "task.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "crm_task"
+        },
+        "payload": {
+          "$ref": "#/$defs/task_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "task.completed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "crm_task"
+        },
+        "payload": {
+          "$ref": "#/$defs/task_completed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "email.received"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "email"
+        },
+        "payload": {
+          "$ref": "#/$defs/email_received_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "email.sent"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "email"
+        },
+        "payload": {
+          "$ref": "#/$defs/email_sent_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue_comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue_comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.deleted"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue_comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_deleted_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.label_added"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_label_added_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.label_removed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_label_removed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "document.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "document"
+        },
+        "payload": {
+          "$ref": "#/$defs/document_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "document.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "document"
+        },
+        "payload": {
+          "$ref": "#/$defs/document_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "document.archived"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "document"
+        },
+        "payload": {
+          "$ref": "#/$defs/document_archived_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.archived"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_archived_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "notification.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "notification"
+        },
+        "payload": {
+          "$ref": "#/$defs/notification_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    }
+  ],
+  "$defs": {
+    "workspace_created_v1": {
+      "type": "object",
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "owner_membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["workspace_id", "owner_membership_id"],
+      "additionalProperties": false
+    },
+    "team_created_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "default_status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["team_id", "key", "default_status_id"],
+      "additionalProperties": false
+    },
+    "team_updated_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "changed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "name",
+              "key",
+              "description",
+              "timezone",
+              "cycle_settings",
+              "default_status",
+              "retired_at"
+            ]
+          }
+        }
+      },
+      "required": ["team_id", "changed_fields"],
+      "additionalProperties": false
+    },
+    "team_retired_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "retired_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["team_id", "retired_at"],
+      "additionalProperties": false
+    },
+    "issue_created_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "identifier": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]*-[1-9][0-9]*$"
+        },
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cycle_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assignee_membership_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "issue_id",
+        "team_id",
+        "identifier",
+        "status_id",
+        "project_id",
+        "cycle_id",
+        "assignee_membership_id"
+      ],
+      "additionalProperties": false
+    },
+    "issue_updated_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "changed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "title",
+              "description",
+              "priority",
+              "estimate",
+              "due_date",
+              "project_id",
+              "cycle_id",
+              "status_id",
+              "assignee_membership_id",
+              "parent_issue_id",
+              "milestone_id"
+            ]
+          }
+        }
+      },
+      "required": ["issue_id", "changed_fields"],
+      "additionalProperties": false
+    },
+    "issue_assigned_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "previous_assignee_membership_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assignee_membership_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "issue_id",
+        "previous_assignee_membership_id",
+        "assignee_membership_id"
+      ],
+      "additionalProperties": false
+    },
+    "issue_status_changed_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "previous_status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["issue_id", "previous_status_id", "status_id"],
+      "additionalProperties": false
+    },
+    "issue_deleted_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "deleted_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["issue_id", "deleted_at"],
+      "additionalProperties": false
+    },
+    "issue_restored_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "restored_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["issue_id", "restored_at"],
+      "additionalProperties": false
+    },
+    "issue_archived_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "archived_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["issue_id", "archived_at"],
+      "additionalProperties": false
+    },
+    "issue_transferred_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "previous_team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "previous_identifier": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]*-[1-9][0-9]*$"
+        },
+        "identifier": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]*-[1-9][0-9]*$"
+        },
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "project_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cycle_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "issue_id",
+        "previous_team_id",
+        "team_id",
+        "previous_identifier",
+        "identifier",
+        "status_id",
+        "project_id",
+        "cycle_id"
+      ],
+      "additionalProperties": false
+    },
+    "project_created_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "required": ["project_id", "status_id", "team_ids"],
+      "additionalProperties": false
+    },
+    "project_updated_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "changed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "name",
+              "description",
+              "status_id",
+              "priority",
+              "lead_membership_id",
+              "starts_on",
+              "target_on",
+              "team_ids",
+              "archived_at"
+            ]
+          }
+        }
+      },
+      "required": ["project_id", "changed_fields"],
+      "additionalProperties": false
+    },
+    "project_completed_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["project_id", "status_id", "completed_at"],
+      "additionalProperties": false
+    },
+    "project_canceled_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "canceled_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["project_id", "status_id", "canceled_at"],
+      "additionalProperties": false
+    },
+    "cycle_created_v1": {
+      "type": "object",
+      "properties": {
+        "cycle_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "starts_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ends_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["cycle_id", "team_id", "starts_at", "ends_at"],
+      "additionalProperties": false
+    },
+    "cycle_started_v1": {
+      "type": "object",
+      "properties": {
+        "cycle_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["cycle_id", "team_id", "started_at"],
+      "additionalProperties": false
+    },
+    "cycle_completed_v1": {
+      "type": "object",
+      "properties": {
+        "cycle_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "next_cycle_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rolled_over_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rollover_issue_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "required": [
+        "cycle_id",
+        "team_id",
+        "completed_at",
+        "next_cycle_id",
+        "rolled_over_count",
+        "rollover_issue_ids"
+      ],
+      "additionalProperties": false
+    },
+    "database_record_created_v1": {
+      "type": "object",
+      "properties": {
+        "database_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["database_id", "record_id"],
+      "additionalProperties": false
+    },
+    "database_record_updated_v1": {
+      "type": "object",
+      "properties": {
+        "database_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["database_id", "record_id"],
+      "additionalProperties": false
+    },
+    "database_record_deleted_v1": {
+      "type": "object",
+      "properties": {
+        "database_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["database_id", "record_id"],
+      "additionalProperties": false
+    },
+    "contact_created_v1": {
+      "type": "object",
+      "properties": {
+        "contact_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["contact_id"],
+      "additionalProperties": false
+    },
+    "contact_updated_v1": {
+      "type": "object",
+      "properties": {
+        "contact_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["contact_id"],
+      "additionalProperties": false
+    },
+    "deal_created_v1": {
+      "type": "object",
+      "properties": {
+        "deal_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["deal_id"],
+      "additionalProperties": false
+    },
+    "deal_stage_changed_v1": {
+      "type": "object",
+      "properties": {
+        "deal_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "previous_stage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "stage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": ["deal_id", "previous_stage", "stage"],
+      "additionalProperties": false
+    },
+    "task_created_v1": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["task_id"],
+      "additionalProperties": false
+    },
+    "task_completed_v1": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["task_id"],
+      "additionalProperties": false
+    },
+    "email_received_v1": {
+      "type": "object",
+      "properties": {
+        "connection_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "provider_message_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "provider_thread_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": ["connection_id", "provider_message_id"],
+      "additionalProperties": false
+    },
+    "email_sent_v1": {
+      "type": "object",
+      "properties": {
+        "connection_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "provider_message_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "provider_thread_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": ["connection_id", "provider_message_id"],
+      "additionalProperties": false
+    },
+    "comment_created_v1": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["comment_id", "issue_id"],
+      "additionalProperties": false
+    },
+    "comment_updated_v1": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["comment_id", "issue_id"],
+      "additionalProperties": false
+    },
+    "comment_deleted_v1": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["comment_id", "issue_id"],
+      "additionalProperties": false
+    },
+    "issue_label_added_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "label_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["issue_id", "label_id"],
+      "additionalProperties": false
+    },
+    "issue_label_removed_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "label_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["issue_id", "label_id"],
+      "additionalProperties": false
+    },
+    "document_created_v1": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["document_id"],
+      "additionalProperties": false
+    },
+    "document_updated_v1": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["document_id"],
+      "additionalProperties": false
+    },
+    "document_archived_v1": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["document_id"],
+      "additionalProperties": false
+    },
+    "initiative_created_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id"],
+      "additionalProperties": false
+    },
+    "initiative_updated_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id"],
+      "additionalProperties": false
+    },
+    "initiative_archived_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id"],
+      "additionalProperties": false
+    },
+    "notification_created_v1": {
+      "type": "object",
+      "properties": {
+        "notification_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "recipient_membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "source_event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "notification_id",
+        "recipient_membership_id",
+        "source_event_id"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

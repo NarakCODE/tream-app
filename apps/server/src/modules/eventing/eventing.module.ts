@@ -1,29 +1,29 @@
+import { EventConsumerRegistry } from './application/event-consumer-registry';
+import { OutboxHost } from './application/outbox-host.service';
+import { OutboxMonitor } from './application/outbox-monitor.service';
+import { OutboxController } from './presentation/outbox.controller';
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
-import { IamModule } from '../iam/iam.module';
-import { EVENT_DISPATCH_QUEUE } from './application/ports/event-dispatch-queue.port';
-import { EVENT_STORE } from './application/ports/event-store.port';
-import { EventingService } from './application/eventing.service';
-import { DatabaseEventDispatchQueue } from './infrastructure/database-event-dispatch.queue';
-import { EventAccessGuard } from './infrastructure/event-access.guard';
-import { DrizzleEventStore } from './infrastructure/drizzle-event-store';
-import { EventsController } from './presentation/events.controller';
-import { WorkspaceEventsController } from './presentation/workspace-events.controller';
-
+import { EventWriter } from './application/event-writer.service';
+import { EventContractRegistry } from './infrastructure/event-contract-registry';
+import { OutboxWorker } from './application/outbox-worker.service';
 @Module({
-  imports: [DatabaseModule, IamModule],
-  controllers: [WorkspaceEventsController, EventsController],
+  imports: [DatabaseModule],
+  controllers: [OutboxController],
   providers: [
-    EventingService,
-    EventAccessGuard,
-    DrizzleEventStore,
-    DatabaseEventDispatchQueue,
-    { provide: EVENT_STORE, useExisting: DrizzleEventStore },
-    {
-      provide: EVENT_DISPATCH_QUEUE,
-      useExisting: DatabaseEventDispatchQueue,
-    },
+    EventWriter,
+    EventContractRegistry,
+    OutboxWorker,
+    EventConsumerRegistry,
+    OutboxHost,
+    OutboxMonitor,
   ],
-  exports: [EventingService, EVENT_STORE, EVENT_DISPATCH_QUEUE],
+  exports: [
+    EventWriter,
+    OutboxWorker,
+    EventConsumerRegistry,
+    OutboxHost,
+    OutboxMonitor,
+  ],
 })
 export class EventingModule {}

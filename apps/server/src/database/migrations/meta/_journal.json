@@ -50,6 +50,34 @@
       "when": 1788190766009,
       "tag": "0006_outgoing_groot",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790759321752,
+      "tag": "0007_m01_m04_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790759421856,
+      "tag": "0008_foundation_invariants",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790759553564,
+      "tag": "0009_invitation_tenant_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790759744394,
+      "tag": "0010_normalized_identity_keys",
+      "breakpoints": true
     }
   ]
 }

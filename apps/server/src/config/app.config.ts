@@ -23,13 +23,30 @@ export const appConfig = (): ApplicationConfiguration => {
       port: Number.parseInt(process.env.PORT ?? '3002', 10),
       corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
       swaggerEnabled: parseBoolean(process.env.SWAGGER_ENABLED, true),
+      trustProxyHops: Number.parseInt(process.env.TRUST_PROXY_HOPS ?? '0', 10),
+      backgroundWorkersEnabled: parseBoolean(
+        process.env.BACKGROUND_WORKERS_ENABLED,
+        false,
+      ),
     },
     database: {
+      maxPool: Number.parseInt(process.env.DATABASE_POOL_MAX ?? '10', 10),
+      connectionTimeoutMs: Number.parseInt(
+        process.env.DATABASE_CONNECTION_TIMEOUT_MS ?? '2000',
+        10,
+      ),
+      queryTimeoutMs: Number.parseInt(
+        process.env.DATABASE_QUERY_TIMEOUT_MS ?? '10000',
+        10,
+      ),
       url:
         process.env.DATABASE_URL ??
         'postgresql://postgres:postgres@localhost:5432/tream',
     },
     auth: {
+      mailEncryptionKey:
+        process.env.AUTH_MAIL_ENCRYPTION_KEY ??
+        'c1217da7d757690115606f7c386f73964992611de8f4139a87d79f04b0128c04',
       jwt: {
         issuer: process.env.JWT_ISSUER ?? 'tream-api',
         audience: process.env.JWT_AUDIENCE ?? 'tream-client',

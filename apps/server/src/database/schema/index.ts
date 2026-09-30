@@ -8,3 +8,4 @@ export * from './idempotency.schema';
 export * from './task.schema';
 export * from './work-management.schema';
 export * from './workspace.schema';
+export * from './audit.schema';

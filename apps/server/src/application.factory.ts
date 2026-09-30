@@ -29,7 +29,7 @@ const configureSwagger = (app: NestFastifyApplication): void => {
     app,
     new DocumentBuilder()
       .setTitle('Tream API')
-      .setDescription('Production-ready modular API scaffold.')
+      .setDescription('Modular Tream API.')
       .setVersion('1.0')
       .addBearerAuth()
       .build(),
@@ -40,6 +40,9 @@ const configureSwagger = (app: NestFastifyApplication): void => {
 export const createFastifyAdapter = (): FastifyAdapter =>
   new FastifyAdapter({
     logger: false,
+    bodyLimit: 1024 * 1024,
+    trustProxy:
+      Number.parseInt(process.env.TRUST_PROXY_HOPS ?? '0', 10) || false,
     requestIdHeader: 'x-request-id',
     genReqId: (request: { headers: IncomingHttpHeaders }) =>
       createRequestId(getRequestHeader(request)),
@@ -55,11 +58,17 @@ export const configureApplication = async (
   app.useLogger(logger);
   app.enableShutdownHooks();
   app.setGlobalPrefix('api', {
-    exclude: [{ path: 'health', method: RequestMethod.ALL }],
+    exclude: [
+      { path: 'health', method: RequestMethod.ALL },
+      { path: 'health/ready', method: RequestMethod.ALL },
+    ],
   });
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
   await app.register(cors, {
-    origin: config.getOrThrow('app.corsOrigin', { infer: true }).split(','),
+    origin: config
+      .getOrThrow('app.corsOrigin', { infer: true })
+      .split(',')
+      .map((origin) => origin.trim()),
     credentials: true,
   });
 
@@ -89,7 +98,7 @@ export const configureApplication = async (
         {
           requestId: request.id,
           method: request.method,
-          path: request.url,
+          path: request.url.split('?')[0],
           ip: request.ip,
         },
         'request started',

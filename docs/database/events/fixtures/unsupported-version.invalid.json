@@ -1,0 +1,20 @@
+{
+  "id": "evt_demo_1",
+  "workspace_id": "ws_demo",
+  "schema_version": 2,
+  "occurred_at": "2026-09-30T08:00:00Z",
+  "actor_membership_id": "mem_demo",
+  "aggregate_version": 1,
+  "event_type": "issue.created",
+  "aggregate_type": "issue",
+  "aggregate_id": "iss_demo",
+  "payload": {
+    "issue_id": "iss_demo",
+    "team_id": "team_demo",
+    "identifier": "ENG-1",
+    "status_id": "status_backlog",
+    "project_id": null,
+    "cycle_id": null,
+    "assignee_membership_id": null
+  }
+}

@@ -20,13 +20,15 @@ import {
 } from 'rxjs';
 import { IS_PUBLIC_ROUTE } from '../decorators/public.decorator';
 import { SKIP_IDEMPOTENCY } from '../decorators/skip-idempotency.decorator';
+import { TRANSACTIONAL_COMMAND } from '../decorators/transactional-command.decorator';
+import type { IdempotencyReservationInput } from '../idempotency/idempotency.types';
 import { IdempotencyService } from '../idempotency/idempotency.service';
 import type { StoredIdempotencyResponse } from '../idempotency/idempotency.types';
 
 const UUID_V4_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const IDEMPOTENT_METHODS = new Set(['POST', 'PATCH']);
+const IDEMPOTENT_METHODS = new Set(['POST', 'PATCH', 'DELETE']);
 const REPLAYABLE_HEADER_NAMES = new Set([
   'content-type',
   'location',
@@ -37,6 +39,7 @@ const REPLAYABLE_HEADER_NAMES = new Set([
 
 interface AuthenticatedRequest extends FastifyRequest {
   user?: { id: string };
+  commandIdentity?: IdempotencyReservationInput;
 }
 
 const canonicalize = (value: unknown): unknown => {
@@ -135,6 +138,17 @@ export class IdempotencyInterceptor implements NestInterceptor {
       key: key.toLowerCase(),
       requestHash: hashRequestBody(request.body),
     };
+
+    if (
+      this.reflector.getAllAndOverride<boolean>(TRANSACTIONAL_COMMAND, [
+        context.getHandler(),
+        context.getClass(),
+      ])
+    ) {
+      request.commandIdentity = input;
+      reply.header('idempotency-key', input.key);
+      return next.handle();
+    }
 
     return defer(() => this.idempotency.reserve(input)).pipe(
       mergeMap((reservation) => {

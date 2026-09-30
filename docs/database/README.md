@@ -1,0 +1,121 @@
+# Tream Linear-inspired database model
+
+[linear-workspace.dbml](./linear-workspace.dbml) defines a **proposed target PostgreSQL schema** for a complete Tream web application. It is a design artifact, not a dump of the current database, a migration, or evidence that these features already work. It contains 84 tables in 15 module groups, including optional extensions. AI agents, agent chat, agent runs, and agent personalization are excluded.
+
+Paste the entire DBML file into [dbdiagram.io](https://dbdiagram.io), or export it with the official `@dbml/cli` using `dbml2sql docs/database/linear-workspace.dbml --postgres`. DBML syntax follows the [official reference](https://dbml.dbdiagram.io/docs/). Apply [postgresql-constraints.sql](./postgresql-constraints.sql) after the exported schema in a fresh database. It materializes the partial/expression unique indexes and cycle exclusion constraint. The supplements below still require reconciliation and backfills before becoming a migration for the existing database.
+
+The `Records` blocks illustrate a connected workspace, members, team, project, cycle, and issue. Their readable IDs such as `usr_demo_alice` are **example identifiers, not valid production ULIDs**. Public application IDs retain the repository's entity prefix and ULID convention. Auto-generated identifier-registry row IDs are internal deterministic length-prefixed keys; they are never public entity IDs. These examples are not seed scripts; database defaults supply omitted timestamps and optional fields.
+
+The server feature implementations were reset to fresh module scaffolds. Only platform liveness is exposed; the target model remains a future implementation contract.
+
+## Scope and implementation map
+
+| DBML group                            | Target features                                                                                                                                             | Current repository boundary                                                                                                 |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Identity_and_access                   | Users, sessions, one-time auth tokens, passkeys, personal API keys, workspace roles, invitations, personal/workspace preferences                            | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| Teams_and_workflows                   | Teams, memberships, configurable issue statuses, cycle configuration                                                                                        | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| Issues                                | Issues, stable identifier registry, subissues, relations, comments, reactions, labels, subscribers, activity, templates                                     | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| Projects                              | Configurable project statuses, cross-team projects, members, milestones, updates, subscriptions                                                             | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| Cycles                                | Team cycles and immutable rollover history                                                                                                                  | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| Initiatives_and_documents             | Initiatives, project associations, updates, direct discussions and update comments/reactions, subscriptions, owned documents, private files and attachments | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| Views_and_navigation                  | Private/shared saved views, filter/display configuration, favorites                                                                                         | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| Notifications                         | Recipient inbox state, read/archive/snooze, channel preferences, durable deliveries                                                                         | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| Integrations_and_reviews              | OAuth connections, inbound/outbound webhooks, repositories, pull requests, review requests, submitted reviews, viewed-file progress and issue links         | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| Events_and_audit                      | Transactional domain events, durable consumer jobs, idempotency responses and security audit logs                                                           | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| CRM_extension                         | Companies, contacts, deals, deal contacts and CRM tasks                                                                                                     | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| Dynamic_data_extension                | Custom databases/fields/records with explicit relation and member links                                                                                     | Fresh server scaffolds; target persistence/APIs require implementation. Historical Drizzle schemas/migrations are retained. |
+| Intake_and_customer_requests_optional | Asks-style member intake, CRM customer requests and typed planning links                                                                                    | Deferred ERD scope; no server module initialized.                                                                           |
+| Releases_and_SLA_optional             | Release planning, release issue/project associations, simple team priority SLA policies and issue deadlines                                                 | Deferred ERD scope; no server module initialized.                                                                           |
+| Templates_and_customization_optional  | Project templates and custom emoji catalog                                                                                                                  | Deferred ERD scope; no server module initialized.                                                                           |
+
+The optional groups make the broader product roadmap visible without requiring every feature for launch. Pulse-style update subscriptions use project/initiative subscribers plus notification channel preferences; a separate Pulse entity is unnecessary in this scope. Public intake portals, enterprise SSO, billing, deployment automation, and full Linear feature parity are not modeled.
+
+## Ownership and database-enforced relationships
+
+- **Workspace is the tenant root.** Tenant tables carry `workspace_id`, reference the workspace, and expose a unique `(workspace_id, id)` key. References between tenant resources use composite foreign keys so cross-workspace links fail at the database boundary.
+- **Users are global; memberships are workspace identities.** Authors, assignees, leads, subscribers and integration initiators reference memberships within the same workspace. Preserve memberships after departure to retain historical attribution. Identity-level sessions, auth tokens and user preferences reference global users.
+- **Issues belong to one team.** Composite references enforce that an issue's status and optional cycle belong to that issue's team. The project association references `project_teams`, preventing attachment to a project that does not include the issue's team. An optional milestone must belong to the same assigned project.
+- **Comments stay in their issue.** A reply's composite parent reference includes the issue ID. Simple self-links are rejected; deeper comment hierarchy cycles require additional enforcement.
+- **History is distinct from current ownership.** Rollover history constrains source and destination cycles to its historical team. It references the issue within its workspace without constraining that issue's current team, so later issue transfers do not invalidate history.
+- **Shared resources have typed targets.** Documents, attachments, favorites and customer-request links have explicit foreign keys and `num_nonnulls(...)` checks. Events/audit entries contain historical snapshot identifiers intentionally without pretend polymorphic foreign keys.
+- **Dynamic references use typed joins.** Source records and field definitions must belong to the declared source database; relation targets belong to the declared target database and workspace. Scalar values remain JSON. USER values reference workspace memberships.
+- **CRM Tasks remain separate from Issues.** They retain their independent TODO/IN_PROGRESS/DONE workflow and contact/deal associations. `crm_tasks` represents the existing physical `tasks` table; applying this naming would require a deliberate migration or ORM mapping.
+
+No stored project percentage, issue count, cycle velocity or initiative progress metric is modeled. Compute these from work entities, with separately designed caches only if measured performance requires them. SLA deadlines are stored snapshots of the policy applied to an issue, so later policy edits do not silently rewrite existing deadlines.
+
+## Invariants
+
+These are required transactional guarantees for the target application. SQL enforcement below covers structural constraints; the existing runtime does not yet implement every guarantee.
+
+- **Identifier reservation:** lock/update the team's number counter, insert the issue (whose trigger reserves its identifier), and append its event in one transaction. Counters never decrease; old identifiers remain reserved after transfer, archive, deletion or purge.
+- **Team transfer:** lock the issue and destination counter; reserve the new identifier while preserving aliases; replace status, clear or remap cycle/project/milestone and SLA associations, validate label scope, and append the transfer event atomically. Retry with the same idempotency key returns the same outcome.
+- **Cycle rollover:** serialize on the source cycle; move only eligible unfinished issues to the explicitly selected next cycle, record each move, complete the source and emit one completion fact together. Repeated completion cannot duplicate moves or events. The SQL exclusion constraint rejects overlapping windows, including historical cycles; adjacent half-open windows are allowed.
+- **Default workflow:** every usable team/workspace has exactly one active default status. Unique indexes enforce **at most one**; locked service transactions enforce **at least one**, prevent archiving an in-use status, and clear the old default before selecting the replacement. A usable project has at least one team.
+- **Graph and scope:** parent/subissue/comment and directed dependency graphs remain acyclic. Typed foreign keys enforce tenant/team/project scope; transactions also reject inactive memberships and archived/deleted assignment targets. Removing the final workspace owner is forbidden.
+- **Lifecycle:** archive/delete/restore use the policy below, validate linked resources and name collisions, and commit their events together. Resource archive and deletion timestamps cannot both be set. Completion is workflow state, separate from archive and trash.
+- **Events and delivery:** validate the registered versioned envelope; lock its `event_aggregate_heads` row and advance its revision exactly once under the mutation lock; commit state and event together. Delivery is at least once; consumers insert `event_consumer_receipts` atomically with same-database side effects. External providers require event-derived idempotency keys or reconciliation. Unknown contracts are quarantined, and retries/replays preserve the original version and facts.
+
+## Archive, deletion and retention policy
+
+| Resource category                                                                                                                                       | Policy                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Issues, projects, initiatives, documents, saved views, companies, contacts, deals, CRM tasks, dynamic databases/records, customer requests and releases | `archived_at` hides retained work from active planning; `deleted_at` places it in recoverable trash. The DBML enforces mutually exclusive timestamps. Both operations require authorization and reject new assignments/links. Existing historical links remain valid.                                                                         |
+| Teams and workflow/catalog resources                                                                                                                    | Teams use `retired_at` as their archive marker; statuses, labels, issue/project templates, custom emojis and repositories use `archived_at`. These are archive-only, with dependency validation before retirement. Dynamic fields use recoverable `deleted_at` because restoring a definition also requires validating retained values/links. |
+| Comments, updates, files and workspace deletion                                                                                                         | Recoverable `deleted_at`; no separate archive state. Workspace deletion immediately blocks tenant access and schedules dependency-aware erasure. Deleting a file schedules object-storage cleanup after the trash window; existing references render a deleted-file placeholder.                                                              |
+| Inbox, memberships, credentials and history                                                                                                             | Notification `archived_at` is recipient inbox state. Memberships transition to `LEFT`/`SUSPENDED`, users can be disabled, and credentials are revoked. Preserve attribution rows and append-only identifier/rollover/event/audit history; do not recycle their identifiers.                                                                   |
+
+Active lists require `deleted_at IS NULL AND archived_at IS NULL` where both exist; include archived records only through explicit archive/history views. Trash is recoverable for **30 days**, with `purge_after = deleted_at + interval '30 days'` computed rather than stored. Deleting an archived resource clears its archive marker; restoring returns it to unarchived state after checking dependencies and uniqueness. Archives have no automatic expiry. An archived parent hides its children from active planning without rewriting child lifecycle timestamps; trash recovery also requires a usable parent. Dependent-resource handling must be explicit in the owning service.
+
+Names/addresses are normalized with `lower(btrim(...))`. Archived contacts retain their email reservation; trashed contacts release it. Active label names are unique within workspace/team scope and are released on archive, so restoration may require renaming. Workflow status names/positions, team keys, dynamic field keys and emoji names stay reserved permanently through lifecycle transitions. An expired invitation must be explicitly revoked before a replacement: the outstanding-invitation index intentionally uses accepted/revoked timestamps rather than a time-dependent predicate.
+
+Hard purge is an ordered, authorized operation: detach permitted nullable target IDs explicitly, remove dependent mutable rows, and retain tombstones where identifier/attribution/history foreign keys require them. The 30-day trash rule is **not** an event/audit retention or account-erasure policy. Before production, configure those retention schedules and any required anonymization, plus workspace/object-storage purge jobs. No broad cascade or composite `ON DELETE SET NULL` is introduced.
+
+## Executable database constraints and event contracts
+
+[postgresql-constraints.sql](./postgresql-constraints.sql) adds 20 named partial/expression unique indexes and a deferred-capable GiST exclusion constraint using `btree_gist`. It covers active defaults, normalized outstanding invitations/contact emails/status/label names, typed favorites/attachments/customer-request links, and undirected RELATED pairs. [constraints-smoke.sql](./constraints-smoke.sql) creates rollback-only fixtures and checks accepted and rejected writes, lifecycle/name reuse, adjacent cycle windows and deferred cycle-window updates.
+
+A fresh disposable PostgreSQL database can be checked with:
+
+```sh
+dbml2sql docs/database/linear-workspace.dbml --postgres -o /tmp/tream-target.sql
+psql "$VALIDATION_DATABASE_URL" -v ON_ERROR_STOP=1 -f /tmp/tream-target.sql
+psql "$VALIDATION_DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/database/postgresql-constraints.sql
+psql "$VALIDATION_DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/database/constraints-smoke.sql
+```
+
+Use an empty disposable database; these files are not incremental production migrations. Partial uniqueness and cycle exclusion follow PostgreSQL's [partial-index documentation](https://www.postgresql.org/docs/current/indexes-partial.html) and [range-constraint documentation](https://www.postgresql.org/docs/current/rangetypes.html#RANGETYPES-CONSTRAINT).
+
+[event-contracts.md](./event-contracts.md) defines immutable `(event_type, schema_version)` contracts, the envelope/storage mapping, aggregate revisions, compatibility, legacy adapters and replay behavior. The [catalog](./events/catalog.json) registers 42 exact contracts, with strict JSON Schemas and valid/invalid fixtures. Storage requires explicit schema and aggregate versions; existing unversioned payloads cannot simply be relabeled version 1.
+
+Additional target supplements turn previously documented promises into checks:
+
+- [transactional-integrity.sql](./transactional-integrity.sql): current-identifier ownership through a deferred composite FK, immutable identifier history/team keys, identifier formatting and monotonic number counters.
+- [schema-hardening.sql](./schema-hardening.sql): typed Dynamic Data links and field reconfiguration, team-label scope on both links and parent edits, workspace-only project labels, normalized identity uniqueness and workload indexes.
+- [event-integrity.sql](./event-integrity.sql): durable stream revision checks and append-only events/consumer receipts. Command correlation permits multiple facts per command; request deduplication remains in `idempotency_keys`.
+
+The DBML also checks invitation acceptance/revocation, membership departure timestamps, auth/OAuth consumption windows, queue leases/completion and idempotency response completeness. JSON Schema validation still belongs at the producer boundary; SQL verifies the storage/revision rules, not the complete event payload.
+
+After the initial schema/constraint check above, apply and verify these in order:
+
+```sh
+psql "$VALIDATION_DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/database/transactional-integrity.sql
+psql "$VALIDATION_DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/database/schema-hardening.sql
+psql "$VALIDATION_DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/database/event-integrity.sql
+psql "$VALIDATION_DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/database/transactional-integrity-smoke.sql
+psql "$VALIDATION_DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/database/schema-hardening-smoke.sql
+psql "$VALIDATION_DATABASE_URL" -v ON_ERROR_STOP=1 -f docs/database/event-integrity-smoke.sql
+```
+
+[design-review.md](./design-review.md) records the guarantees, authorization assumptions, concurrency acceptance tests and migration gates. All smoke scripts roll back their fixtures and establish single-session evidence.
+
+## Remaining application enforcement
+
+Foreign keys/indexes do not establish permissions, private-team visibility, active membership, acyclic graphs, at-least-one defaults, JSON scalar/cardinality validation or transactional rollover. Implement these in owning services with appropriate locks and, where needed, deferred constraint triggers. Validate saved-view/template JSON against tenant resources; SQL now checks Dynamic Data relation/user field types and configured target databases; services still validate cardinality, required values and JSON scalar values.
+
+Consumer authorization must be rechecked before delivering content. Claim durable jobs with row locks/`SKIP LOCKED`, reclaim stale leases and back off retries. Store secret hashes or encrypted recoverable provider credentials; keep secrets out of events/audit/idempotency responses. `updated_at` requires application/trigger updates; validate IANA timezones. SLA deadlines are snapshots, and business-calendar support needs additional rules.
+
+## Implementation sequence
+
+Start with IAM/workspace authorization and the new teams/issues/projects/cycles API, then connect the client to that contract. Add comments, labels, files, subscriptions, notifications and transactional event consumers. Next implement initiatives/documents/saved views and Git review integrations. Provider adapters still need authenticated API reads and webhook synchronization for repository files, diffs and inline review threads; these are provider-owned data, while the schema stores review metadata and personal viewed-file markers. The review guide is derived presentation. WebAuthn passkeys additionally require expiring challenge storage in a session/cache and strict relying-party/origin verification. Introduce optional CRM, Dynamic Data, intake, release and SLA capabilities only when their launch scope is accepted.
+
+Before creating migrations, reconcile existing table/column names, enum changes, authentication token consolidation, composite keys, soft-delete behavior and data backfills against the current Drizzle schemas. No migrations, endpoints or runtime integrations are changed by this document.

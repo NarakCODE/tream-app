@@ -1,6 +1,12 @@
+> Server status: M01–M04 implement persisted authentication, transactional commands/events/audit, workspace RBAC and readiness. Later product/CRM modules remain scaffolds. See [server setup](apps/server/README.md) and [implementation notes](apps/server/docs/M01-M04.md). Retained database history is upgraded incrementally; the complete target ERD is not yet materialized.
+
 # Tream Monorepo
 
-Enterprise workspace platform powered by **NestJS** (`apps/server`), **Vite + React 19** (`apps/client`), and **Turborepo**.
+Enterprise workspace platform powered by **NestJS** (`apps/server`), **Next.js + React 19** (`apps/client`), and **Turborepo**.
+
+AI agents are deferred beyond the MVP. The application excludes agent chat,
+AI-agent settings, agent personalization, and the Agent Core backend. Historical
+agent specifications in `PRD.md` describe future work, not current functionality.
 
 ---
 

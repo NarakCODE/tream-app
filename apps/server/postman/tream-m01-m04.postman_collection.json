@@ -1,0 +1,3680 @@
+{
+  "info": {
+    "_postman_id": "8c47b420-5a55-4566-b015-985a6803ae35",
+    "name": "Tream API — M01–M04",
+    "description": "Implemented NestJS APIs only. Import the accompanying local environment and run ONLY the 01 Smoke folder for an automatic end-to-end run. Other folders are manual recipes with stateful prerequisites. All requests disable the cookie jar and use non-browser explicit refresh-token mode; no Origin header. Authentication tokens are stored only in the selected environment. SMTP/mailbox tokens must be supplied manually. See README.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "01 Smoke — run this folder",
+      "description": "Automatic smoke run. Creates two accounts, a workspace, an invitation and encrypted mail jobs. Tests idempotency/RBAC and restores the workspace after lifecycle tests. Requires migrated API and PostgreSQL; does not require reading email.",
+      "item": [
+        {
+          "name": "01 Liveness",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/health",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "01 Liveness"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "02 Database readiness",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/health/ready",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "02 Database readiness"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "03 Protected endpoint rejects anonymous client",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/me",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "03 Protected endpoint rejects anonymous client"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Error envelope', () => pm.expect(pm.response.json()).to.have.property('error'));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "04 Register fresh owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/signup",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Generates unique test identities and slug on every smoke run. Sends no Origin and uses explicit refresh-token mode.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"fullName\": \"{{fullName}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const run = pm.variables.replaceIn('{{$guid}}');",
+                  "pm.environment.set('email', 'postman-owner-' + run + '@example.test');",
+                  "pm.environment.set('outsiderEmail', 'postman-outsider-' + run + '@example.test');",
+                  "pm.environment.set('inviteEmail', 'postman-invite-' + run + '@example.test');",
+                  "pm.environment.set('workspaceSlug', 'postman-' + run);",
+                  "pm.environment.set('createKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "['workspaceId','ownerMembershipId','invitationId','outsiderAccessToken','workspaceCursor'].forEach(k => pm.environment.unset(k));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "const d = pm.response.json().data;",
+                  "pm.environment.set('accessToken', d.accessToken);",
+                  "if (d.refreshToken) pm.environment.set('refreshToken', d.refreshToken);",
+                  "pm.environment.set('userId', d.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "05 Read owner profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/me",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "05 Read owner profile"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.test('Profile matches owner', () => pm.expect(pm.response.json().data.id).to.eql(pm.environment.get('userId')));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "06 Rotate refresh session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/refresh",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "06 Rotate refresh session",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "const d = pm.response.json().data;",
+                  "pm.environment.set('accessToken', d.accessToken);",
+                  "if (d.refreshToken) pm.environment.set('refreshToken', d.refreshToken);",
+                  "pm.environment.set('userId', d.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "07 Create workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "07 Create workspace",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{workspaceName}}\",\n  \"slug\": \"{{workspaceSlug}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "pm.variables.set('requestKey', pm.environment.get('createKey'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.environment.set('workspaceId', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "08 Replay workspace creation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "08 Replay workspace creation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{workspaceName}}\",\n  \"slug\": \"{{workspaceSlug}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "pm.variables.set('requestKey', pm.environment.get('createKey'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.test('Same workspace replayed', () => pm.expect(pm.response.json().data.id).to.eql(pm.environment.get('workspaceId')));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "09 Reused key with different body conflicts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "09 Reused key with different body conflicts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Changed request\",\n  \"slug\": \"{{workspaceSlug}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "pm.variables.set('requestKey', pm.environment.get('createKey'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Error envelope', () => pm.expect(pm.response.json()).to.have.property('error'));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "10 List workspaces",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces?limit={{limit}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "10 List workspaces"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "pm.test('Cursor pagination', () => { const b = pm.response.json(); pm.expect(b.data).to.be.an('array'); pm.expect(b.meta.limit).to.be.a('number'); pm.expect(b.meta.total).to.be.a('number'); pm.expect(b.meta.hasNext).to.be.a('boolean'); });",
+                  "if (pm.response.code < 300) {",
+                  "const b = pm.response.json(); pm.environment.set('workspaceCursor', b.meta.nextCursor || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "11 Read active workspace",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/active",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "11 Read active workspace"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "12 Read workspace",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "12 Read workspace"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "13 List members and capture owner membership",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/members?limit={{limit}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "13 List members and capture owner membership"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "pm.test('Cursor pagination', () => { const b = pm.response.json(); pm.expect(b.data).to.be.an('array'); pm.expect(b.meta.limit).to.be.a('number'); pm.expect(b.meta.total).to.be.a('number'); pm.expect(b.meta.hasNext).to.be.a('boolean'); });",
+                  "if (pm.response.code < 300) {",
+                  "const owner = pm.response.json().data.find(m => m.userId === pm.environment.get('userId'));",
+                  "pm.test('Owner membership found', () => pm.expect(owner).to.exist);",
+                  "if (owner) pm.environment.set('ownerMembershipId', owner.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "14 Select workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/select",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "14 Select workspace"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "15 Update workspace",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "15 Update workspace",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{workspaceName}} updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "16 Save preferences",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/preferences",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "16 Save preferences",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"dark\",\n  \"timezone\": \"Asia/Phnom_Penh\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "17 Read preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/preferences",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "17 Read preferences"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "18 Invite member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/invitations",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "18 Invite member",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{inviteEmail}}\",\n  \"role\": \"MEMBER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.environment.set('invitationId', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "19 List invitations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/invitations?limit={{limit}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "19 List invitations"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "pm.test('Cursor pagination', () => { const b = pm.response.json(); pm.expect(b.data).to.be.an('array'); pm.expect(b.meta.limit).to.be.a('number'); pm.expect(b.meta.total).to.be.a('number'); pm.expect(b.meta.hasNext).to.be.a('boolean'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "20 Revoke invitation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/invitations/{{invitationId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "20 Revoke invitation"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "21 Register unrelated user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/signup",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "21 Register unrelated user",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{outsiderEmail}}\",\n  \"password\": \"{{password}}\",\n  \"fullName\": \"Postman outsider\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.environment.set('outsiderAccessToken', pm.response.json().data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "22 Deny cross-workspace access",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{outsiderAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "22 Deny cross-workspace access"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Error envelope', () => pm.expect(pm.response.json()).to.have.property('error'));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "23 Deny removal of final owner",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/members/{{ownerMembershipId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "23 Deny removal of final owner",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"MEMBER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Error envelope', () => pm.expect(pm.response.json()).to.have.property('error'));"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "24 Inspect failed deliveries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/outbox?status=FAILED&limit={{limit}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "24 Inspect failed deliveries"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "pm.test('Cursor pagination', () => { const b = pm.response.json(); pm.expect(b.data).to.be.an('array'); pm.expect(b.meta.limit).to.be.a('number'); pm.expect(b.meta.total).to.be.a('number'); pm.expect(b.meta.hasNext).to.be.a('boolean'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "25 Archive workspace",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "25 Archive workspace",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lifecycle\": \"archive\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "26 Restore archived workspace",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "26 Restore archived workspace",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lifecycle\": \"restore\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "27 Trash workspace",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "27 Trash workspace"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "28 Restore trashed workspace",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "28 Restore trashed workspace",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lifecycle\": \"restore\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Authentication — manual",
+      "description": "Run requests individually. Recovery, verification and magic-link tests require tokens from mail. Logout/reset/revoke invalidate sessions.",
+      "item": [
+        {
+          "name": "Register configured user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/signup",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Register configured user",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"fullName\": \"{{fullName}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "const d = pm.response.json().data;",
+                  "pm.environment.set('accessToken', d.accessToken);",
+                  "if (d.refreshToken) pm.environment.set('refreshToken', d.refreshToken);",
+                  "pm.environment.set('userId', d.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "const d = pm.response.json().data;",
+                  "pm.environment.set('accessToken', d.accessToken);",
+                  "if (d.refreshToken) pm.environment.set('refreshToken', d.refreshToken);",
+                  "pm.environment.set('userId', d.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/refresh",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Refresh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "const d = pm.response.json().data;",
+                  "pm.environment.set('accessToken', d.accessToken);",
+                  "if (d.refreshToken) pm.environment.set('refreshToken', d.refreshToken);",
+                  "pm.environment.set('userId', d.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Read profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/me",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Read profile"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Update profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/me",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Update profile",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{fullName}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "List sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/sessions",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "List sessions"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "const s = pm.response.json().data; if (s.length) pm.environment.set('sessionId', s[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Revoke selected session",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/sessions/{{sessionId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Revocation can invalidate the current bearer token. Login again afterwards."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Request email verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/email-verification/request",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Request email verification",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Confirm email verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/email-verification/confirm",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Copy the token from the verification email into verificationToken first.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{verificationToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Request password recovery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/password-recovery",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Request password recovery",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Reset password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/password-reset",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Set resetToken from the mailbox. Revokes all sessions; login again using newPassword.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"password\": \"{{newPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.environment.set('password', pm.environment.get('newPassword')); pm.environment.unset('accessToken'); pm.environment.unset('refreshToken');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Request magic link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/magic-link/request",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Request magic link",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Consume magic link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/magic-link/consume",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Set magicLinkToken from the mailbox first.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{magicLinkToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "const d = pm.response.json().data;",
+                  "pm.environment.set('accessToken', d.accessToken);",
+                  "if (d.refreshToken) pm.environment.set('refreshToken', d.refreshToken);",
+                  "pm.environment.set('userId', d.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Logout current session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/logout",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Logout current session"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.environment.unset('accessToken'); pm.environment.unset('refreshToken');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Logout all sessions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/logout-all",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Logout all sessions"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.environment.unset('accessToken'); pm.environment.unset('refreshToken');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Workspaces and diagnostics — manual",
+      "description": "Owner-oriented requests. Select valid workspaceId and keep names/slugs unique for create.",
+      "item": [
+        {
+          "name": "Create workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Create workspace",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{workspaceName}}\",\n  \"slug\": \"{{workspaceSlug}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.environment.set('workspaceId', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "List workspaces",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces?limit={{limit}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "List workspaces"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "pm.test('Cursor pagination', () => { const b = pm.response.json(); pm.expect(b.data).to.be.an('array'); pm.expect(b.meta.limit).to.be.a('number'); pm.expect(b.meta.total).to.be.a('number'); pm.expect(b.meta.hasNext).to.be.a('boolean'); });",
+                  "if (pm.response.code < 300) {",
+                  "const b = pm.response.json(); pm.environment.set('workspaceCursor', b.meta.nextCursor || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Next workspace page",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces?limit={{limit}}&cursor={{workspaceCursor}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Run only when workspaceCursor is nonempty."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "pm.test('Cursor pagination', () => { const b = pm.response.json(); pm.expect(b.data).to.be.an('array'); pm.expect(b.meta.limit).to.be.a('number'); pm.expect(b.meta.total).to.be.a('number'); pm.expect(b.meta.hasNext).to.be.a('boolean'); });",
+                  "if (pm.response.code < 300) {",
+                  "const b = pm.response.json(); pm.environment.set('workspaceCursor', b.meta.nextCursor || '');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Active workspace",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/active",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Active workspace"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Read workspace",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Read workspace"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Update name",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Update name",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{workspaceName}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Select workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/select",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Select workspace"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Read preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/preferences",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Read preferences"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Update preferences",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/preferences",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Update preferences",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"{{theme}}\",\n  \"timezone\": \"{{timezone}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Failed deliveries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/outbox?status=FAILED&limit={{limit}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Failed deliveries"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "pm.test('Cursor pagination', () => { const b = pm.response.json(); pm.expect(b.data).to.be.an('array'); pm.expect(b.meta.limit).to.be.a('number'); pm.expect(b.meta.total).to.be.a('number'); pm.expect(b.meta.hasNext).to.be.a('boolean'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Quarantined deliveries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/outbox?status=QUARANTINED&limit={{limit}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Quarantined deliveries"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "pm.test('Cursor pagination', () => { const b = pm.response.json(); pm.expect(b.data).to.be.an('array'); pm.expect(b.meta.limit).to.be.a('number'); pm.expect(b.meta.total).to.be.a('number'); pm.expect(b.meta.hasNext).to.be.a('boolean'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Memberships and RBAC — manual",
+      "description": "Set target membershipId. State/role changes affect access immediately. Do not run the whole folder blindly.",
+      "item": [
+        {
+          "name": "List memberships",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/members?limit={{limit}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "List memberships"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "pm.test('Cursor pagination', () => { const b = pm.response.json(); pm.expect(b.data).to.be.an('array'); pm.expect(b.meta.limit).to.be.a('number'); pm.expect(b.meta.total).to.be.a('number'); pm.expect(b.meta.hasNext).to.be.a('boolean'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Change member role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/members/{{membershipId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Set membershipId to the intended target, not the sole owner. ADMIN cannot manage OWNER/ADMIN.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"{{memberRole}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Suspend member",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/members/{{membershipId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Suspend member",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"state\": \"SUSPENDED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Reactivate member",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/members/{{membershipId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Reactivate member",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"state\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Remove member",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/members/{{membershipId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Remove member"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Leave workspace",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/leave",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Requires another active owner if the caller is OWNER. Removes your current membership access."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Invitations — manual",
+      "description": "Acceptance needs a separately authenticated, email-verified invitee and mailbox token.",
+      "item": [
+        {
+          "name": "Register invitee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/signup",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Use a real mailbox for inviteEmail. Registration sends verification mail. Does not replace owner credentials.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{inviteEmail}}\",\n  \"password\": \"{{inviteePassword}}\",\n  \"fullName\": \"Postman invitee\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.environment.set('inviteeAccessToken', pm.response.json().data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Confirm invitee email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/email-verification/confirm",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Set inviteeVerificationToken from the invited account mailbox.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{inviteeVerificationToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Login invitee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Login invitee",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{inviteEmail}}\",\n  \"password\": \"{{inviteePassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.environment.set('inviteeAccessToken', pm.response.json().data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Create invitation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/invitations",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Create invitation",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{inviteEmail}}\",\n  \"role\": \"{{memberRole}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.environment.set('invitationId', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "List invitations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/invitations?limit={{limit}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "List invitations"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "pm.test('Cursor pagination', () => { const b = pm.response.json(); pm.expect(b.data).to.be.an('array'); pm.expect(b.meta.limit).to.be.a('number'); pm.expect(b.meta.total).to.be.a('number'); pm.expect(b.meta.hasNext).to.be.a('boolean'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Accept invitation as verified invitee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/invitations/accept",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{inviteeAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Authenticate the invited account and verify its email first. Set inviteeAccessToken and invitationToken from its email; do not use owner credentials.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{invitationToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });",
+                  "if (pm.response.code < 300) {",
+                  "pm.environment.set('membershipId', pm.response.json().data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Revoke invitation",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}/invitations/{{invitationId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Revoke invitation"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Lifecycle — manual",
+      "description": "Archive/trash/restore recipes. Owner restoration is retained for 30 days; trash blocks ordinary access.",
+      "item": [
+        {
+          "name": "Archive workspace",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Archive workspace",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lifecycle\": \"archive\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Restore archive or trash",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Restore archive or trash",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lifecycle\": \"restore\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Trash workspace",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{requestKey}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/workspaces/{{workspaceId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Soft deletes the selected workspace and immediately blocks ordinary access. Owner can restore within retention window."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('requestKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Correlation ID exists', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+                  "pm.test('Success envelope', () => { const b = pm.response.json(); pm.expect(b).to.have.property('data'); pm.expect(b.meta.requestId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    }
+  ]
+}

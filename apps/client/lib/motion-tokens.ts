@@ -1,1 +1,1 @@
-export { motionTokens } from "../registry/motion-tokens";
+export { motionTokens } from '../registry/motion-tokens';

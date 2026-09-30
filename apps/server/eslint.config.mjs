@@ -5,6 +5,31 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   { ignores: ['dist/**', 'coverage/**'] },
+  {
+    files: ['src/modules/**/domain/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '@nestjs/*',
+                'drizzle-orm',
+                'drizzle-orm/*',
+                'pg',
+                '**/infrastructure/**',
+                '**/presentation/**',
+                '**/database/**',
+              ],
+              message:
+                'Domain code must remain independent of Nest, persistence adapters and HTTP transport.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   prettier,
@@ -23,7 +48,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-assignment': 'error',
       '@typescript-eslint/no-unsafe-call': 'error',
       '@typescript-eslint/no-unsafe-member-access': 'error',
-      '@typescript-eslint/no-unsafe-return': 'error'
-    }
-  }
+      '@typescript-eslint/no-unsafe-return': 'error',
+    },
+  },
 );

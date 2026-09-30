@@ -26,6 +26,43 @@ class EnvironmentVariables {
   PORT = 3002;
 
   @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(5)
+  TRUST_PROXY_HOPS = 0;
+
+  @IsOptional()
+  @IsBooleanString()
+  BACKGROUND_WORKERS_ENABLED = 'false';
+
+  @IsOptional()
+  @Matches(/^[a-f0-9]{64}$/i)
+  AUTH_MAIL_ENCRYPTION_KEY =
+    'c1217da7d757690115606f7c386f73964992611de8f4139a87d79f04b0128c04';
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  DATABASE_POOL_MAX = 10;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(100)
+  @Max(30000)
+  DATABASE_CONNECTION_TIMEOUT_MS = 2000;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(100)
+  @Max(60000)
+  DATABASE_QUERY_TIMEOUT_MS = 10000;
+
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   CORS_ORIGIN = 'http://localhost:3000';
@@ -103,6 +140,7 @@ class EnvironmentVariables {
 }
 
 const requiredProductionEnvironmentVariables = [
+  'AUTH_MAIL_ENCRYPTION_KEY',
   'DATABASE_URL',
   'JWT_ISSUER',
   'JWT_AUDIENCE',
@@ -139,6 +177,72 @@ export const validateEnvironment = (
     if (missing.length > 0) {
       throw new Error(
         `Environment validation failed: missing production variables: ${missing.join(', ')}`,
+      );
+    }
+  }
+
+  let databaseUrl: URL;
+  try {
+    databaseUrl = new URL(environment.DATABASE_URL);
+    if (!['postgres:', 'postgresql:'].includes(databaseUrl.protocol))
+      throw new Error();
+  } catch {
+    throw new Error(
+      'Environment validation failed: DATABASE_URL must be a PostgreSQL URL.',
+    );
+  }
+  const origins = environment.CORS_ORIGIN.split(',').map((origin) =>
+    origin.trim(),
+  );
+  if (
+    origins.length === 0 ||
+    origins.some((origin) => {
+      try {
+        const url = new URL(origin);
+        return (
+          url.origin !== origin || !['http:', 'https:'].includes(url.protocol)
+        );
+      } catch {
+        return true;
+      }
+    })
+  ) {
+    throw new Error(
+      'Environment validation failed: CORS_ORIGIN must list explicit HTTP origins.',
+    );
+  }
+  if (environment.NODE_ENV === 'production') {
+    if (
+      environment.AUTH_MAIL_ENCRYPTION_KEY ===
+      'c1217da7d757690115606f7c386f73964992611de8f4139a87d79f04b0128c04'
+    ) {
+      throw new Error(
+        'Environment validation failed: production mail key must not be the development key.',
+      );
+    }
+    if (
+      environment.JWT_ACCESS_SECRET ===
+        'development-only-access-secret-change-me' ||
+      /^(development|change-me|example)/i.test(environment.JWT_ACCESS_SECRET)
+    ) {
+      throw new Error(
+        'Environment validation failed: production access secret must not be a development placeholder.',
+      );
+    }
+    if (
+      decodeURIComponent(databaseUrl.password) === 'postgres' ||
+      databaseUrl.password === ''
+    ) {
+      throw new Error(
+        'Environment validation failed: production database password must not be empty or the default.',
+      );
+    }
+    if (
+      origins.some((origin) => !origin.startsWith('https://')) ||
+      !environment.MAGIC_LINK_BASE_URL.startsWith('https://')
+    ) {
+      throw new Error(
+        'Environment validation failed: production browser origins and magic-link URL require HTTPS.',
       );
     }
   }

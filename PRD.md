@@ -5,6 +5,12 @@
 **Backend Framework:** NestJS (Fastify Adapter) + TypeScript + Drizzle ORM + PostgreSQL + BullMQ (Redis)  
 **Base URL:** `/api/v1`
 
+**Current MVP scope:** AI agents are deferred. Agent chat, AI-agent settings,
+agent personalization, Agent Core, triggers, runs, skills, and approvals are
+excluded from the application. Agent-specific sections below are retained as
+future design notes and do not define current MVP requirements. IAM, CRM, Dynamic
+Data, Work Management, Eventing, and user-initiated integrations remain in scope.
+
 ---
 
 # 1. Strategic Design & Subdomain Classification (DDD)

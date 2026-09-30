@@ -6,11 +6,17 @@ export interface ApplicationConfiguration {
     port: number;
     corsOrigin: string;
     swaggerEnabled: boolean;
+    trustProxyHops: number;
+    backgroundWorkersEnabled: boolean;
   };
   database: {
     url: string;
+    maxPool: number;
+    connectionTimeoutMs: number;
+    queryTimeoutMs: number;
   };
   auth: {
+    mailEncryptionKey: string;
     jwt: {
       issuer: string;
       audience: string;

@@ -1,0 +1,19 @@
+{
+  "id": "evt_demo_2",
+  "workspace_id": "ws_demo",
+  "schema_version": 1,
+  "occurred_at": "2026-09-30T08:00:00Z",
+  "actor_membership_id": "mem_demo",
+  "aggregate_version": 1,
+  "event_type": "cycle.completed",
+  "aggregate_type": "cycle",
+  "aggregate_id": "cyc_demo",
+  "payload": {
+    "cycle_id": "cyc_demo",
+    "team_id": "team_demo",
+    "completed_at": "2026-09-30T08:00:00Z",
+    "next_cycle_id": "cyc_next",
+    "rolled_over_count": 1,
+    "rollover_issue_ids": ["iss_demo"]
+  }
+}

@@ -1,0 +1,3 @@
+ALTER TABLE "workspace_invitations" ADD CONSTRAINT "invitation_issuer_same_workspace_fk" FOREIGN KEY ("workspace_id","invited_by") REFERENCES "public"."memberships"("workspace_id","id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "workspace_invitations" ADD CONSTRAINT "invitation_acceptor_same_workspace_fk" FOREIGN KEY ("workspace_id","accepted_by") REFERENCES "public"."memberships"("workspace_id","id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "memberships_workspace_id_id_idx" ON "memberships" USING btree ("workspace_id","id");

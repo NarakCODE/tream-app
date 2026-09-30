@@ -74,18 +74,18 @@ The exact values may vary by product, but the following baseline should be used 
 
 Recommended spacing scale:
 
-| Token | Value | Typical Use |
-|---|---:|---|
-| `space-1` | 4px | micro gaps, icon internals |
-| `space-2` | 8px | compact icon/text gap |
-| `space-3` | 12px | heading-to-card gap, compact control gaps |
-| `space-4` | 16px | standard component spacing |
-| `space-5` | 20px | compact section spacing |
-| `space-6` | 24px | card padding |
-| `space-8` | 32px | major section rhythm, nav group spacing |
-| `space-10` | 40px | larger grouping |
-| `space-12` | 48px | page content top padding |
-| `space-16` | 64px | large layout separation |
+| Token      | Value | Typical Use                               |
+| ---------- | ----: | ----------------------------------------- |
+| `space-1`  |   4px | micro gaps, icon internals                |
+| `space-2`  |   8px | compact icon/text gap                     |
+| `space-3`  |  12px | heading-to-card gap, compact control gaps |
+| `space-4`  |  16px | standard component spacing                |
+| `space-5`  |  20px | compact section spacing                   |
+| `space-6`  |  24px | card padding                              |
+| `space-8`  |  32px | major section rhythm, nav group spacing   |
+| `space-10` |  40px | larger grouping                           |
+| `space-12` |  48px | page content top padding                  |
+| `space-16` |  64px | large layout separation                   |
 
 Avoid arbitrary values unless there is a clear optical reason.
 
@@ -150,17 +150,17 @@ The purpose is to avoid overly geometric, mechanically circular corners.
 
 Recommended baseline:
 
-| Component | Radius |
-|---|---:|
-| Small badge | 6px |
-| Compact control | 8px |
-| Standard input | 10px |
-| Search field | 10px |
-| Navigation item | 10px |
-| Standard card | 12px |
-| Large panel | 14–16px |
-| Modal/dialog | 16px |
-| Pill | 999px |
+| Component       |  Radius |
+| --------------- | ------: |
+| Small badge     |     6px |
+| Compact control |     8px |
+| Standard input  |    10px |
+| Search field    |    10px |
+| Navigation item |    10px |
+| Standard card   |    12px |
+| Large panel     | 14–16px |
+| Modal/dialog    |    16px |
+| Pill            |   999px |
 
 ### Refinement Rule
 
@@ -186,14 +186,14 @@ Icons should feel like part of the typography rather than separate illustrations
 
 Recommended sizes:
 
-| Context | Icon Size |
-|---|---:|
-| Small metadata | 14px |
-| Navigation | 16px |
-| Standard button | 16px |
-| Input leading icon | 16px |
-| Primary toolbar action | 18px |
-| Large empty state | 20–24px |
+| Context                | Icon Size |
+| ---------------------- | --------: |
+| Small metadata         |      14px |
+| Navigation             |      16px |
+| Standard button        |      16px |
+| Input leading icon     |      16px |
+| Primary toolbar action |      18px |
+| Large empty state      |   20–24px |
 
 Avoid oversizing icons to compensate for weak contrast.
 
@@ -215,15 +215,15 @@ For compact sidebar navigation, prefer a **tighter icon gap** than ordinary butt
 
 Recommended hierarchy:
 
-| Role | Size | Weight | Tone |
-|---|---:|---:|---|
-| Page title | 20–24px | 600 | Primary |
-| Major section title | 16–18px | 600 | Primary |
-| Row title | 13px | 500–600 | Primary |
-| Body | 13–14px | 400 | Primary/secondary |
-| Section eyebrow | 12px | 500 | Muted |
-| Caption | 11–12px | 500 | Muted |
-| Metadata | 11–12px | 400 | Muted |
+| Role                |    Size |  Weight | Tone              |
+| ------------------- | ------: | ------: | ----------------- |
+| Page title          | 20–24px |     600 | Primary           |
+| Major section title | 16–18px |     600 | Primary           |
+| Row title           |    13px | 500–600 | Primary           |
+| Body                | 13–14px |     400 | Primary/secondary |
+| Section eyebrow     |    12px |     500 | Muted             |
+| Caption             | 11–12px |     500 | Muted             |
+| Metadata            | 11–12px |     400 | Muted             |
 
 ## 6.2 Row Titles
 
@@ -428,8 +428,9 @@ Recommended card anatomy:
   background: var(--surface);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04),
-              0 1px 3px rgb(0 0 0 / 0.03);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 1px 3px rgb(0 0 0 / 0.03);
 }
 ```
 
@@ -440,15 +441,19 @@ Do not use dramatic floating shadows for ordinary cards.
 Use surfaces carefully:
 
 ### Level 0
+
 Page background.
 
 ### Level 1
+
 Primary content card.
 
 ### Level 2
+
 Nested interactive or selected surface.
 
 ### Level 3
+
 Popover, dropdown, modal, or temporary floating surface.
 
 Each level should be distinguishable without excessive contrast.
@@ -1008,28 +1013,28 @@ Hairline borders must never be the sole indication of an important state.
 
 # 27. Before and After Summary
 
-| Area | Before | Refined |
-|---|---|---|
-| Hairlines | 1px | 0.5px or lower-opacity 1px |
-| Corner smoothing | Basic radius | ~60% smoothing |
-| Icon stroke | 1.33px | 1px |
-| External alignment | Container edge | Internal text column |
-| Body tracking | Default/tight | +0.01em where appropriate |
-| Search height | Smaller | 36px |
-| Search radius | 8px | 10px |
-| Search treatment | Passive | Stronger border + subtle shadow |
-| Nav height | Smaller | 36px |
-| Nav radius | 8px | 10px |
-| Nav icon gap | Loose | Tighter |
-| Nav label weight | Mixed | Consistent medium |
-| Group captions | UPPERCASE | Sentence case |
-| Cards | Border only | Surface + border + resting shadow |
-| Section headings | 16px bold | 12px muted eyebrow |
-| Row titles | 14px | 13px |
-| Page top padding | 36px | 48px |
-| Heading-to-card | 16px | 12px |
-| Section rhythm | Inconsistent | 32px |
-| Nav group gap | 20px | 32px |
+| Area               | Before         | Refined                           |
+| ------------------ | -------------- | --------------------------------- |
+| Hairlines          | 1px            | 0.5px or lower-opacity 1px        |
+| Corner smoothing   | Basic radius   | ~60% smoothing                    |
+| Icon stroke        | 1.33px         | 1px                               |
+| External alignment | Container edge | Internal text column              |
+| Body tracking      | Default/tight  | +0.01em where appropriate         |
+| Search height      | Smaller        | 36px                              |
+| Search radius      | 8px            | 10px                              |
+| Search treatment   | Passive        | Stronger border + subtle shadow   |
+| Nav height         | Smaller        | 36px                              |
+| Nav radius         | 8px            | 10px                              |
+| Nav icon gap       | Loose          | Tighter                           |
+| Nav label weight   | Mixed          | Consistent medium                 |
+| Group captions     | UPPERCASE      | Sentence case                     |
+| Cards              | Border only    | Surface + border + resting shadow |
+| Section headings   | 16px bold      | 12px muted eyebrow                |
+| Row titles         | 14px           | 13px                              |
+| Page top padding   | 36px           | 48px                              |
+| Heading-to-card    | 16px           | 12px                              |
+| Section rhythm     | Inconsistent   | 32px                              |
+| Nav group gap      | 20px           | 32px                              |
 
 ---
 
@@ -1093,9 +1098,7 @@ Recommended implementation order:
   --border-subtle: rgb(0 0 0 / 0.08);
   --border-control: rgb(0 0 0 / 0.12);
 
-  --shadow-resting:
-    0 1px 2px rgb(0 0 0 / 0.04),
-    0 1px 3px rgb(0 0 0 / 0.03);
+  --shadow-resting: 0 1px 2px rgb(0 0 0 / 0.04), 0 1px 3px rgb(0 0 0 / 0.03);
 }
 
 .dark {
@@ -1113,7 +1116,9 @@ If using Tailwind CSS, map the rules to reusable semantic patterns rather than c
 Example:
 
 ```html
-<div class="rounded-xl border border-black/10 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-950">
+<div
+  class="rounded-xl border border-black/10 bg-white shadow-sm dark:border-white/10 dark:bg-neutral-950"
+>
   ...
 </div>
 ```
@@ -1121,7 +1126,9 @@ Example:
 Search field:
 
 ```html
-<div class="flex h-9 items-center gap-2 rounded-[10px] border border-black/15 px-3 shadow-sm dark:border-white/15">
+<div
+  class="flex h-9 items-center gap-2 rounded-[10px] border border-black/15 px-3 shadow-sm dark:border-white/15"
+>
   ...
 </div>
 ```
@@ -1129,7 +1136,9 @@ Search field:
 Navigation item:
 
 ```html
-<button class="flex h-9 w-full items-center gap-2 rounded-[10px] px-3 text-[13px] font-medium">
+<button
+  class="flex h-9 w-full items-center gap-2 rounded-[10px] px-3 text-[13px] font-medium"
+>
   ...
 </button>
 ```
@@ -1137,9 +1146,7 @@ Navigation item:
 Section caption:
 
 ```html
-<p class="text-xs font-medium text-muted-foreground">
-  General settings
-</p>
+<p class="text-xs font-medium text-muted-foreground">General settings</p>
 ```
 
 ---
@@ -1267,4 +1274,3 @@ Cards:              surface + subtle border + resting shadow
 Captions:           sentence case
 Alignment:          optical text-column alignment
 ```
-

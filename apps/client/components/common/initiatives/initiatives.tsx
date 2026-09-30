@@ -30,10 +30,7 @@ import {
 import { priorities } from '@/mock-data/priorities';
 import { health as allHealth } from '@/mock-data/projects';
 import { users } from '@/mock-data/users';
-import {
-   InitiativesFilterType,
-   useInitiativesFilterStore,
-} from '@/store/initiatives-filter-store';
+import { InitiativesFilterType, useInitiativesFilterStore } from '@/store/initiatives-filter-store';
 import {
    InitiativesDisplayProperties,
    useInitiativesDisplayStore,

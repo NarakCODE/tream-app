@@ -6,13 +6,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 export type TeamsOrdering = 'name' | 'members' | 'projects';
 
 export type TeamDisplayPropertyKey =
-   | 'membership'
-   | 'owners'
-   | 'projects'
-   | 'cycle'
-   | 'created'
-   | 'updated'
-   | 'members';
+   'membership' | 'owners' | 'projects' | 'cycle' | 'created' | 'updated' | 'members';
 
 export const TEAM_DISPLAY_PROPERTIES: { key: TeamDisplayPropertyKey; label: string }[] = [
    { key: 'membership', label: 'Membership' },

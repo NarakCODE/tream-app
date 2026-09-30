@@ -1,5 +1,4 @@
 import {
-   Bot,
    GitPullRequestArrow,
    Inbox,
    FolderKanban,
@@ -33,11 +32,6 @@ export const inboxItems = [
       name: 'My issues',
       url: '/lndev-ui/my-issues',
       icon: FolderKanban,
-   },
-   {
-      name: 'Agent',
-      url: '/lndev-ui/agent',
-      icon: Bot,
    },
 ];
 

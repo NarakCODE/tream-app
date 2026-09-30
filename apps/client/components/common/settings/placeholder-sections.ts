@@ -7,7 +7,7 @@ export interface PlaceholderConfig {
 }
 
 export const PLACEHOLDER_SECTIONS: Record<string, PlaceholderConfig> = {
-   slas: {
+   'slas': {
       title: 'SLAs',
       description: 'Automatically apply deadlines to issues based on their properties',
       actionLabel: 'New SLA',
@@ -28,13 +28,13 @@ export const PLACEHOLDER_SECTIONS: Record<string, PlaceholderConfig> = {
       description: 'Configure how project updates are collected across the workspace',
       emptyLabel: 'No updates',
    },
-   initiatives: {
+   'initiatives': {
       title: 'Initiatives',
       description: 'Group projects into larger bodies of work',
       actionLabel: 'New initiative',
       emptyLabel: 'No initiatives',
    },
-   documents: {
+   'documents': {
       title: 'Documents',
       actionLabel: 'New document',
       emptyLabel: 'No documents',
@@ -45,23 +45,23 @@ export const PLACEHOLDER_SECTIONS: Record<string, PlaceholderConfig> = {
       actionLabel: 'New request',
       emptyLabel: 'No customer requests',
    },
-   releases: {
+   'releases': {
       title: 'Releases',
       actionLabel: 'New release',
       emptyLabel: 'No releases',
    },
-   pulse: {
+   'pulse': {
       title: 'Pulse',
       description: 'A feed of important updates across your workspace',
       emptyLabel: 'No updates',
    },
-   asks: {
+   'asks': {
       title: 'Asks',
       description: 'Turn requests into actionable issues',
       actionLabel: 'New Ask',
       emptyLabel: 'No asks',
    },
-   emojis: {
+   'emojis': {
       title: 'Emojis',
       actionLabel: 'Upload',
       emptyLabel: 'No emojis',

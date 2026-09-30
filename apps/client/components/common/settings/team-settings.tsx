@@ -5,7 +5,6 @@ import { getCyclesByTeam } from '@/mock-data/cycles';
 import { status } from '@/mock-data/status';
 import { teams } from '@/mock-data/teams';
 import {
-   Bot,
    ChevronRight,
    FileText,
    Lock,
@@ -13,7 +12,6 @@ import {
    RefreshCcw,
    Repeat,
    Settings,
-   Sparkles,
    Tag,
    Target,
    Users,
@@ -28,7 +26,7 @@ interface TeamSettingsProps {
    teamId: string;
 }
 
-/** Per-team settings page (general, workflow, AI and danger zone). */
+/** Per-team settings page (general, workflow and danger zone). */
 export default function TeamSettings({ teamId }: TeamSettingsProps) {
    const { orgId } = useParams<{ orgId: string }>();
    const team = teams.find((candidate) => candidate.id === teamId);
@@ -160,48 +158,6 @@ export default function TeamSettings({ teamId }: TeamSettingsProps) {
                         title="Cycles"
                         description="Focus your team over short, time-boxed windows"
                         trailing={<span>{cycles.length > 0 ? 'Every 2 weeks' : 'Off'}</span>}
-                        chevron
-                        onClick={() => {}}
-                     />
-                  </SettingsCard>
-               </SettingsSection>
-
-               <SettingsSection title="AI & Agents">
-                  <SettingsCard>
-                     <SettingsRow
-                        icon={<Bot className="size-4" />}
-                        title="Team agents"
-                        description="Add guidance for how agents should operate within this team"
-                        chevron
-                        onClick={() => {}}
-                     />
-                     <SettingsRow
-                        icon={<Sparkles className="size-4" />}
-                        title="Agent skills"
-                        description="Agent skills shared with this team"
-                        trailing={<span>None</span>}
-                        chevron
-                        onClick={() => {}}
-                     />
-                     <SettingsRow
-                        icon={<RefreshCcw className="size-4" />}
-                        title="Loops"
-                        description="Automated agent workflows that run on a schedule or when an issue is updated"
-                        trailing={<span>None</span>}
-                        chevron
-                        onClick={() => {}}
-                     />
-                     <SettingsRow
-                        icon={<Zap className="size-4" />}
-                        title="Project updates"
-                        description="Automatically generate updates using recent activity and defined rules"
-                        chevron
-                        onClick={() => {}}
-                     />
-                     <SettingsRow
-                        icon={<FileText className="size-4" />}
-                        title="Resolved thread summaries"
-                        description="Automatically generate summaries for resolved threads"
                         chevron
                         onClick={() => {}}
                      />

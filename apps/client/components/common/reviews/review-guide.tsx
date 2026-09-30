@@ -1,11 +1,7 @@
 'use client';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-   getReviewFileDiff,
-   getReviewGuide,
-   Review,
-} from '@/mock-data/reviews';
+import { getReviewFileDiff, getReviewGuide, Review } from '@/mock-data/reviews';
 import { FileCode2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { DiffView } from './diff-view';
@@ -43,7 +39,8 @@ export function ReviewGuide({ review }: { review: Review }) {
                      <div className="flex flex-col gap-3">
                         <h2 className="text-lg font-semibold leading-snug">{section.title}</h2>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                           {String(index + 1).padStart(2, '0')} / {String(sections.length).padStart(2, '0')}
+                           {String(index + 1).padStart(2, '0')} /{' '}
+                           {String(sections.length).padStart(2, '0')}
                            <label className="inline-flex items-center gap-1.5 cursor-pointer">
                               <Checkbox className="size-3.5" />
                               Reviewed

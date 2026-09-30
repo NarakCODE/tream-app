@@ -5,15 +5,7 @@ export type SidebarVisibility = 'always' | 'badged' | 'never';
 export type SidebarBadgeStyle = 'count' | 'dot';
 
 export type SidebarItemKey =
-   | 'inbox'
-   | 'reviews'
-   | 'my-issues'
-   | 'agent'
-   | 'initiatives'
-   | 'projects'
-   | 'views'
-   | 'teams'
-   | 'members';
+   'inbox' | 'reviews' | 'my-issues' | 'initiatives' | 'projects' | 'views' | 'teams' | 'members';
 
 export type SidebarSection = 'personal' | 'workspace';
 
@@ -31,7 +23,6 @@ const DEFAULT_VISIBILITY: Record<SidebarItemKey, SidebarVisibility> = {
    'inbox': 'always',
    'reviews': 'always',
    'my-issues': 'always',
-   'agent': 'always',
    'initiatives': 'always',
    'projects': 'always',
    'views': 'always',
@@ -45,7 +36,7 @@ const DEFAULT_VISIBILITY: Record<SidebarItemKey, SidebarVisibility> = {
  * sidebar keeps its shape across sessions.
  */
 const DEFAULT_ORDER: Record<SidebarSection, SidebarItemKey[]> = {
-   personal: ['inbox', 'reviews', 'my-issues', 'agent'],
+   personal: ['inbox', 'reviews', 'my-issues'],
    workspace: ['initiatives', 'projects', 'views', 'teams', 'members'],
 };
 
@@ -67,7 +58,26 @@ export const useSidebarPrefsStore = create<SidebarPrefsState>()(
                return { order: { ...state.order, [section]: keys } };
             }),
       }),
-      { name: 'sidebar-prefs' }
+      {
+         name: 'sidebar-prefs',
+         version: 1,
+         migrate: (persistedState) => {
+            const stored = persistedState as Partial<SidebarPrefsState>;
+            return {
+               ...stored,
+               visibility: Object.fromEntries(
+                  Object.entries(DEFAULT_VISIBILITY).map(([key, fallback]) => [
+                     key,
+                     stored.visibility?.[key as SidebarItemKey] ?? fallback,
+                  ])
+               ) as Record<SidebarItemKey, SidebarVisibility>,
+               order: {
+                  personal: resolveOrder(stored.order?.personal, DEFAULT_ORDER.personal),
+                  workspace: resolveOrder(stored.order?.workspace, DEFAULT_ORDER.workspace),
+               },
+            };
+         },
+      }
    )
 );
 

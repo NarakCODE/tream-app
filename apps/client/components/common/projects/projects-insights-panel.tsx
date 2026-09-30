@@ -73,7 +73,10 @@ export default function ProjectsInsightsPanel({ projects }: ProjectsInsightsPane
             key: entry.id,
             label: entry.id === 'no-update' ? 'No update expected' : entry.name,
             leading: (
-               <span className="size-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+               <span
+                  className="size-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: entry.color }}
+               />
             ),
             count: projects.filter((project) => project.health.id === entry.id).length,
             onClick: () => toggleFilter('health', entry.id),

@@ -15,9 +15,7 @@ export default function Header() {
    if (!view) return null;
 
    const count =
-      view.type === 'issue'
-         ? filterIssuesForView(view).length
-         : filterProjectsForView(view).length;
+      view.type === 'issue' ? filterIssuesForView(view).length : filterProjectsForView(view).length;
 
    return (
       <div className="w-full flex flex-col">

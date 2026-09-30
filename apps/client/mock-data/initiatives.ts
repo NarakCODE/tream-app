@@ -20,10 +20,7 @@ export interface Initiative {
    createdAt: string;
 }
 
-export const INITIATIVE_STATUS_META: Record<
-   InitiativeStatus,
-   { label: string; color: string }
-> = {
+export const INITIATIVE_STATUS_META: Record<InitiativeStatus, { label: string; color: string }> = {
    active: { label: 'Active', color: '#f2c94c' },
    planned: { label: 'Planned', color: '#95a2b3' },
    completed: { label: 'Completed', color: '#5e6ad2' },

@@ -6,12 +6,7 @@ import React from 'react';
  * progress (completed vs remaining) in cycles.
  */
 export type StatusCategory =
-   | 'triage'
-   | 'backlog'
-   | 'unstarted'
-   | 'started'
-   | 'completed'
-   | 'canceled';
+   'triage' | 'backlog' | 'unstarted' | 'started' | 'completed' | 'canceled';
 
 export interface Status {
    id: string;

@@ -51,7 +51,8 @@ export function InitiativesSidePanel({ initiatives }: { initiatives: Initiative[
                if (!team) continue;
                const existing = byTeam.get(teamId);
                if (existing) existing.count += 1;
-               else byTeam.set(teamId, { key: teamId, label: team.name, icon: team.icon, count: 1 });
+               else
+                  byTeam.set(teamId, { key: teamId, label: team.name, icon: team.icon, count: 1 });
             }
          }
          return [...byTeam.values()].sort((a, b) => b.count - a.count);

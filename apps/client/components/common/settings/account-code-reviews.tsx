@@ -28,10 +28,7 @@ const DIFF_LINES: { number?: string; text: string; kind: 'context' | 'removed' |
 /** Personal "Code & reviews" settings (PR reviews inside the app). */
 export default function AccountCodeReviews() {
    return (
-      <SettingsShell
-         title="Code & reviews"
-         description="Review GitHub pull requests and agent code diffs in LNDev UI"
-      >
+      <SettingsShell title="Code & reviews" description="Review GitHub pull requests in LNDev UI">
          <SettingsSection>
             <SettingsCard>
                <SettingsRow

@@ -177,7 +177,9 @@ export default function Header({ member }: { member: User }) {
                </Button>
                <Button
                   size="xs"
-                  variant={openPanel !== 'hidden' && openPanel !== 'insights' ? 'secondary' : 'ghost'}
+                  variant={
+                     openPanel !== 'hidden' && openPanel !== 'insights' ? 'secondary' : 'ghost'
+                  }
                   onClick={() => togglePanel('hidden')}
                   aria-label="Toggle profile panel"
                >

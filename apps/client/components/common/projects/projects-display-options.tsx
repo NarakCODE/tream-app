@@ -193,16 +193,10 @@ export function ProjectsDisplayOptions() {
                   {viewType === 'timeline' && (
                      <>
                         <OptionRow label="Show project list">
-                           <Switch
-                              checked={showProjectList}
-                              onCheckedChange={setShowProjectList}
-                           />
+                           <Switch checked={showProjectList} onCheckedChange={setShowProjectList} />
                         </OptionRow>
                         <OptionRow label="Show week numbers">
-                           <Switch
-                              checked={showWeekNumbers}
-                              onCheckedChange={setShowWeekNumbers}
-                           />
+                           <Switch checked={showWeekNumbers} onCheckedChange={setShowWeekNumbers} />
                         </OptionRow>
                      </>
                   )}

@@ -20,13 +20,7 @@ const SECTION_TABS: { key: ReviewSection; label: string; path: string }[] = [
 ];
 
 /** Right pane of the Reviews split view: breadcrumb, tabs and section body. */
-export function ReviewDetail({
-   reviewId,
-   section,
-}: {
-   reviewId: string;
-   section: ReviewSection;
-}) {
+export function ReviewDetail({ reviewId, section }: { reviewId: string; section: ReviewSection }) {
    const { orgId } = useParams<{ orgId: string }>();
    const review = getReviewById(reviewId);
 

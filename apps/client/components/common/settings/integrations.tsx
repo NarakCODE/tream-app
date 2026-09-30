@@ -76,13 +76,7 @@ function IntegrationCard({ integration }: { integration: Integration }) {
    );
 }
 
-function CategorySection({
-   label,
-   items,
-}: {
-   label: string;
-   items: Integration[];
-}) {
+function CategorySection({ label, items }: { label: string; items: Integration[] }) {
    const [expanded, setExpanded] = useState(false);
    const visible = expanded ? items : items.slice(0, VISIBLE_PER_CATEGORY);
    return (

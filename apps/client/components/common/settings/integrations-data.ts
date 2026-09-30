@@ -88,113 +88,6 @@ const list: Integration[] = [
       description: 'Smoothly transition from Jira to Circle',
       color: '#2684ff',
    },
-   // Agents
-   {
-      id: 'codex',
-      name: 'Codex',
-      description: 'Delegate issues to Codex directly from Circle',
-      status: 'enabled',
-      color: '#10a37f',
-   },
-   {
-      id: 'cursor',
-      name: 'Cursor',
-      description: 'Turn issues into pull requests with Cursor cloud agents',
-      color: '#111111',
-   },
-   {
-      id: 'github-copilot',
-      name: 'GitHub Copilot',
-      description: 'Turn issues into code with the GitHub Copilot coding agent',
-      color: '#6e40c9',
-   },
-   {
-      id: 'factory',
-      name: 'Factory',
-      description: 'Assign issues from your backlog to Droids',
-      color: '#3d3d3d',
-   },
-   {
-      id: 'sentry-agent',
-      name: 'Sentry Agent',
-      description: 'Resolve issues automatically with Seer by Sentry',
-      status: 'enabled',
-      color: '#362d59',
-   },
-   {
-      id: 'devin',
-      name: 'Devin',
-      description: 'Automate work from issue to tested PR with Devin',
-      color: '#2563eb',
-   },
-   {
-      id: 'chatprd',
-      name: 'ChatPRD',
-      description: 'Writes requirements, manages issues, and gives feedback on your product work',
-      color: '#f59e0b',
-   },
-   {
-      id: 'charlie',
-      name: 'Charlie',
-      description: 'Plans, implements, and reviews your TypeScript PRs',
-      color: '#e11d48',
-   },
-   {
-      id: 'cyrus',
-      name: 'Cyrus',
-      description: 'An AI engineering agent that works through your backlog',
-      status: 'enabled',
-      color: '#7c3aed',
-   },
-   // AI clients
-   {
-      id: 'cursor-mcp',
-      name: 'Cursor MCP',
-      description: 'Connect Cursor to the Circle MCP server',
-      color: '#111111',
-   },
-   {
-      id: 'chatgpt',
-      name: 'ChatGPT',
-      description: 'Connect ChatGPT deep research to Circle',
-      color: '#10a37f',
-   },
-   {
-      id: 'claude',
-      name: 'Claude',
-      description: 'Connect Claude to the Circle MCP server',
-      color: '#d97757',
-   },
-   {
-      id: 'v0-mcp',
-      name: 'v0 by Vercel MCP connector',
-      description: 'Connect v0 and Circle through MCP',
-      color: '#000000',
-   },
-   {
-      id: 'windsurf',
-      name: 'Windsurf',
-      description: 'Connect Windsurf to the Circle MCP server',
-      color: '#0ea5e9',
-   },
-   {
-      id: 'replit',
-      name: 'Replit',
-      description: 'Build apps & automations',
-      color: '#f26207',
-   },
-   {
-      id: 'dust',
-      name: 'Dust',
-      description: 'Build AI workflows with your issues',
-      color: '#64748b',
-   },
-   {
-      id: 'adk',
-      name: 'ADK',
-      description: 'Connect your Google ADK agents to Circle',
-      color: '#4285f4',
-   },
    // Engineering
    {
       id: 'pagerduty',
@@ -320,7 +213,8 @@ const list: Integration[] = [
    {
       id: 'attio',
       name: 'Attio',
-      description: 'Add customer requests and issues, plus sync customer details, directly from Attio',
+      description:
+         'Add customer requests and issues, plus sync customer details, directly from Attio',
       color: '#3b82f6',
    },
    {
@@ -332,7 +226,8 @@ const list: Integration[] = [
    {
       id: 'productlane',
       name: 'Productlane',
-      description: 'Helpdesk, customer requests portal, public roadmap, and changelog built on Circle',
+      description:
+         'Helpdesk, customer requests portal, public roadmap, and changelog built on Circle',
       color: '#2dd4bf',
    },
    {
@@ -357,7 +252,8 @@ const list: Integration[] = [
    {
       id: 'range',
       name: 'Range',
-      description: 'Pull issues into async check-ins to keep your software development team in sync',
+      description:
+         'Pull issues into async check-ins to keep your software development team in sync',
       color: '#f43f5e',
    },
    // Media & design
@@ -446,7 +342,8 @@ const list: Integration[] = [
    {
       id: 'everhour',
       name: 'Everhour',
-      description: 'Track time, estimate tasks, set up a fixed-fee or recurring budget for projects',
+      description:
+         'Track time, estimate tasks, set up a fixed-fee or recurring budget for projects',
       color: '#22c55e',
    },
    {
@@ -522,26 +419,6 @@ export const INTEGRATION_CATEGORIES: IntegrationCategory[] = [
       id: 'essentials',
       label: 'Essentials',
       items: ['github', 'slack', 'gitlab', 'figma', 'intercom', 'google-sheets'],
-   },
-   {
-      id: 'agents',
-      label: 'Agents',
-      items: [
-         'codex',
-         'cursor',
-         'github-copilot',
-         'factory',
-         'sentry-agent',
-         'devin',
-         'chatprd',
-         'charlie',
-         'cyrus',
-      ],
-   },
-   {
-      id: 'ai-clients',
-      label: 'AI clients',
-      items: ['cursor-mcp', 'chatgpt', 'claude', 'v0-mcp', 'windsurf', 'replit', 'dust', 'adk'],
    },
    {
       id: 'engineering',

@@ -39,9 +39,7 @@ export default function AllIssues({ categories }: AllIssuesProps) {
 
    const scopedIssues = useMemo<Issue[]>(
       () =>
-         categories
-            ? issues.filter((issue) => categories.includes(issue.status.category))
-            : issues,
+         categories ? issues.filter((issue) => categories.includes(issue.status.category)) : issues,
       [issues, categories]
    );
 

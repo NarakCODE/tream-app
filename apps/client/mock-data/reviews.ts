@@ -1053,7 +1053,7 @@ export function getReviewGuide(review: Review): GuideSection[] {
 /*                                  Reviews                                   */
 /* -------------------------------------------------------------------------- */
 
-/** Agent verdict variants, picked deterministically per review. */
+/** Review verdict variants, picked deterministically per review. */
 const REVIEW_NOTES: Omit<ReviewNote, 'author' | 'timeAgo'>[] = [
    {
       verdictLine:
@@ -1169,7 +1169,7 @@ export const reviews: Review[] = seeds.map((seed) => {
       reviewNote:
          seed.list === 'for-you' && seed.status === 'merged'
             ? {
-                 author: 'Atlas',
+                 author: 'Alex Tan',
                  timeAgo: seed.timeAgo === '1h' ? '55min ago' : seed.timeAgo + ' ago',
                  ...REVIEW_NOTES[noteSeed % REVIEW_NOTES.length],
               }

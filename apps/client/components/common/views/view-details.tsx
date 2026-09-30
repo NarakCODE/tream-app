@@ -5,12 +5,7 @@ import { InsightsPanel } from '@/components/common/issues/insights-panel';
 import ProjectsList from '@/components/common/projects/projects-list';
 import { ProjectGroup } from '@/components/common/projects/projects';
 import { status as allStatus } from '@/mock-data/status';
-import {
-   filterIssuesForView,
-   filterProjectsForView,
-   getViewById,
-   View,
-} from '@/mock-data/views';
+import { filterIssuesForView, filterProjectsForView, getViewById, View } from '@/mock-data/views';
 import { useRightPanelStore } from '@/store/right-panel-store';
 import { useMemo } from 'react';
 

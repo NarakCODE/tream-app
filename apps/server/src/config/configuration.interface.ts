@@ -29,7 +29,34 @@ export interface ApplicationConfiguration {
       baseUrl: string;
     };
   };
+  files: {
+    storageDriver: 'filesystem' | 's3';
+    localRoot: string;
+    bucket: string;
+    endpoint?: string;
+    region: string;
+    accessKey?: string;
+    secretKey?: string;
+    scannerDriver: 'development' | 'clamav';
+    clamavHost: string;
+    clamavPort: number;
+    scanTimeoutMs: number;
+    maxFileBytes: number;
+    workspaceQuotaBytes: number;
+    uploadIntentTtlSeconds: number;
+    uploadGrantTtlSeconds: number;
+    downloadGrantTtlSeconds: number;
+    retentionDays: number;
+    cleanupLeaseSeconds: number;
+    cleanupMaxAttempts: number;
+    signingSecret: string;
+  };
   mail: {
+    provider: 'smtp' | 'resend';
+    resend: {
+      apiKey?: string;
+      from: string;
+    };
     smtp: {
       host: string;
       port: number;

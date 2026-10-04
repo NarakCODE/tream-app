@@ -64,12 +64,26 @@ export const configureApplication = async (
     ],
   });
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
+  // File uploads are the only binary request body. JSON retains its 1 MiB
+  // parser limit; bytes are bounded before the controller receives a Buffer.
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .addContentTypeParser(
+      'application/octet-stream',
+      {
+        parseAs: 'buffer',
+        bodyLimit: config.getOrThrow('files.maxFileBytes', { infer: true }),
+      },
+      (_request, body, done) => done(null, body),
+    );
   await app.register(cors, {
     origin: config
       .getOrThrow('app.corsOrigin', { infer: true })
       .split(',')
       .map((origin) => origin.trim()),
     credentials: true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   if (config.getOrThrow('app.swaggerEnabled', { infer: true })) {

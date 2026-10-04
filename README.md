@@ -1,4 +1,4 @@
-> Server status: M01–M04 implement persisted authentication, transactional commands/events/audit, workspace RBAC and readiness. Later product/CRM modules remain scaffolds. See [server setup](apps/server/README.md) and [implementation notes](apps/server/docs/M01-M04.md). Retained database history is upgraded incrementally; the complete target ERD is not yet materialized.
+> Server status: M01–M09 implement persisted authentication, transactional commands/events/audit, workspace RBAC, readiness, teams, workflows, projects, milestones, issues, cycles and collaboration. Later product/CRM modules remain scaffolds. See [server setup](apps/server/README.md), [M01–M04 notes](apps/server/docs/M01-M04.md), [M05 notes](apps/server/docs/M05.md) and [M06 notes](apps/server/docs/M06.md) and [M07–M09 notes](apps/server/docs/M07-M09.md). Retained database history is upgraded incrementally; the complete target ERD is not yet materialized.
 
 # Tream Monorepo
 

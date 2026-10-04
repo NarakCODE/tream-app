@@ -40,7 +40,10 @@ export async function prepareIntegrationDatabase() {
   const connection = new Pool({ connectionString: url.toString() });
   const cleanup = async () => {
     await connection.end();
-    await admin.query(`DROP DATABASE "${name}" WITH (FORCE)`);
+    // Do not terminate still-closing clients: pg reports asynchronous 57P01
+    // errors when FORCE races their socket shutdown. A leaked client should
+    // instead make cleanup fail visibly without killing its connection.
+    await admin.query(`DROP DATABASE "${name}"`);
     await admin.end();
   };
   try {

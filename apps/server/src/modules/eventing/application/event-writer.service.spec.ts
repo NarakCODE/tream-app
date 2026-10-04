@@ -45,6 +45,24 @@ describe('EventWriter', () => {
     eventType: 'workspace.created',
     payload: { workspace_id: 'ws1', owner_membership_id: 'mem1' },
   };
+  it('persists an explicitly registered payload version', async () => {
+    const { writer, tx, stored } = setup();
+    await writer.append(tx as never, {
+      workspaceId: 'ws1',
+      aggregateType: 'comment',
+      aggregateId: 'c1',
+      eventType: 'comment.created',
+      schemaVersion: 2,
+      payload: {
+        comment_id: 'c1',
+        target_type: 'project',
+        target_id: 'p1',
+        parent_comment_id: null,
+        revision: 1,
+      },
+    });
+    expect(stored[0]?.schemaVersion).toBe(2);
+  });
   it('shares a revision across distinct facts in the same transaction', async () => {
     const { writer, tx, stored, heads } = setup();
     await writer.append(tx as never, input);

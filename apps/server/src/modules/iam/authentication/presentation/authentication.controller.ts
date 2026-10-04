@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -6,9 +7,11 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Req,
   Res,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { FastifyReply } from 'fastify';
@@ -20,6 +23,7 @@ import {
   duration,
 } from '../application/authentication.service';
 import type { AuthenticatedRequest } from './authentication.guard';
+import { AuthenticationOriginGuard } from './authentication-origin.guard';
 import {
   EmailDto,
   LoginDto,
@@ -31,6 +35,7 @@ import {
 } from './authentication.dto';
 @Controller('auth')
 @SkipIdempotency()
+@UseGuards(AuthenticationOriginGuard)
 export class AuthenticationController {
   constructor(
     private readonly auth: AuthenticationService,
@@ -87,7 +92,7 @@ export class AuthenticationController {
     if (!req.headers.origin || !allowed.includes(req.headers.origin))
       throw new UnauthorizedException('Untrusted browser origin');
   }
-  private refreshToken(req: AuthenticatedRequest, dto: RefreshDto) {
+  private refreshToken(req: AuthenticatedRequest, dto?: RefreshDto) {
     if (req.headers.origin) this.checkOrigin(req);
     const cookie = req.headers.cookie
       ?.split(';')
@@ -98,22 +103,17 @@ export class AuthenticationController {
       this.checkOrigin(req);
       return cookie;
     }
-    if (!dto.refreshToken)
+    if (!dto?.refreshToken)
       throw new UnauthorizedException('Refresh token required');
     return dto.refreshToken;
   }
   @Public() @Post('signup') async signup(
     @Body() dto: SignupDto,
     @Req() req: AuthenticatedRequest,
-    @Res({ passthrough: true }) res: FastifyReply,
   ) {
     if (req.headers.origin) this.checkOrigin(req);
     await this.limit(req, 'signup', dto.email);
-    return this.cookie(
-      req,
-      res,
-      await this.auth.signup(dto.email, dto.password, dto.fullName),
-    );
+    return this.auth.signup(dto.email, dto.password, dto.fullName);
   }
   @Public() @Post('login') async login(
     @Body() dto: LoginDto,
@@ -129,7 +129,7 @@ export class AuthenticationController {
     );
   }
   @Public() @Post('refresh') async refresh(
-    @Body() dto: RefreshDto,
+    @Body() dto: RefreshDto = new RefreshDto(),
     @Req() req: AuthenticatedRequest,
     @Res({ passthrough: true }) res: FastifyReply,
   ) {
@@ -159,8 +159,10 @@ export class AuthenticationController {
   @Delete('sessions/:id') async revoke(
     @Param('id') id: string,
     @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: FastifyReply,
   ) {
     await this.auth.revoke(req.user.id, id);
+    if (id === req.user.sessionId) this.clearCookie(res);
     return { message: 'Session revoked' };
   }
   @Public() @Post('password-recovery') async recovery(
@@ -214,12 +216,29 @@ export class AuthenticationController {
 }
 @Controller('me')
 @SkipIdempotency()
+@UseGuards(AuthenticationOriginGuard)
 export class ProfileController {
   constructor(private readonly auth: AuthenticationService) {}
   @Get() profile(@Req() req: AuthenticatedRequest) {
     return this.auth.profile(req.user.id);
   }
-  @Patch() update(@Body() dto: ProfileDto, @Req() req: AuthenticatedRequest) {
-    return this.auth.updateProfile(req.user.id, dto.fullName);
+  @Patch()
+  patch(@Body() dto: ProfileDto, @Req() req: AuthenticatedRequest) {
+    return this.handleUpdate(dto, req);
+  }
+  @Put()
+  put(@Body() dto: ProfileDto, @Req() req: AuthenticatedRequest) {
+    return this.handleUpdate(dto, req);
+  }
+  @Post()
+  post(@Body() dto: ProfileDto, @Req() req: AuthenticatedRequest) {
+    return this.handleUpdate(dto, req);
+  }
+  private handleUpdate(dto: ProfileDto, req: AuthenticatedRequest) {
+    const fullName = (dto.fullName ?? dto.name)?.trim();
+    if (!fullName) {
+      throw new BadRequestException('fullName is required');
+    }
+    return this.auth.updateProfile(req.user.id, fullName);
   }
 }

@@ -27,7 +27,6 @@ export interface AuthRepository {
       expiresAt: Date;
       message: { to: string; subject: string; text: string };
     },
-    session: Session,
   ): Promise<void>;
   updateProfile(id: string, fullName: string): Promise<AuthUser>;
   createSession(

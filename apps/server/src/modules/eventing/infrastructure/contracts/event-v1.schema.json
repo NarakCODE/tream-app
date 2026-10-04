@@ -18,7 +18,8 @@
       "type": "string"
     },
     "schema_version": {
-      "const": 1
+      "type": "integer",
+      "enum": [1, 2, 3]
     },
     "occurred_at": {
       "type": "string",
@@ -784,6 +785,1536 @@
         }
       },
       "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "team.member_added"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/team_member_added_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "team.member_updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/team_member_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "team.member_removed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/team_member_removed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "team.settings_updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/team_settings_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue_status.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_status_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue_status.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_status_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue_status.default_changed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_status_default_changed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue_status.reordered"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_status_reordered_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue_status.retired"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "team"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_status_retired_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.archived"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_archived_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.deleted"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_deleted_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.restored"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_restored_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.team_added"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_team_added_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.team_removed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_team_removed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.member_added"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_member_added_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.member_removed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_member_removed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.milestone_created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_milestone_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.milestone_updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_milestone_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.milestone_deleted"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_milestone_deleted_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.milestones_reordered"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_milestones_reordered_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.update_published"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_update_published_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project_status.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "workspace"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_status_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project_status.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "workspace"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_status_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project_status.default_changed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "workspace"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_status_default_changed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project_status.reordered"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "workspace"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_status_reordered_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project_status.retired"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "workspace"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_status_retired_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.cycle_changed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_cycle_changed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.relation_added"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_relation_added_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.relation_removed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_relation_removed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "cycle.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "cycle"
+        },
+        "payload": {
+          "$ref": "#/$defs/cycle_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "cycle.canceled"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "cycle"
+        },
+        "payload": {
+          "$ref": "#/$defs/cycle_canceled_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.created"
+        },
+        "schema_version": {
+          "const": 2
+        },
+        "aggregate_type": {
+          "const": "comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_created_v2"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.updated"
+        },
+        "schema_version": {
+          "const": 2
+        },
+        "aggregate_type": {
+          "const": "comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_updated_v2"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.deleted"
+        },
+        "schema_version": {
+          "const": 2
+        },
+        "aggregate_type": {
+          "const": "comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_deleted_v2"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.restored"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_restored_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.reaction_added"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_reaction_added_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.reaction_removed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_reaction_removed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "label.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "label"
+        },
+        "payload": {
+          "$ref": "#/$defs/label_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "label.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "label"
+        },
+        "payload": {
+          "$ref": "#/$defs/label_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "label.archived"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "label"
+        },
+        "payload": {
+          "$ref": "#/$defs/label_archived_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "label.restored"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "label"
+        },
+        "payload": {
+          "$ref": "#/$defs/label_restored_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.label_added"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_label_added_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.label_removed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_label_removed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.subscribed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_subscribed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.unsubscribed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_unsubscribed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.subscribed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_subscribed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "project.unsubscribed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "project"
+        },
+        "payload": {
+          "$ref": "#/$defs/project_unsubscribed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue_template.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue_template"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_template_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue_template.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue_template"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_template_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue_template.archived"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue_template"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_template_archived_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue_template.restored"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "issue_template"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_template_restored_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "issue.updated"
+        },
+        "schema_version": {
+          "const": 2
+        },
+        "aggregate_type": {
+          "const": "issue"
+        },
+        "payload": {
+          "$ref": "#/$defs/issue_updated_v2"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "file.upload_intent_created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "file"
+        },
+        "payload": {
+          "$ref": "#/$defs/file_upload_intent_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "file.uploaded"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "file"
+        },
+        "payload": {
+          "$ref": "#/$defs/file_uploaded_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "file.ready"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "file"
+        },
+        "payload": {
+          "$ref": "#/$defs/file_ready_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "file.quarantined"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "file"
+        },
+        "payload": {
+          "$ref": "#/$defs/file_quarantined_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "file.deleted"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "file"
+        },
+        "payload": {
+          "$ref": "#/$defs/file_deleted_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "file.restored"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "file"
+        },
+        "payload": {
+          "$ref": "#/$defs/file_restored_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "file.expired"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "file"
+        },
+        "payload": {
+          "$ref": "#/$defs/file_expired_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "file.purged"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "file"
+        },
+        "payload": {
+          "$ref": "#/$defs/file_purged_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "attachment.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "attachment"
+        },
+        "payload": {
+          "$ref": "#/$defs/attachment_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "attachment.detached"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "attachment"
+        },
+        "payload": {
+          "$ref": "#/$defs/attachment_detached_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "attachment.restored"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "attachment"
+        },
+        "payload": {
+          "$ref": "#/$defs/attachment_restored_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "document.deleted"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "document"
+        },
+        "payload": {
+          "$ref": "#/$defs/document_deleted_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "document.restored"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "document"
+        },
+        "payload": {
+          "$ref": "#/$defs/document_restored_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.deleted"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_deleted_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.restored"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_restored_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.project_added"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_project_added_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.project_removed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_project_removed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.projects_reordered"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_projects_reordered_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.update_published"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_update_published_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.update_updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_update_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.update_deleted"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_update_deleted_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.subscribed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_subscribed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "initiative.unsubscribed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "initiative"
+        },
+        "payload": {
+          "$ref": "#/$defs/initiative_unsubscribed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "view.created"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "view"
+        },
+        "payload": {
+          "$ref": "#/$defs/view_created_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "view.updated"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "view"
+        },
+        "payload": {
+          "$ref": "#/$defs/view_updated_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "view.archived"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "view"
+        },
+        "payload": {
+          "$ref": "#/$defs/view_archived_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "view.deleted"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "view"
+        },
+        "payload": {
+          "$ref": "#/$defs/view_deleted_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "view.restored"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "view"
+        },
+        "payload": {
+          "$ref": "#/$defs/view_restored_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "favorite.added"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "favorite"
+        },
+        "payload": {
+          "$ref": "#/$defs/favorite_added_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "favorite.removed"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "favorite"
+        },
+        "payload": {
+          "$ref": "#/$defs/favorite_removed_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "favorite.reordered"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "aggregate_type": {
+          "const": "membership"
+        },
+        "payload": {
+          "$ref": "#/$defs/favorite_reordered_v1"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.restored"
+        },
+        "schema_version": {
+          "const": 2
+        },
+        "aggregate_type": {
+          "const": "comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_restored_v2"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.created"
+        },
+        "schema_version": {
+          "const": 3
+        },
+        "aggregate_type": {
+          "const": "comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_created_v3"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.updated"
+        },
+        "schema_version": {
+          "const": 3
+        },
+        "aggregate_type": {
+          "const": "comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_updated_v3"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "comment.deleted"
+        },
+        "schema_version": {
+          "const": 3
+        },
+        "aggregate_type": {
+          "const": "comment"
+        },
+        "payload": {
+          "$ref": "#/$defs/comment_deleted_v3"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "attachment.created"
+        },
+        "schema_version": {
+          "const": 2
+        },
+        "aggregate_type": {
+          "const": "attachment"
+        },
+        "payload": {
+          "$ref": "#/$defs/attachment_created_v2"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "attachment.detached"
+        },
+        "schema_version": {
+          "const": 2
+        },
+        "aggregate_type": {
+          "const": "attachment"
+        },
+        "payload": {
+          "$ref": "#/$defs/attachment_detached_v2"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {
+          "const": "attachment.restored"
+        },
+        "schema_version": {
+          "const": 2
+        },
+        "aggregate_type": {
+          "const": "attachment"
+        },
+        "payload": {
+          "$ref": "#/$defs/attachment_restored_v2"
+        }
+      },
+      "required": ["event_type", "schema_version", "aggregate_type", "payload"]
     }
   ],
   "$defs": {
@@ -846,7 +2377,8 @@
               "timezone",
               "cycle_settings",
               "default_status",
-              "retired_at"
+              "retired_at",
+              "visibility"
             ]
           }
         }
@@ -1199,7 +2731,8 @@
               "starts_on",
               "target_on",
               "team_ids",
-              "archived_at"
+              "archived_at",
+              "summary"
             ]
           }
         }
@@ -1706,6 +3239,1968 @@
         "recipient_membership_id",
         "source_event_id"
       ],
+      "additionalProperties": false
+    },
+    "team_member_added_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "role": {
+          "enum": ["ADMIN", "MEMBER"]
+        }
+      },
+      "required": ["team_id", "membership_id", "role"],
+      "additionalProperties": false
+    },
+    "team_member_updated_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "role": {
+          "enum": ["ADMIN", "MEMBER"]
+        }
+      },
+      "required": ["team_id", "membership_id", "role"],
+      "additionalProperties": false
+    },
+    "team_member_removed_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["team_id", "membership_id"],
+      "additionalProperties": false
+    },
+    "team_settings_updated_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "changed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "timezone",
+              "cycles_enabled",
+              "cycle_duration_weeks",
+              "cycle_start_day",
+              "cycle_cooldown_days",
+              "upcoming_cycles_count"
+            ]
+          }
+        }
+      },
+      "required": ["team_id", "changed_fields"],
+      "additionalProperties": false
+    },
+    "issue_status_created_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["team_id", "status_id"],
+      "additionalProperties": false
+    },
+    "issue_status_updated_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["team_id", "status_id"],
+      "additionalProperties": false
+    },
+    "issue_status_default_changed_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["team_id", "status_id"],
+      "additionalProperties": false
+    },
+    "issue_status_reordered_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "required": ["team_id", "status_ids"],
+      "additionalProperties": false
+    },
+    "issue_status_retired_v1": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "replacement_status_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["team_id", "status_id", "replacement_status_id"],
+      "additionalProperties": false
+    },
+    "project_archived_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "archived_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["project_id", "archived_at"],
+      "additionalProperties": false
+    },
+    "project_deleted_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "deleted_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["project_id", "deleted_at"],
+      "additionalProperties": false
+    },
+    "project_restored_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id"],
+      "additionalProperties": false
+    },
+    "project_team_added_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id", "team_id"],
+      "additionalProperties": false
+    },
+    "project_team_removed_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id", "team_id"],
+      "additionalProperties": false
+    },
+    "project_member_added_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id", "membership_id"],
+      "additionalProperties": false
+    },
+    "project_member_removed_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id", "membership_id"],
+      "additionalProperties": false
+    },
+    "project_milestone_created_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "milestone_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id", "milestone_id"],
+      "additionalProperties": false
+    },
+    "project_milestone_updated_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "milestone_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id", "milestone_id"],
+      "additionalProperties": false
+    },
+    "project_milestone_deleted_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "milestone_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id", "milestone_id"],
+      "additionalProperties": false
+    },
+    "project_milestones_reordered_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "milestone_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "required": ["project_id", "milestone_ids"],
+      "additionalProperties": false
+    },
+    "project_update_published_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "update_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "health": {
+          "enum": ["ON_TRACK", "AT_RISK", "OFF_TRACK"]
+        }
+      },
+      "required": ["project_id", "update_id", "health"],
+      "additionalProperties": false
+    },
+    "project_status_created_v1": {
+      "type": "object",
+      "properties": {
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["status_id"],
+      "additionalProperties": false
+    },
+    "project_status_updated_v1": {
+      "type": "object",
+      "properties": {
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["status_id"],
+      "additionalProperties": false
+    },
+    "project_status_default_changed_v1": {
+      "type": "object",
+      "properties": {
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["status_id"],
+      "additionalProperties": false
+    },
+    "project_status_reordered_v1": {
+      "type": "object",
+      "properties": {
+        "status_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        }
+      },
+      "required": ["status_ids"],
+      "additionalProperties": false
+    },
+    "project_status_retired_v1": {
+      "type": "object",
+      "properties": {
+        "status_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "replacement_status_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["status_id", "replacement_status_id"],
+      "additionalProperties": false
+    },
+    "issue_cycle_changed_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "cycle_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "previous_cycle_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["issue_id", "cycle_id", "previous_cycle_id"],
+      "additionalProperties": false
+    },
+    "issue_relation_added_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "relation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "related_issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "type": {
+          "enum": ["BLOCKS", "RELATED", "DUPLICATES"]
+        }
+      },
+      "required": ["issue_id", "relation_id", "related_issue_id", "type"],
+      "additionalProperties": false
+    },
+    "issue_relation_removed_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "relation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["issue_id", "relation_id"],
+      "additionalProperties": false
+    },
+    "cycle_updated_v1": {
+      "type": "object",
+      "properties": {
+        "cycle_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "changed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["name", "starts_at", "ends_at"]
+          }
+        }
+      },
+      "required": ["cycle_id", "team_id", "changed_fields"],
+      "additionalProperties": false
+    },
+    "cycle_canceled_v1": {
+      "type": "object",
+      "properties": {
+        "cycle_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "canceled_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["cycle_id", "team_id", "canceled_at"],
+      "additionalProperties": false
+    },
+    "comment_created_v2": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "project_update"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "parent_comment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "comment_id",
+        "target_type",
+        "target_id",
+        "parent_comment_id",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "comment_updated_v2": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "project_update"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "parent_comment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "comment_id",
+        "target_type",
+        "target_id",
+        "parent_comment_id",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "comment_deleted_v2": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "project_update"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "parent_comment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "comment_id",
+        "target_type",
+        "target_id",
+        "parent_comment_id",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "comment_restored_v1": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "project_update"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "parent_comment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "comment_id",
+        "target_type",
+        "target_id",
+        "parent_comment_id",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "comment_reaction_added_v1": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "emoji": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      },
+      "required": ["comment_id", "membership_id", "emoji"],
+      "additionalProperties": false
+    },
+    "comment_reaction_removed_v1": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "emoji": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      },
+      "required": ["comment_id", "membership_id", "emoji"],
+      "additionalProperties": false
+    },
+    "label_created_v1": {
+      "type": "object",
+      "properties": {
+        "label_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["label_id", "team_id"],
+      "additionalProperties": false
+    },
+    "label_updated_v1": {
+      "type": "object",
+      "properties": {
+        "label_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["label_id", "team_id"],
+      "additionalProperties": false
+    },
+    "label_archived_v1": {
+      "type": "object",
+      "properties": {
+        "label_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["label_id", "team_id"],
+      "additionalProperties": false
+    },
+    "label_restored_v1": {
+      "type": "object",
+      "properties": {
+        "label_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["label_id", "team_id"],
+      "additionalProperties": false
+    },
+    "project_label_added_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "label_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id", "label_id"],
+      "additionalProperties": false
+    },
+    "project_label_removed_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "label_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id", "label_id"],
+      "additionalProperties": false
+    },
+    "issue_subscribed_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["issue_id", "membership_id"],
+      "additionalProperties": false
+    },
+    "issue_unsubscribed_v1": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["issue_id", "membership_id"],
+      "additionalProperties": false
+    },
+    "project_subscribed_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id", "membership_id"],
+      "additionalProperties": false
+    },
+    "project_unsubscribed_v1": {
+      "type": "object",
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["project_id", "membership_id"],
+      "additionalProperties": false
+    },
+    "issue_template_created_v1": {
+      "type": "object",
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["template_id", "team_id"],
+      "additionalProperties": false
+    },
+    "issue_template_updated_v1": {
+      "type": "object",
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["template_id", "team_id"],
+      "additionalProperties": false
+    },
+    "issue_template_archived_v1": {
+      "type": "object",
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["template_id", "team_id"],
+      "additionalProperties": false
+    },
+    "issue_template_restored_v1": {
+      "type": "object",
+      "properties": {
+        "template_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "team_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["template_id", "team_id"],
+      "additionalProperties": false
+    },
+    "issue_updated_v2": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "changed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "title",
+              "description",
+              "priority",
+              "estimate",
+              "due_date",
+              "project_id",
+              "cycle_id",
+              "status_id",
+              "assignee_membership_id",
+              "parent_issue_id",
+              "milestone_id",
+              "sort_order"
+            ]
+          }
+        }
+      },
+      "required": ["issue_id", "changed_fields"],
+      "additionalProperties": false
+    },
+    "file_upload_intent_created_v1": {
+      "type": "object",
+      "properties": {
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["file_id"],
+      "additionalProperties": false
+    },
+    "file_uploaded_v1": {
+      "type": "object",
+      "properties": {
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["file_id"],
+      "additionalProperties": false
+    },
+    "file_ready_v1": {
+      "type": "object",
+      "properties": {
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["file_id"],
+      "additionalProperties": false
+    },
+    "file_quarantined_v1": {
+      "type": "object",
+      "properties": {
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "reason": {
+          "enum": [
+            "INFECTED",
+            "SCAN_UNAVAILABLE",
+            "CONTENT_MISMATCH",
+            "STORAGE_UNAVAILABLE"
+          ]
+        }
+      },
+      "required": ["file_id", "reason"],
+      "additionalProperties": false
+    },
+    "file_deleted_v1": {
+      "type": "object",
+      "properties": {
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["file_id"],
+      "additionalProperties": false
+    },
+    "file_restored_v1": {
+      "type": "object",
+      "properties": {
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["file_id"],
+      "additionalProperties": false
+    },
+    "file_expired_v1": {
+      "type": "object",
+      "properties": {
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["file_id"],
+      "additionalProperties": false
+    },
+    "file_purged_v1": {
+      "type": "object",
+      "properties": {
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["file_id"],
+      "additionalProperties": false
+    },
+    "attachment_created_v1": {
+      "type": "object",
+      "properties": {
+        "attachment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "comment"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["attachment_id", "file_id", "target_type", "target_id"],
+      "additionalProperties": false
+    },
+    "attachment_detached_v1": {
+      "type": "object",
+      "properties": {
+        "attachment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "comment"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["attachment_id", "file_id", "target_type", "target_id"],
+      "additionalProperties": false
+    },
+    "attachment_restored_v1": {
+      "type": "object",
+      "properties": {
+        "attachment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "comment"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["attachment_id", "file_id", "target_type", "target_id"],
+      "additionalProperties": false
+    },
+    "document_deleted_v1": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["document_id"],
+      "additionalProperties": false
+    },
+    "document_restored_v1": {
+      "type": "object",
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["document_id"],
+      "additionalProperties": false
+    },
+    "initiative_deleted_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id"],
+      "additionalProperties": false
+    },
+    "initiative_restored_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id"],
+      "additionalProperties": false
+    },
+    "initiative_project_added_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id", "project_id"],
+      "additionalProperties": false
+    },
+    "initiative_project_removed_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id", "project_id"],
+      "additionalProperties": false
+    },
+    "initiative_projects_reordered_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "project_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "minItems": 0,
+          "maxItems": 100,
+          "uniqueItems": true
+        }
+      },
+      "required": ["initiative_id", "project_ids"],
+      "additionalProperties": false
+    },
+    "initiative_update_published_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "update_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id", "update_id"],
+      "additionalProperties": false
+    },
+    "initiative_update_updated_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "update_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id", "update_id"],
+      "additionalProperties": false
+    },
+    "initiative_update_deleted_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "update_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id", "update_id"],
+      "additionalProperties": false
+    },
+    "initiative_subscribed_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id", "membership_id"],
+      "additionalProperties": false
+    },
+    "initiative_unsubscribed_v1": {
+      "type": "object",
+      "properties": {
+        "initiative_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["initiative_id", "membership_id"],
+      "additionalProperties": false
+    },
+    "view_created_v1": {
+      "type": "object",
+      "properties": {
+        "view_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "resource": {
+          "enum": ["ISSUES", "PROJECTS"]
+        }
+      },
+      "required": ["view_id", "resource"],
+      "additionalProperties": false
+    },
+    "view_updated_v1": {
+      "type": "object",
+      "properties": {
+        "view_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "changed_fields": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "name",
+              "description",
+              "visibility",
+              "filters",
+              "display",
+              "team_id",
+              "project_id"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": ["view_id", "changed_fields"],
+      "additionalProperties": false
+    },
+    "view_archived_v1": {
+      "type": "object",
+      "properties": {
+        "view_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["view_id"],
+      "additionalProperties": false
+    },
+    "view_deleted_v1": {
+      "type": "object",
+      "properties": {
+        "view_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["view_id"],
+      "additionalProperties": false
+    },
+    "view_restored_v1": {
+      "type": "object",
+      "properties": {
+        "view_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["view_id"],
+      "additionalProperties": false
+    },
+    "favorite_added_v1": {
+      "type": "object",
+      "properties": {
+        "favorite_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "team", "initiative", "view"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["favorite_id", "membership_id", "target_type", "target_id"],
+      "additionalProperties": false
+    },
+    "favorite_removed_v1": {
+      "type": "object",
+      "properties": {
+        "favorite_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "team", "initiative", "view"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["favorite_id", "membership_id", "target_type", "target_id"],
+      "additionalProperties": false
+    },
+    "favorite_reordered_v1": {
+      "type": "object",
+      "properties": {
+        "membership_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "favorite_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "maxItems": 500,
+          "uniqueItems": true
+        }
+      },
+      "required": ["membership_id", "favorite_ids"],
+      "additionalProperties": false
+    },
+    "comment_restored_v2": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": [
+            "issue",
+            "project",
+            "project_update",
+            "initiative",
+            "initiative_update"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "parent_comment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mentioned_membership_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "maxItems": 50,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "comment_id",
+        "target_type",
+        "target_id",
+        "parent_comment_id",
+        "revision",
+        "mentioned_membership_ids"
+      ],
+      "additionalProperties": false
+    },
+    "comment_created_v3": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": [
+            "issue",
+            "project",
+            "project_update",
+            "initiative",
+            "initiative_update"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "parent_comment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mentioned_membership_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "maxItems": 50,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "comment_id",
+        "target_type",
+        "target_id",
+        "parent_comment_id",
+        "revision",
+        "mentioned_membership_ids"
+      ],
+      "additionalProperties": false
+    },
+    "comment_updated_v3": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": [
+            "issue",
+            "project",
+            "project_update",
+            "initiative",
+            "initiative_update"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "parent_comment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mentioned_membership_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "maxItems": 50,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "comment_id",
+        "target_type",
+        "target_id",
+        "parent_comment_id",
+        "revision",
+        "mentioned_membership_ids"
+      ],
+      "additionalProperties": false
+    },
+    "comment_deleted_v3": {
+      "type": "object",
+      "properties": {
+        "comment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": [
+            "issue",
+            "project",
+            "project_update",
+            "initiative",
+            "initiative_update"
+          ]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "parent_comment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mentioned_membership_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "maxItems": 50,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "comment_id",
+        "target_type",
+        "target_id",
+        "parent_comment_id",
+        "revision",
+        "mentioned_membership_ids"
+      ],
+      "additionalProperties": false
+    },
+    "attachment_created_v2": {
+      "type": "object",
+      "properties": {
+        "attachment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "comment", "document"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["attachment_id", "file_id", "target_type", "target_id"],
+      "additionalProperties": false
+    },
+    "attachment_detached_v2": {
+      "type": "object",
+      "properties": {
+        "attachment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "comment", "document"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["attachment_id", "file_id", "target_type", "target_id"],
+      "additionalProperties": false
+    },
+    "attachment_restored_v2": {
+      "type": "object",
+      "properties": {
+        "attachment_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "file_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "target_type": {
+          "enum": ["issue", "project", "comment", "document"]
+        },
+        "target_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": ["attachment_id", "file_id", "target_type", "target_id"],
       "additionalProperties": false
     }
   }

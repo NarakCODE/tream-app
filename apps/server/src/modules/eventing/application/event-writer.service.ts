@@ -24,6 +24,7 @@ export class EventWriter {
     input: {
       workspaceId: string;
       eventType: string;
+      schemaVersion?: number;
       actorId?: string;
       aggregateType: string;
       aggregateId: string;
@@ -31,9 +32,10 @@ export class EventWriter {
       correlationId?: string;
     },
   ) {
+    const schemaVersion = input.schemaVersion ?? 1;
     this.contracts.validate(
       input.eventType,
-      1,
+      schemaVersion,
       input.aggregateType,
       input.payload,
     );
@@ -76,7 +78,7 @@ export class EventWriter {
       id: eventId,
       workspace_id: input.workspaceId,
       event_type: input.eventType,
-      schema_version: 1,
+      schema_version: schemaVersion,
       actor_membership_id: input.actorId ?? null,
       aggregate_type: input.aggregateType,
       aggregate_id: input.aggregateId,
@@ -90,7 +92,7 @@ export class EventWriter {
       .values({
         id: eventId,
         ...input,
-        schemaVersion: 1,
+        schemaVersion,
         aggregateVersion: revision,
         occurredAt,
       })

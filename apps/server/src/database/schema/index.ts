@@ -9,3 +9,12 @@ export * from './task.schema';
 export * from './work-management.schema';
 export * from './workspace.schema';
 export * from './audit.schema';
+export * from './collaboration.schema';
+export * from './files.schema';
+
+export * from './initiative.schema';
+export * from './document.schema';
+
+export * from './view.schema';
+
+export * from './notification.schema';

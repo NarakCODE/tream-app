@@ -4,6 +4,7 @@ import {
   MaxLength,
   MinLength,
   IsOptional,
+  Matches,
 } from 'class-validator';
 export class EmailDto {
   @IsEmail() @MaxLength(254) email!: string;
@@ -16,7 +17,11 @@ export class SignupDto extends EmailDto {
   @IsString() @MinLength(1) @MaxLength(120) fullName!: string;
 }
 export class TokenDto {
-  @IsString() @MinLength(32) @MaxLength(256) token!: string;
+  @IsString()
+  @MinLength(32)
+  @MaxLength(256)
+  @Matches(/^[A-Za-z0-9_-]+$/)
+  token!: string;
 }
 export class RefreshDto {
   @IsOptional()
@@ -29,5 +34,19 @@ export class ResetDto extends TokenDto {
   @IsString() @MinLength(12) @MaxLength(256) password!: string;
 }
 export class ProfileDto {
-  @IsString() @MinLength(1) @MaxLength(120) fullName!: string;
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(120)
+  fullName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(120)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string | null;
 }

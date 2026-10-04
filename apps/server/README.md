@@ -1,6 +1,6 @@
 # Tream API
 
-NestJS 11/Fastify modular monolith using PostgreSQL and Drizzle. M01–M04 provide platform configuration, persisted authentication, transactional commands/events/audit and workspace RBAC. Teams, projects, issues, cycles, CRM and the remaining feature modules are scaffolds; their business routes are not mounted. AI agents remain excluded.
+NestJS 11/Fastify modular monolith using PostgreSQL and Drizzle. M01–M10 provide platform configuration, persisted authentication, transactional commands/events/audit, workspace RBAC, teams/workflows, projects, milestones, issues, cycles, collaboration, private files and attachments. Notifications, CRM and remaining feature modules are scaffolds; their business routes are not mounted. AI agents remain excluded.
 
 ## Start and validate
 
@@ -25,11 +25,11 @@ Real PostgreSQL integration tests require an isolated test database:
 pnpm --filter server test:integration:local
 ```
 
-The integration suite creates a separate temporary database and applies migrations. Use test credentials with database creation privileges, separate from the application role. See [M01–M04 implementation and operations](./docs/M01-M04.md) for endpoints, security guarantees, workers and verification limits.
+The integration suite creates a separate temporary database and applies migrations. Use test credentials with database creation privileges, separate from the application role. See [M01–M04 implementation and operations](./docs/M01-M04.md), [M05 teams and workflows](./docs/M05.md) and [M06 projects and milestones](./docs/M06.md) and [M07–M09 issues, cycles and collaboration](./docs/M07-M09.md) and [M10 private files and attachments](./docs/M10.md) for endpoints, security guarantees, workers and verification limits.
 
 ## Structure
 
-`AppModule` composes `CoreModule` and `ApiModule`. Core owns configuration, logging, request context, database connections, common idempotency and health. IAM owns authentication and workspaces. Eventing owns versioned contracts, event writing, consumer registration, leases/receipts and outbox monitoring. Audit exposes a transactional writer; general audit search is deferred to M14.
+`AppModule` composes `CoreModule` and `ApiModule`. Core owns configuration, logging, request context, database connections, common idempotency and health. IAM owns authentication and workspaces. Teams owns visibility, scoped team administration, workflow catalogs and cycle settings. Projects owns cross-team project visibility, lifecycle, scoped members, milestones and health update history. Eventing owns versioned contracts, event writing, consumer registration, leases/receipts and outbox monitoring. Audit exposes a transactional writer; general audit search is deferred to M14.
 
 Feature code uses application, domain, infrastructure and presentation boundaries. See [module inventory](./src/modules/README.md), [architecture](./docs/architecture.md) and the [backend roadmap](../../docs/roadmap/BACKEND_MILESTONES.md) for later milestones and release gates.
 
@@ -37,7 +37,7 @@ Feature code uses application, domain, infrastructure and presentation boundarie
 
 Migrations are explicit deployment steps; application startup does not migrate the database. Retained migration history plus incremental migrations support this slice. They do not materialize every table in the [target ERD](../../docs/database/linear-workspace.dbml). ERD supplemental SQL targets its own table layout and must not be applied blindly to the retained application schema.
 
-Production requires explicit secrets, approved HTTPS origins, migration credentials separate from a non-owner application role, and a configured SMTP provider. `BACKGROUND_WORKERS_ENABLED=false` is the development/test default; enable it on designated worker replicas to deliver queued authentication/invitation mail and registered event consumers. Production deployment, provider delivery, load qualification and recovery rehearsals remain later milestone gates.
+Production requires explicit secrets, approved HTTPS origins, migration credentials separate from a non-owner application role, a configured SMTP provider, private S3-compatible storage and a ClamAV scanner. `BACKGROUND_WORKERS_ENABLED=false` is the development/test default; enable it on designated worker replicas to deliver queued authentication/invitation mail, registered event consumers, cycle scheduling and private-file cleanup. Production deployment, provider delivery, load qualification and recovery rehearsals remain later milestone gates.
 
 ## Postman API tests
 

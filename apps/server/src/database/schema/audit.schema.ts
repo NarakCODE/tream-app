@@ -5,6 +5,7 @@ export const auditLogs = pgTable(
     id: text('id').primaryKey(),
     workspaceId: text('workspace_id'),
     actorId: text('actor_id'),
+    correlationId: text('correlation_id'),
     action: text('action').notNull(),
     targetType: text('target_type').notNull(),
     targetId: text('target_id').notNull(),
@@ -17,6 +18,12 @@ export const auditLogs = pgTable(
       .notNull(),
   },
   (t) => [
+    index('audit_logs_workspace_correlation_created_idx').on(
+      t.workspaceId,
+      t.correlationId,
+      t.createdAt,
+      t.id,
+    ),
     index('audit_logs_workspace_created_idx').on(
       t.workspaceId,
       t.createdAt,

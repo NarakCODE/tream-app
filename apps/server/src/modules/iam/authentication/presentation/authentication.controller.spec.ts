@@ -1,3 +1,4 @@
+import { ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { FastifyReply } from 'fastify';
 import type { ApplicationConfiguration } from '../../../../config/configuration.interface';
@@ -25,6 +26,9 @@ describe('Authentication browser contract', () => {
   beforeEach(() => {
     auth = {
       throttle: jest.fn().mockResolvedValue(undefined),
+      signup: jest.fn().mockResolvedValue({
+        message: 'Account created. Verify your email before signing in.',
+      }),
       login: jest.fn().mockResolvedValue(result),
       refresh: jest.fn().mockResolvedValue(result),
       revoke: jest.fn().mockResolvedValue(undefined),
@@ -51,6 +55,35 @@ describe('Authentication browser contract', () => {
       'Set-Cookie',
       expect.stringContaining('HttpOnly; Secure; SameSite=Strict;'),
     );
+  });
+  it('returns pending verification on signup without issuing browser refresh storage', async () => {
+    const body = await controller.signup(
+      {
+        email: 'new@example.com',
+        password: 'long-password-123',
+        fullName: 'New User',
+      },
+      request({ origin: 'https://second.example' }),
+    );
+    expect(body).toEqual({
+      message: 'Account created. Verify your email before signing in.',
+    });
+    expect(header).not.toHaveBeenCalled();
+  });
+  it('does not set a refresh cookie when login is denied pending verification', async () => {
+    jest
+      .spyOn(auth, 'login')
+      .mockRejectedValue(
+        new ForbiddenException('Verify your email before signing in.'),
+      );
+    await expect(
+      controller.login(
+        { email: 'user@example.com', password: 'password' },
+        request({ origin: 'https://second.example' }),
+        reply,
+      ),
+    ).rejects.toThrow(ForbiddenException);
+    expect(header).not.toHaveBeenCalled();
   });
   it('requires matching Origin for cookie refresh including missing Origin', async () => {
     const refreshSpy = jest.spyOn(auth, 'refresh');

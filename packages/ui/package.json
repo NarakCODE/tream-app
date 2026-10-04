@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
+    "./splash-screen": "./src/splash-screen.tsx",
+    "./splash-screen.css": "./src/splash-screen.css",
     "./*": "./src/*.tsx"
   },
   "scripts": {
@@ -17,10 +19,12 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
     "eslint": "10.9.1",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
-  "dependencies": {
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+  "peerDependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:"
   }
 }

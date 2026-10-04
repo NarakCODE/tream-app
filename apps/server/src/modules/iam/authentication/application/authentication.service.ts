@@ -4,6 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
   HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -17,6 +18,8 @@ import {
   type TokenKind,
 } from './authentication.types';
 import { hashPassword, verifyPassword } from './password';
+import { AppException } from '../../../../common/exceptions/app.exception';
+import { AppErrorCode } from '../../../../common/enums/app-error-code.enum';
 export const tokenHash = (token: string) =>
   createHash('sha256').update(token).digest('hex');
 export const publicUser = (user: AuthUser) => ({
@@ -65,7 +68,6 @@ export class AuthenticationService {
       emailVerifiedAt: null,
       disabledAt: null,
     };
-    const { session, refreshToken } = this.newSession(user.id);
     const token = randomBytes(32).toString('base64url');
     const url = new URL(
       '/auth/verify-email',
@@ -73,24 +75,20 @@ export class AuthenticationService {
     );
     url.searchParams.set('token', token);
     try {
-      await this.repository.createUser(
-        user,
-        {
-          hash: tokenHash(token),
-          expiresAt: new Date(
-            Date.now() +
-              duration(
-                this.config.getOrThrow('auth.magicLink.ttl', { infer: true }),
-              ),
-          ),
-          message: {
-            to: user.email,
-            subject: 'Tream verify-email',
-            text: `Use this single-use link: ${url.toString()}`,
-          },
+      await this.repository.createUser(user, {
+        hash: tokenHash(token),
+        expiresAt: new Date(
+          Date.now() +
+            duration(
+              this.config.getOrThrow('auth.magicLink.ttl', { infer: true }),
+            ),
+        ),
+        message: {
+          to: user.email,
+          subject: 'Tream verify-email',
+          text: `Use this single-use link: ${url.toString()}`,
         },
-        session,
-      );
+      });
     } catch (error) {
       if (
         typeof error === 'object' &&
@@ -105,7 +103,7 @@ export class AuthenticationService {
         throw new ConflictException('Email is already registered');
       throw error;
     }
-    return this.result(user, session, refreshToken);
+    return { message: 'Account created. Verify your email before signing in.' };
   }
   async login(email: string, password: string) {
     const user = await this.repository.findByEmail(email.trim().toLowerCase());
@@ -117,6 +115,14 @@ export class AuthenticationService {
     );
     if (!user || user.disabledAt || !valid)
       throw new UnauthorizedException('Invalid credentials');
+    if (!user.emailVerifiedAt) {
+      await this.requestToken(user.email, 'verify-email');
+      throw new AppException(
+        AppErrorCode.EmailNotVerified,
+        'Verify your email before signing in.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
     return this.openSession(user);
   }
   private newSession(userId: string, familyId = randomUUID()) {
@@ -137,6 +143,8 @@ export class AuthenticationService {
     return { session, refreshToken };
   }
   private async result(user: AuthUser, session: Session, refreshToken: string) {
+    if (!user.emailVerifiedAt || user.disabledAt)
+      throw new UnauthorizedException('Verified account required');
     const ttl = Math.floor(
       duration(this.config.getOrThrow('auth.jwt.accessTtl', { infer: true })) /
         1000,
@@ -173,7 +181,7 @@ export class AuthenticationService {
     const persisted = await this.repository.findSession(session.id);
     const user =
       persisted && (await this.repository.findUser(persisted.userId));
-    if (!persisted || !user || user.disabledAt)
+    if (!persisted || !user || user.disabledAt || !user.emailVerifiedAt)
       throw new UnauthorizedException();
     return this.result(user, persisted, refreshToken);
   }
@@ -202,7 +210,8 @@ export class AuthenticationService {
         session.revokedAt ||
         session.expiresAt <= new Date() ||
         !user ||
-        user.disabledAt
+        user.disabledAt ||
+        !user.emailVerifiedAt
       )
         throw new UnauthorizedException();
       return { id: user.id, email: user.email, sessionId: session.id };

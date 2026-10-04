@@ -157,7 +157,10 @@ export class AuthMailOutbox implements OnModuleInit, OnModuleDestroy {
         claimed.map(async (row) => {
           try {
             if (!row.encryptedMessage) throw new Error('Missing mail');
-            await this.sender.send(this.decrypt(row.encryptedMessage));
+            await this.sender.send({
+              ...this.decrypt(row.encryptedMessage),
+              messageId: `<${row.id}@auth.tream>`,
+            });
             await this.database.db
               .update(authMailDeliveries)
               .set({

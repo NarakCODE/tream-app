@@ -1,0 +1,2 @@
+
+CREATE UNIQUE INDEX "project_updates_workspace_identity_idx" ON "project_updates" USING btree ("workspace_id","id");--> statement-breakpointALTER TABLE "comments" ADD CONSTRAINT "comments_update_tenant_fk" FOREIGN KEY ("workspace_id","project_update_id") REFERENCES "public"."project_updates"("workspace_id","id") ON DELETE no action ON UPDATE no action;

@@ -1,6 +1,6 @@
 # Versioned event contracts
 
-These are **proposed target contracts**, not validators already installed in the NestJS runtime. Server feature producers and consumers were removed by the scaffold reset; retained database history still requires the legacy rollout below. [catalog.json](./events/catalog.json) registers 42 exact `(event_type, schema_version)` pairs; [event-v1.schema.json](./events/event-v1.schema.json) validates their envelopes and concrete payloads using JSON Schema Draft 2020-12. All payloads and envelopes reject unknown properties. Every schema reference is local to that file; its `.example` `$id` identifies the artifact and is not a hosted endpoint.
+The [catalog](./events/catalog.json) registers 94 exact `(event_type, schema_version)` pairs. A synchronized copy of this catalog/schema is installed in the NestJS runtime registry; M03–M09 producers validate their implemented event families before committing facts. The runtime also registers strict IAM contracts inline. Registration alone does not implement the future CRM and extension producers. Retained database history still requires the legacy rollout below. [event-v1.schema.json](./events/event-v1.schema.json) validates envelopes and concrete payloads using JSON Schema Draft 2020-12. All payloads and envelopes reject unknown properties. Every schema reference is local to that file; its `.example` `$id` identifies the artifact and is not a hosted endpoint.
 
 ## Envelope and storage
 
@@ -29,3 +29,5 @@ Schema validation checks structure, enums and timestamps. Producer transactions 
 ## Executable examples
 
 [fixtures](./events/fixtures) contains valid issue creation and cycle completion events, plus rejected missing-identifier, negative-rollover-count, unsupported-version and leaked-email-token examples. Validate with Ajv 8's `dist/2020` entry point and `ajv-formats` (`strict: true`, `allErrors: true`); load the schema as a local JSON object, with no network resolution. The catalog payload pointers are file-relative JSON Pointers for tools inspecting individual contracts. Consumer validation should use the complete envelope so the discriminator and aggregate type are checked together.
+
+M07–M09 preserve published issue-comment v1 contracts and introduce typed comment v2 contracts. `issue.updated` v2 adds `sort_order` without changing the v1 allowlist. The cataloged payload version is passed explicitly by producers; aggregate identity is validated per event type and payload version. The historical `event-v1.schema.json` filename remains for link compatibility and contains both registered versions.

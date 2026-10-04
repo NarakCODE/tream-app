@@ -73,7 +73,7 @@ describe('M01–M04 PostgreSQL HTTP contracts', () => {
       ...(body ? { payload: body } : {}),
     });
   }
-  async function signup(verified = true): Promise<Credentials> {
+  async function register() {
     const email = `integration-${randomUUID()}@example.test`;
     const response = await request('POST', '/auth/signup', {
       email,
@@ -81,16 +81,37 @@ describe('M01–M04 PostgreSQL HTTP contracts', () => {
       fullName: 'Integration User',
     });
     expect(response.statusCode).toBe(201);
-    const auth = response.json<{ data: Credentials }>().data;
-    if (verified) {
-      await outbox.dispatchReady();
-      const token = mailToken(email, 'verify-email');
-      expect(
-        (await request('POST', '/auth/email-verification/confirm', { token }))
-          .statusCode,
-      ).toBe(201);
-    }
-    return auth;
+    const data = response.json<{ data: { message: string } }>().data;
+    expect(data.message).toEqual(expect.any(String));
+    expect(data).not.toHaveProperty('accessToken');
+    expect(data).not.toHaveProperty('refreshToken');
+    expect(response.headers['set-cookie']).toBeUndefined();
+    const rows = await database.connection.query<{ id: string }>(
+      'SELECT id FROM users WHERE email = $1',
+      [email],
+    );
+    const user = { id: rows.rows[0]!.id, email };
+    const sessions = await database.connection.query(
+      'SELECT id FROM refresh_sessions WHERE user_id = $1',
+      [user.id],
+    );
+    expect(sessions.rowCount).toBe(0);
+    return { user };
+  }
+  async function signup(): Promise<Credentials> {
+    const registered = await register();
+    await outbox.dispatchReady();
+    const token = mailToken(registered.user.email, 'verify-email');
+    expect(
+      (await request('POST', '/auth/email-verification/confirm', { token }))
+        .statusCode,
+    ).toBe(201);
+    const login = await request('POST', '/auth/login', {
+      email: registered.user.email,
+      password,
+    });
+    expect(login.statusCode).toBe(201);
+    return login.json<{ data: Credentials }>().data;
   }
   function mailToken(email: string, path: string) {
     const message = mail
@@ -120,7 +141,7 @@ describe('M01–M04 PostgreSQL HTTP contracts', () => {
   async function invite(
     owner: Credentials,
     workspaceId: string,
-    user: Credentials,
+    user: { user: { email: string } },
     role = 'MEMBER',
   ) {
     const response = await request(
@@ -233,7 +254,22 @@ describe('M01–M04 PostgreSQL HTTP contracts', () => {
         })
       ).statusCode,
     ).toBe(400);
-    const user = await signup(false);
+    const user = await register();
+    const rejected = await request('POST', '/auth/login', {
+      email: user.user.email,
+      password,
+    });
+    expect(rejected.statusCode).toBe(403);
+    expect(rejected.json<{ error: { code: string } }>().error.code).toBe(
+      'EMAIL_NOT_VERIFIED',
+    );
+    expect(rejected.headers['set-cookie']).toBeUndefined();
+    expect(rejected.body).not.toContain('accessToken');
+    const sessions = await database.connection.query(
+      'SELECT id FROM refresh_sessions WHERE user_id = $1',
+      [user.user.id],
+    );
+    expect(sessions.rowCount).toBe(0);
     await outbox.dispatchReady();
     const token = mailToken(user.user.email, 'verify-email');
     expect(
@@ -268,6 +304,25 @@ describe('M01–M04 PostgreSQL HTTP contracts', () => {
         })
       ).statusCode,
     ).toBe(401);
+  });
+  it('rejects existing access and refresh sessions when email is no longer verified', async () => {
+    const user = await signup();
+    await database.connection.query(
+      'UPDATE users SET email_verified_at = NULL WHERE id = $1',
+      [user.user.id],
+    );
+    expect((await request('GET', '/me', undefined, user)).statusCode).toBe(401);
+    const refreshed = await request('POST', '/auth/refresh', {
+      refreshToken: user.refreshToken,
+    });
+    expect(refreshed.statusCode).toBe(401);
+    expect(refreshed.body).not.toContain('accessToken');
+    expect(refreshed.headers['set-cookie']).toBeUndefined();
+    const sessions = await database.connection.query(
+      'SELECT id FROM refresh_sessions WHERE user_id = $1',
+      [user.user.id],
+    );
+    expect(sessions.rowCount).toBe(1);
   });
   it('rotates refresh sessions and revokes the family on reuse', async () => {
     const original = await signup();
@@ -585,7 +640,7 @@ describe('M01–M04 PostgreSQL HTTP contracts', () => {
   });
   it('requires matching verified invitation email and rejects revoked invitations', async () => {
     const owner = await signup();
-    const unverified = await signup(false);
+    const unverified = await register();
     const stranger = await signup();
     const wsp = await workspace(owner);
     const invitation = await invite(owner, wsp.id, unverified);
@@ -595,11 +650,11 @@ describe('M01–M04 PostgreSQL HTTP contracts', () => {
           'POST',
           '/workspaces/invitations/accept',
           { token: invitation.token },
-          unverified,
+          undefined,
           randomUUID(),
         )
       ).statusCode,
-    ).toBe(403);
+    ).toBe(401);
     expect(
       (
         await request(
@@ -619,6 +674,12 @@ describe('M01–M04 PostgreSQL HTTP contracts', () => {
         })
       ).statusCode,
     ).toBe(201);
+    const login = await request('POST', '/auth/login', {
+      email: unverified.user.email,
+      password,
+    });
+    expect(login.statusCode).toBe(201);
+    const verified = login.json<{ data: Credentials }>().data;
     expect(
       (
         await request(
@@ -636,7 +697,7 @@ describe('M01–M04 PostgreSQL HTTP contracts', () => {
           'POST',
           '/workspaces/invitations/accept',
           { token: invitation.token },
-          unverified,
+          verified,
           randomUUID(),
         )
       ).statusCode,

@@ -4,6 +4,7 @@ import type { DatabaseService } from '../../../../database/database.service';
 import type { CommandBus } from '../../../../common/idempotency/command-bus.service';
 import type { IdempotencyReservationInput } from '../../../../common/idempotency/idempotency.types';
 import type { EventWriter } from '../../../eventing/application/event-writer.service';
+import type { AuditWriter } from '../../../audit/application/audit-writer.service';
 import { WorkspaceService } from './workspace.service';
 import { WorkspaceAuthorizationService } from './workspace-authorization.service';
 import {
@@ -43,6 +44,9 @@ describe('Transactional workspace commands', () => {
     tokenHash: 'secret-hash',
   };
   const repositoryMock = {
+    selection: jest.fn(),
+    select: jest.fn(),
+    create: jest.fn(),
     workspace: jest.fn(),
     membership: jest.fn(),
     members: jest.fn(),
@@ -69,12 +73,17 @@ describe('Transactional workspace commands', () => {
   const append = jest.fn().mockResolvedValue(undefined);
   const enqueue = jest.fn().mockResolvedValue(undefined);
   const service = new WorkspaceService(
-    {} as DatabaseService,
+    {
+      db: {
+        transaction: (handler: (tx: DatabaseTransaction) => Promise<unknown>) =>
+          handler(tx),
+      },
+    } as unknown as DatabaseService,
     repository,
     authorize,
     bus,
     { append } as unknown as EventWriter,
-    { append },
+    { append } as unknown as AuditWriter,
     { enqueue } as unknown as InvitationDeliveryService,
   );
   beforeEach(() => {
@@ -85,6 +94,7 @@ describe('Transactional workspace commands', () => {
       deletedAt: null,
     });
     repositoryMock.membership.mockResolvedValue(actor);
+    repositoryMock.selection.mockResolvedValue('w');
     repositoryMock.members.mockResolvedValue([actor]);
     repositoryMock.saveMember.mockImplementation(
       (_tx: DatabaseTransaction, value: Membership) => Promise.resolve(value),
@@ -96,6 +106,77 @@ describe('Transactional workspace commands', () => {
       email: 'invitee@example.com',
       emailVerifiedAt: new Date(),
     });
+  });
+  it('returns selected workspace and membership while preserving workspaceId', async () => {
+    await expect(service.active('actor')).resolves.toEqual({
+      workspaceId: 'w',
+      workspace: { id: 'w', archivedAt: null, deletedAt: null },
+      membership: actor,
+    });
+  });
+  it('returns null when no workspace is selected', async () => {
+    repositoryMock.selection.mockResolvedValue(null);
+    await expect(service.active('actor')).resolves.toBeNull();
+    expect(repositoryMock.workspace).not.toHaveBeenCalled();
+  });
+  it.each(['missing', 'archived', 'deleted', 'suspended', 'left', 'no-member'])(
+    'returns null for an ineligible %s selection',
+    async (state) => {
+      if (state === 'missing') repositoryMock.workspace.mockResolvedValue(null);
+      if (state === 'archived' || state === 'deleted')
+        repositoryMock.workspace.mockResolvedValue({
+          id: 'w',
+          archivedAt: state === 'archived' ? new Date() : null,
+          deletedAt: state === 'deleted' ? new Date() : null,
+        });
+      if (state === 'suspended' || state === 'left')
+        repositoryMock.membership.mockResolvedValue({
+          ...actor,
+          state: state.toUpperCase(),
+        });
+      if (state === 'no-member')
+        repositoryMock.membership.mockResolvedValue(null);
+      await expect(service.active('actor')).resolves.toBeNull();
+    },
+  );
+  it('creates an owner membership and selects the new workspace', async () => {
+    const workspace = { id: 'created', name: 'Circle', slug: 'circle' };
+    repositoryMock.create.mockResolvedValue(workspace);
+    await expect(
+      service.create(identity, { name: ' Circle ', slug: 'circle' }),
+    ).resolves.toEqual(workspace);
+    expect(repositoryMock.create).toHaveBeenCalledWith(
+      tx,
+      { id: expect.any(String), name: 'Circle', slug: 'circle' },
+      expect.objectContaining({
+        userId: identity.userId,
+        role: 'OWNER',
+        state: 'ACTIVE',
+      }),
+    );
+    expect(repositoryMock.select).toHaveBeenCalledWith(
+      tx,
+      identity.userId,
+      expect.any(String),
+    );
+  });
+  it('maps a nested duplicate workspace slug to an actionable conflict', async () => {
+    repositoryMock.create.mockRejectedValue({
+      cause: { code: '23505', constraint: 'workspaces_slug_idx' },
+    });
+    await expect(
+      service.create(identity, { name: 'Circle', slug: 'circle' }),
+    ).rejects.toThrow(
+      'This workspace slug is already taken. Choose a different slug.',
+    );
+    expect(repositoryMock.select).not.toHaveBeenCalled();
+  });
+  it('preserves unrelated database errors', async () => {
+    const error = { cause: { code: '23505', constraint: 'other_idx' } };
+    repositoryMock.create.mockRejectedValue(error);
+    await expect(
+      service.create(identity, { name: 'Circle', slug: 'circle' }),
+    ).rejects.toBe(error);
   });
   it('rejects final owner leave before state/events change', async () => {
     await expect(service.leave(identity, 'w')).rejects.toBeInstanceOf(

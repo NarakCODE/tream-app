@@ -43,9 +43,14 @@ export const workspaces = pgTable(
       .notNull(),
     archivedAt: timestamp('archived_at', { withTimezone: true }),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    purgedAt: timestamp('purged_at', { withTimezone: true }),
   },
   (table) => [
     uniqueIndex('workspaces_slug_idx').on(table.slug),
+    check(
+      'm14_workspace_purge_state',
+      sql`${table.purgedAt} IS NULL OR (${table.deletedAt} IS NOT NULL AND ${table.archivedAt} IS NULL AND ${table.purgedAt} >= ${table.deletedAt} + interval '30 days')`,
+    ),
     check(
       'workspace_lifecycle_exclusive',
       sql`${table.archivedAt} IS NULL OR ${table.deletedAt} IS NULL`,

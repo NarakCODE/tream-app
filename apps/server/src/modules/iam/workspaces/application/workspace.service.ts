@@ -145,37 +145,60 @@ export class WorkspaceService {
         ).workspace,
     );
   }
-  create(identity: IdempotencyReservationInput, dto: CreateWorkspaceDto) {
-    return this.commands.execute(
-      identity,
-      async (tx) => {
-        const id = randomUUID();
-        const membershipId = randomUUID();
-        const workspace = await this.repository.create(
-          tx,
-          { id, name: dto.name.trim(), slug: dto.slug },
-          {
-            id: membershipId,
-            userId: identity.userId,
-            workspaceId: id,
-            role: 'OWNER',
-            state: 'ACTIVE',
-          },
-        );
-        await this.repository.select(tx, identity.userId, id);
-        await this.fact(
-          tx,
-          id,
-          membershipId,
-          'workspace.created',
-          'workspace',
-          id,
-          { workspace_id: id, owner_membership_id: membershipId },
-        );
-        return workspace;
-      },
-      { statusCode: 201 },
-    );
+  async create(identity: IdempotencyReservationInput, dto: CreateWorkspaceDto) {
+    try {
+      return await this.commands.execute(
+        identity,
+        async (tx) => {
+          const id = randomUUID();
+          const membershipId = randomUUID();
+          const workspace = await this.repository.create(
+            tx,
+            { id, name: dto.name.trim(), slug: dto.slug },
+            {
+              id: membershipId,
+              userId: identity.userId,
+              workspaceId: id,
+              role: 'OWNER',
+              state: 'ACTIVE',
+            },
+          );
+          await this.repository.select(tx, identity.userId, id);
+          await this.fact(
+            tx,
+            id,
+            membershipId,
+            'workspace.created',
+            'workspace',
+            id,
+            { workspace_id: id, owner_membership_id: membershipId },
+          );
+          return workspace;
+        },
+        { statusCode: 201 },
+      );
+    } catch (error) {
+      let cause: unknown = error;
+      const seen = new Set<unknown>();
+      while (cause && typeof cause === 'object' && !seen.has(cause)) {
+        seen.add(cause);
+        const detail = cause as {
+          code?: string;
+          constraint?: string;
+          cause?: unknown;
+        };
+        if (
+          detail.code === '23505' &&
+          detail.constraint === 'workspaces_slug_idx'
+        ) {
+          throw new ConflictException(
+            'This workspace slug is already taken. Choose a different slug.',
+          );
+        }
+        cause = detail.cause;
+      }
+      throw error;
+    }
   }
   update(
     identity: IdempotencyReservationInput,
@@ -702,7 +725,7 @@ export class WorkspaceService {
         !workspace.deletedAt &&
         !workspace.archivedAt &&
         member?.state === 'ACTIVE'
-        ? { workspaceId }
+        ? { workspaceId, workspace, membership: member }
         : null;
     });
   }

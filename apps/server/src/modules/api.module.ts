@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuditModule } from './audit/audit.module';
+import { AuditHistoryModule } from './audit-history/audit-history.module';
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { CompaniesModule } from './companies/companies.module';
 import { ContactsModule } from './contacts/contacts.module';
@@ -15,6 +16,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
 import { IssuesModule } from './issues/issues.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ProjectsModule } from './projects/projects.module';
+import { RetentionModule } from './retention/retention.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { TasksModule } from './tasks/tasks.module';
 import { TeamsModule } from './teams/teams.module';
@@ -35,6 +37,8 @@ import { ViewsModule } from './views/views.module';
     NotificationsModule,
     ReviewsModule,
     AuditModule,
+    AuditHistoryModule,
+    RetentionModule,
     EventingModule,
     IntegrationsModule,
     ContactsModule,

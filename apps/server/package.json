@@ -22,11 +22,14 @@
     "prepare": "husky",
     "test:integration": "jest --config ./test/jest-integration.json --runInBand",
     "local:setup": "node scripts/local-setup.mjs",
+    "mail:resend:setup": "node scripts/resend-setup.mjs",
     "local:up": "docker compose up -d --wait --wait-timeout 120",
     "local:down": "docker compose down",
     "local:status": "docker compose ps",
     "local:logs": "docker compose logs --tail=100 -f",
-    "test:integration:local": "node --env-file-if-exists=.env scripts/local-integration.mjs"
+    "test:integration:local": "node --env-file-if-exists=.env scripts/local-integration.mjs",
+    "seed:demo": "node scripts/seed-demo.cjs",
+    "seed:demo:reset": "node scripts/seed-demo.cjs --reset"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -38,6 +41,7 @@
     ]
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1144.0",
     "@fastify/cors": "^11.3.0",
     "@fastify/helmet": "^13.1.1",
     "@fastify/static": "^10.1.3",

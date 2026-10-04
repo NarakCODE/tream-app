@@ -46,4 +46,28 @@ Use the canonical `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-hu
 
 ### Domain docs
 
-This repository uses a single-context domain documentation layout. See `docs/agents/domain.md`.
+This is a Turborepo (pnpm workspaces) monorepo. Apps: apps/web (Next.js [VERSION], App Router).
+Shared packages use the @repo scope and the workspace:* protocol.
+
+Monorepo rules:
+
+- Only promote code to packages/ when 2+ apps need it.
+- @tanstack/react-query and react are peerDependencies in shared packages and must resolve
+  to ONE version across the repo (use pnpm catalogs or overrides).
+- Shared packages must be framework-agnostic unless named otherwise. No imports of
+  next/headers, next/cache, or Server Actions inside packages/api-client or packages/schemas.
+- Any shared file that uses hooks or providers starts with 'use client'. Any shared file
+  that must never reach the browser imports 'server-only'.
+- Server Actions live in apps/*, never in packages/.
+- Run tasks through turbo (turbo run build --filter=web...), never by cd-ing into packages.
+
+Data-fetching rules:
+
+- Server Components fetch first-render data. Interactive data uses TanStack Query v5.
+- Never create a module-level QueryClient on the server. Use getQueryClient() from @repo/query.
+- Query keys and queryOptions() live in queries.ts files via a key factory. No inline keys.
+- Reads go through Route Handlers or the backend API, never Server Actions.
+- Mutations invalidate TanStack keys AND call revalidateTag/revalidatePath if server caching is used.
+- All API responses are validated with Zod schemas from @repo/schemas.
+- Default staleTime is never 0.
+- Never prefetch user-specific data on publicly cached routes.

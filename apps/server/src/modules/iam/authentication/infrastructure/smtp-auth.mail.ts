@@ -8,7 +8,12 @@ export class SmtpMailSender implements AuthMailSender {
   constructor(
     private readonly config: ConfigService<ApplicationConfiguration, true>,
   ) {}
-  async send(message: { to: string; subject: string; text: string }) {
+  async send(message: {
+    to: string;
+    subject: string;
+    text: string;
+    messageId?: string;
+  }) {
     const smtp = this.config.getOrThrow('mail.smtp', { infer: true });
     await createTransport({
       host: smtp.host,

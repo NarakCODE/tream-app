@@ -1,11 +1,11 @@
 # Backend implementation milestones
 
-**Product:** Tream, a Linear-inspired workspace application.  
-**Baseline:** 2026-09-30; NestJS 11/Fastify, Drizzle/PostgreSQL, 20 empty feature modules.  
-**Status:** M01–M04 implementation is available; acceptance evidence is still being collected. M05–M22 remain planned. Accountable release owners and due dates are unassigned.  
+**Product:** Tream, a Linear-inspired workspace application.
+**Baseline:** 2026-09-30; NestJS 11/Fastify, Drizzle/PostgreSQL, 20 empty feature modules.
+**Status:** M01–M10 implementation is available; acceptance evidence is still being collected. M11–M22 remain planned. Accountable release owners and due dates are unassigned.
 **Outcome:** An authenticated, tenant-safe, observable backend with proven recovery and a repeatable production release.
 
-The implemented slice includes liveness/readiness, production configuration validation, persisted authentication and rotating sessions, transactional commands/events/audit, workspace RBAC, memberships, invitations and durable encrypted mail delivery. See [M01–M04 implementation notes](../../apps/server/docs/M01-M04.md) for mounted APIs and verification commands. Later product/CRM modules remain scaffolds. Retained Drizzle history is upgraded incrementally and does not materialize the full [84-table target ERD](../database/linear-workspace.dbml). Checked implementation tasks below do not certify deployment, real SMTP delivery, staging/load/recovery gates or overall milestone acceptance.
+The implemented slice includes liveness/readiness, production configuration validation, persisted authentication and rotating sessions, transactional commands/events/audit, workspace RBAC, memberships, invitations, durable encrypted mail delivery, teams/workflows, projects, milestones, issues, cycles and collaboration. See [M01–M04 implementation notes](../../apps/server/docs/M01-M04.md), [M05 teams and workflows](../../apps/server/docs/M05.md) and [M06 projects and milestones](../../apps/server/docs/M06.md) and [M07–M09 issues, cycles and collaboration](../../apps/server/docs/M07-M09.md) for mounted APIs and verification commands. Later product/CRM modules remain scaffolds. Retained Drizzle history is upgraded incrementally and does not materialize the full [84-table target ERD](../database/linear-workspace.dbml). Checked implementation tasks below do not certify deployment, real SMTP delivery, staging/load/recovery gates or overall milestone acceptance.
 
 ## Scope and release rules
 
@@ -151,10 +151,12 @@ Load current role/state from authoritative membership data; do not rely on roles
 
 **Owner:** Teams. **Depends on:** M04.
 
-- [ ] Implement team CRUD/retirement, private/workspace visibility, team membership/admin rules and immutable canonical team keys.
-- [ ] Implement issue-status catalogs/categories/order and team cycle settings with timezone/day/duration validation.
-- [ ] Create exactly one usable default issue status per active team; replace defaults under a team lock and reject retirement of in-use statuses without an explicit replacement.
-- [ ] Reserve keys permanently and implement safe monotonic issue-number counters. Define usable-team requirements and dependency checks before retirement.
+- [x] Implement team CRUD/retirement, private/workspace visibility, team membership/admin rules and immutable canonical team keys.
+- [x] Implement issue-status catalogs/categories/order and team cycle settings with timezone/day/duration validation.
+- [x] Create exactly one usable default issue status per active team; replace defaults under a team lock and reject retirement of in-use statuses without an explicit replacement.
+- [x] Reserve keys permanently and implement safe monotonic issue-number counters. Define usable-team requirements and dependency checks before retirement.
+
+**Implementation scope:** 17 mounted team/member/status/settings routes, retained-schema upgrades 0011–0012 and an internal transactional allocator for M07. Cycle creation/rollover and issue creation/transfers remain M08/M07. See [M05 notes](../../apps/server/docs/M05.md) for privacy/RBAC, migration reconciliation and verification commands. Production acceptance and cross-feature release gates remain pending.
 
 **API groups:** workspace teams, team members, issue statuses and settings.
 
@@ -164,10 +166,12 @@ Load current role/state from authoritative membership data; do not rely on roles
 
 **Owner:** Projects. **Depends on:** M05.
 
-- [ ] Implement project CRUD/lifecycle, workspace project-status catalog/defaults, priority, lead, dates and project members.
-- [ ] Implement project-team associations with at least one usable team at commit; forbid removal that invalidates assigned issues unless an explicit reassignment command resolves them.
-- [ ] Implement project milestones, milestone ordering, health updates and update history with scoped authors. Compute progress from work rather than storing an authoritative percentage.
-- [ ] Specify completion/cancellation and archive/restore effects on unfinished linked issues; do not silently rewrite unrelated issue statuses.
+- [x] Implement project CRUD/lifecycle, workspace project-status catalog/defaults, priority, lead, dates and project members.
+- [x] Implement project-team associations with at least one usable team at commit; forbid removal that invalidates assigned issues unless an explicit reassignment command resolves them.
+- [x] Implement project milestones, milestone ordering, health updates and update history with scoped authors. Compute progress from work rather than storing an authoritative percentage.
+- [x] Specify completion/cancellation and archive/restore effects on unfinished linked issues; do not silently rewrite unrelated issue statuses.
+
+**Implementation scope:** 27 mounted catalog/project/team/member/milestone/update routes, computed progress and retained-schema upgrades. Completion, cancellation, archive and deletion reject unfinished linked issues; no issue statuses are rewritten. Team removal rejects retained dependencies until a future explicit reassignment command resolves them. See [M06 notes](../../apps/server/docs/M06.md) for privacy, management rules and retained-data reconciliation. Production acceptance and cross-feature release gates remain pending.
 
 **API groups:** workspace projects, project teams/members, milestones and updates.
 
@@ -177,11 +181,13 @@ Load current role/state from authoritative membership data; do not rely on roles
 
 **Owner:** Issues. **Depends on:** M05, M06.
 
-- [ ] Implement issue CRUD/filtering/order, status/priority, estimates, dates, assignments and valid project/milestone links.
-- [ ] Allocate team numbers under lock and reserve current/permanent aliases atomically. Identifier lookup continues to resolve old aliases after transfer, archive and trash.
-- [ ] Implement parent/subissues and directed/undirected relations with graph validation; reject hierarchy/dependency cycles under concurrent edge changes.
-- [ ] Implement explicit transfer commands: destination counter/identifier, status remap, cycle/project/milestone clearing/remap, compatible labels and any enabled SLA associations, one revision/event set and stable retry result.
-- [ ] Implement archive/trash/restore command hooks and lost-update prevention; finalize the version/ETag contract through an accepted migration if the target resource lacks a revision column.
+- [x] Implement issue CRUD/filtering/order, status/priority, estimates, dates, assignments and valid project/milestone links.
+- [x] Allocate team numbers under lock and reserve current/permanent aliases atomically. Identifier lookup continues to resolve old aliases after transfer, archive and trash.
+- [x] Implement parent/subissues and directed/undirected relations with graph validation; reject hierarchy/dependency cycles under concurrent edge changes.
+- [x] Implement explicit transfer commands: destination counter/identifier, status remap, cycle/project/milestone clearing/remap, compatible labels and any enabled SLA associations, one revision/event set and stable retry result.
+- [x] Implement archive/trash/restore command hooks and lost-update prevention; finalize the version/ETag contract through an accepted migration if the target resource lacks a revision column.
+
+**Implementation notes:** See [M07–M09](../../apps/server/docs/M07-M09.md) for mounted APIs, concurrency, scheduling and migration guarantees. Release qualification remains pending.
 
 **API groups:** workspace/team issues, individual issues, identifier lookup, relations and transfer commands.
 
@@ -191,10 +197,12 @@ Load current role/state from authoritative membership data; do not rely on roles
 
 **Owner:** Cycles. **Depends on:** M07.
 
-- [ ] Implement team cycle CRUD/scheduling with half-open non-overlapping windows and timezone-aware planning.
-- [ ] Implement explicit start/completion and eligible `UNSTARTED/STARTED` issue rollover to a valid next cycle; backlog/completed/canceled issues stay in place.
-- [ ] Record immutable rollover history, source completion and versioned facts in one command transaction. Make manual and scheduled completion use that same path.
-- [ ] Define missed-schedule catch-up, cooldowns, cancellation/error visibility and cycle reporting computed from authorized issue data.
+- [x] Implement team cycle CRUD/scheduling with half-open non-overlapping windows and timezone-aware planning.
+- [x] Implement explicit start/completion and eligible `UNSTARTED/STARTED` issue rollover to a valid next cycle; backlog/completed/canceled issues stay in place.
+- [x] Record immutable rollover history, source completion and versioned facts in one command transaction. Make manual and scheduled completion use that same path.
+- [x] Define missed-schedule catch-up, cooldowns, cancellation/error visibility and cycle reporting computed from authorized issue data.
+
+**Implementation notes:** See [M07–M09](../../apps/server/docs/M07-M09.md) for mounted APIs, concurrency, scheduling and migration guarantees. Release qualification remains pending.
 
 **Exit evidence:** adjacent windows succeed and overlaps fail; concurrent manual/scheduler completion moves each eligible issue once. Crash/retry preserves the same completion result and history. Subsequent team transfers do not invalidate historical rollover rows.
 
@@ -202,10 +210,12 @@ Load current role/state from authoritative membership data; do not rely on roles
 
 **Owner:** Collaboration. **Depends on:** M07.
 
-- [ ] Implement issue/planning comments, replies, edits/trash, reactions and author permissions; prevent reply hierarchy cycles.
-- [ ] Implement workspace/team labels and issue/project assignment, active normalized name uniqueness and dependency-safe scope edits. Project labels are workspace-scoped.
-- [ ] Implement subscribers, issue activity and issue templates with validated defaults referencing usable tenant resources.
-- [ ] Produce minimal versioned collaboration facts for notification consumers and preserve historical attribution after membership departure.
+- [x] Implement issue/planning comments, replies, edits/trash, reactions and author permissions; prevent reply hierarchy cycles.
+- [x] Implement workspace/team labels and issue/project assignment, active normalized name uniqueness and dependency-safe scope edits. Project labels are workspace-scoped.
+- [x] Implement subscribers, issue activity and issue templates with validated defaults referencing usable tenant resources.
+- [x] Produce minimal versioned collaboration facts for notification consumers and preserve historical attribution after membership departure.
+
+**Implementation notes:** See [M07–M09](../../apps/server/docs/M07-M09.md) for mounted APIs, concurrency, scheduling and migration guarantees. Release qualification remains pending.
 
 **Exit evidence:** label edit/link and issue transfer races cannot violate team scope; duplicate reactions/subscriptions are rejected; guests cannot write; templates and replies cannot reference foreign/private/deleted resources. Comment edits enforce the optimistic-concurrency contract.
 
@@ -213,10 +223,12 @@ Load current role/state from authoritative membership data; do not rely on roles
 
 **Owner:** Files. **Depends on:** M04, M07, M09.
 
-- [ ] Select an object-storage provider through a port; implement upload intent/finalization, metadata/checksum, size/type quotas and private download authorization.
-- [ ] Validate actual content metadata and scanning/quarantine policy before making uploads downloadable; never trust only client filenames/MIME declarations.
-- [ ] Implement typed attachment links and exact target ownership, scoped download grants, safe filenames and short-lived signed URLs.
-- [ ] Implement abandoned-upload cleanup, deletion placeholders, restore-before-purge behavior and idempotent storage cleanup jobs.
+- [x] Select an object-storage provider through a port; implement upload intent/finalization, metadata/checksum, size/type quotas and private download authorization.
+- [x] Validate actual content metadata and scanning/quarantine policy before making uploads downloadable; never trust only client filenames/MIME declarations.
+- [x] Implement typed attachment links and exact target ownership, scoped download grants, safe filenames and short-lived signed URLs.
+- [x] Implement abandoned-upload cleanup, deletion placeholders, restore-before-purge behavior and idempotent storage cleanup jobs.
+
+**Implementation notes:** See [M10](../../apps/server/docs/M10.md) for the private storage adapters, authorization, quarantine and cleanup guarantees. Production storage/scanner provisioning and release qualification remain pending.
 
 **Exit evidence:** foreign/private/deleted target downloads fail; unfinished/quarantined uploads cannot be read. Duplicate finalization/cleanup retries are safe, quotas cannot be bypassed by concurrent uploads, and object cleanup does not leave permanent orphan files.
 

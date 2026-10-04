@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import type {
   ApplicationConfiguration,
   NodeEnvironment,
@@ -14,14 +15,20 @@ const optionalNonEmpty = (value: string | undefined): string | undefined => {
 };
 
 export const appConfig = (): ApplicationConfiguration => {
+  const resendApiKey = optionalNonEmpty(process.env.RESEND_API_KEY);
   const smtpUser = optionalNonEmpty(process.env.SMTP_USER);
   const smtpPassword = optionalNonEmpty(process.env.SMTP_PASSWORD);
+  const endpoint = optionalNonEmpty(process.env.FILES_ENDPOINT);
+  const accessKey = optionalNonEmpty(process.env.FILES_ACCESS_KEY);
+  const secretKey = optionalNonEmpty(process.env.FILES_SECRET_KEY);
 
   return {
     app: {
       nodeEnv: (process.env.NODE_ENV ?? 'development') as NodeEnvironment,
       port: Number.parseInt(process.env.PORT ?? '3002', 10),
-      corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+      corsOrigin:
+        process.env.CORS_ORIGIN ??
+        'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002',
       swaggerEnabled: parseBoolean(process.env.SWAGGER_ENABLED, true),
       trustProxyHops: Number.parseInt(process.env.TRUST_PROXY_HOPS ?? '0', 10),
       backgroundWorkersEnabled: parseBoolean(
@@ -58,10 +65,57 @@ export const appConfig = (): ApplicationConfiguration => {
       },
       magicLink: {
         ttl: process.env.MAGIC_LINK_TTL ?? '15m',
-        baseUrl: process.env.MAGIC_LINK_BASE_URL ?? 'http://localhost:3000',
+        baseUrl:
+          process.env.MAGIC_LINK_BASE_URL ??
+          'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002',
       },
     },
+    files: {
+      storageDriver: (process.env.FILES_STORAGE_DRIVER ?? 'filesystem') as
+        'filesystem' | 's3',
+      localRoot:
+        process.env.FILES_LOCAL_ROOT ?? resolve(process.cwd(), '.local/files'),
+      bucket: process.env.FILES_BUCKET ?? 'tream-development',
+      region: process.env.FILES_REGION ?? 'us-east-1',
+      ...(endpoint ? { endpoint } : {}),
+      ...(accessKey ? { accessKey } : {}),
+      ...(secretKey ? { secretKey } : {}),
+      scannerDriver: (process.env.FILES_SCANNER_DRIVER ?? 'development') as
+        'development' | 'clamav',
+      clamavHost: process.env.FILES_CLAMAV_HOST ?? 'localhost',
+      clamavPort: Number(process.env.FILES_CLAMAV_PORT ?? 3310),
+      scanTimeoutMs: Number(process.env.FILES_SCAN_TIMEOUT_MS ?? 5000),
+      maxFileBytes: Number(
+        process.env.FILES_MAX_FILE_BYTES ?? 25 * 1024 * 1024,
+      ),
+      workspaceQuotaBytes: Number(
+        process.env.FILES_WORKSPACE_QUOTA_BYTES ?? 1024 * 1024 * 1024,
+      ),
+      uploadIntentTtlSeconds: Number(
+        process.env.FILES_UPLOAD_INTENT_TTL_SECONDS ?? 86400,
+      ),
+      uploadGrantTtlSeconds: Number(
+        process.env.FILES_UPLOAD_GRANT_TTL_SECONDS ?? 300,
+      ),
+      downloadGrantTtlSeconds: Number(
+        process.env.FILES_DOWNLOAD_GRANT_TTL_SECONDS ?? 60,
+      ),
+      retentionDays: Number(process.env.FILES_RETENTION_DAYS ?? 30),
+      cleanupLeaseSeconds: Number(
+        process.env.FILES_CLEANUP_LEASE_SECONDS ?? 60,
+      ),
+      cleanupMaxAttempts: Number(process.env.FILES_CLEANUP_MAX_ATTEMPTS ?? 10),
+      signingSecret:
+        process.env.FILES_SIGNING_SECRET ??
+        'development-only-file-grant-secret-change-me',
+    },
     mail: {
+      provider: (optionalNonEmpty(process.env.MAIL_PROVIDER) ?? 'smtp') as
+        'smtp' | 'resend',
+      resend: {
+        ...(resendApiKey === undefined ? {} : { apiKey: resendApiKey }),
+        from: optionalNonEmpty(process.env.RESEND_FROM) ?? '',
+      },
       smtp: {
         host: process.env.SMTP_HOST ?? 'localhost',
         port: Number.parseInt(process.env.SMTP_PORT ?? '1025', 10),

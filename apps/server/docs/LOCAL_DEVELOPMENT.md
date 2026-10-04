@@ -51,6 +51,8 @@ The test-database SQL is mounted into PostgreSQL's initialization directory for 
 
 ## Verification and invitation emails
 
+For real inbox delivery through Resend, follow [Resend setup](RESEND.md). Mailpit remains the default local capture provider.
+
 Keep these local settings in `apps/server/.env`:
 
 ```dotenv
@@ -81,3 +83,7 @@ Mailpit installation and health behavior follow its [official Docker documentati
 ## Setup verification
 
 Validated with Docker PostgreSQL 16 and Mailpit v1.31.3: both containers healthy, incremental migrations applied to the retained development volume, setup rerun without data replacement, all 26 PostgreSQL integration tests passed, API readiness/Swagger responded, and verification mail reached Mailpit through the automatic background worker.
+
+## Private files
+
+M10 defaults to private filesystem storage and an explicit development scanner. The optional ClamAV compose profile enables real local scanning. See [M10 setup and lifecycle](./M10.md) for the production storage/scanner configuration, quotas and cleanup worker.

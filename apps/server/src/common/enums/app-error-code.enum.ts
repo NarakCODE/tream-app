@@ -3,6 +3,7 @@ export enum AppErrorCode {
   BadRequest = 'BAD_REQUEST',
   Unauthorized = 'UNAUTHORIZED',
   Forbidden = 'FORBIDDEN',
+  EmailNotVerified = 'EMAIL_NOT_VERIFIED',
   ResourceNotFound = 'RESOURCE_NOT_FOUND',
   ResourceConflict = 'RESOURCE_CONFLICT',
   IntegrationError = 'INTEGRATION_ERROR',

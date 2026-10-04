@@ -51,7 +51,10 @@ Product planning and issue tracking organized around Teams, Projects, Issues, an
 - **Subscriber**: A Workspace member who follows changes to an Issue, Project, or Initiative.
 - **Comment**: A member's contribution to a conversation about an Issue, Project, Initiative, or planning update.
 - **Document**: A collaborative description, specification, or reference associated with workspace work.
-- **Attachment**: An uploaded file associated with workspace work or a conversation.
+- **File**: Private uploaded content belonging to a Workspace, with an immutable originating work item or conversation. Sharing it through another association preserves access to that origin as a prerequisite.
+- **Attachment**: An association linking one File to exactly one work item or conversation.
+- **Upload Intent**: A member's reservation to upload a File to its originating work item or conversation.
+- **Quarantine**: A File state that prevents downloads until its content passes verification and scanning.
 - **Saved View**: A named set of filters and display choices that presents a subset of workspace work.
 - **Notification**: A recipient-specific notice of an event, with its own read and snooze state.
 - **Pull Request**: A proposed repository change associated with workspace work.
@@ -62,4 +65,5 @@ Product planning and issue tracking organized around Teams, Projects, Issues, an
 
 - **Archive**: Retained work removed from active planning without entering trash or losing its history. Completion and cancellation are separate workflow outcomes.
 - **Trash**: Recoverably deleted work awaiting restoration or eventual purge. Restoring work returns it to an unarchived state after its dependencies are validated.
+- **Purge**: Irreversible removal of retained content after its restoration window, preserving historical identity and placeholders.
 - **Identifier Alias**: A permanently reserved readable identifier that continues to resolve to the same Issue after a Team transfer.

@@ -2,8 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { ulid } from 'ulid';
 import type { DatabaseTransaction } from '../../../database/transaction';
 import { auditLogs } from '../../../database/schema/audit.schema';
+import { RequestContextService } from '../../../common/context/request-context.service';
 @Injectable()
 export class AuditWriter {
+  constructor(private readonly requestContext: RequestContextService) {}
+
   async append(
     tx: DatabaseTransaction,
     input: {
@@ -13,6 +16,7 @@ export class AuditWriter {
       targetType: string;
       targetId: string;
       metadata?: Record<string, unknown>;
+      correlationId?: string;
     },
   ): Promise<void> {
     // Accept only low-risk scalar audit context, never entire request payloads.
@@ -31,6 +35,11 @@ export class AuditWriter {
       }
     };
     inspect(metadata);
-    await tx.insert(auditLogs).values({ id: ulid(), ...input, metadata });
+    const requestId = this.requestContext.getRequestId();
+    const correlationId =
+      input.correlationId ?? (requestId === 'unknown' ? undefined : requestId);
+    await tx
+      .insert(auditLogs)
+      .values({ id: ulid(), ...input, correlationId, metadata });
   }
 }

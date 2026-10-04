@@ -1,6 +1,16 @@
 packages:
   - "apps/*"
   - "packages/*"
+catalog:
+  react: 19.2.8
+  react-dom: 19.2.8
+  '@tanstack/react-query': ^5.104.0
+  '@tanstack/react-query-devtools': ^5.104.0
+overrides:
+  react: 19.2.8
+  react-dom: 19.2.8
+  '@tanstack/react-query': ^5.104.0
+  '@tanstack/react-query-devtools': ^5.104.0
 allowBuilds:
   '@parcel/watcher': true
   '@scarf/scarf': false
@@ -10,3 +20,4 @@ allowBuilds:
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - lucide-react@1.37.0
+  - '@lucasmarkes/hairline@0.2.0'

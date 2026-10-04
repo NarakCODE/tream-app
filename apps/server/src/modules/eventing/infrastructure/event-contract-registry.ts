@@ -40,7 +40,10 @@ export class EventContractRegistry {
           $ref: `https://schemas.tream.example/events/${entry.payload_schema}`,
         }),
       );
-      this.aggregates.set(entry.event_type, entry.aggregate_type);
+      this.aggregates.set(
+        `${entry.event_type}:${entry.schema_version}`,
+        entry.aggregate_type,
+      );
     }
     for (const [event, aggregate, properties, required] of [
       [
@@ -93,7 +96,7 @@ export class EventContractRegistry {
           additionalProperties: false,
         }),
       );
-      this.aggregates.set(event, aggregate);
+      this.aggregates.set(`${event}:1`, aggregate);
     }
   }
   validateEnvelope(event: Record<string, unknown>): void {
@@ -120,7 +123,10 @@ export class EventContractRegistry {
     payload: Record<string, unknown>,
   ): void {
     const validator = this.validators.get(`${type}:${version}`);
-    if (!validator || this.aggregates.get(type) !== aggregateType)
+    if (
+      !validator ||
+      this.aggregates.get(`${type}:${version}`) !== aggregateType
+    )
       throw new Error('Unknown event contract or aggregate');
     if (!validator(payload))
       throw new Error(

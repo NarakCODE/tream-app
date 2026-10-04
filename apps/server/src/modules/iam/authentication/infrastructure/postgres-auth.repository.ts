@@ -39,7 +39,6 @@ export class PostgresAuthRepository implements AuthRepository {
       expiresAt: Date;
       message: { to: string; subject: string; text: string };
     },
-    session: Session,
   ) {
     await this.database.db.transaction(async (tx) => {
       await tx.insert(users).values(user);
@@ -51,7 +50,6 @@ export class PostgresAuthRepository implements AuthRepository {
         expiresAt: verification.expiresAt,
       });
       await this.mailOutbox.enqueue(tx, verification.message);
-      await tx.insert(refreshSessions).values(session);
     });
   }
   async updateProfile(id: string, fullName: string) {
@@ -73,6 +71,7 @@ export class PostgresAuthRepository implements AuthRepository {
       if (
         !user ||
         user.disabledAt ||
+        !user.emailVerifiedAt ||
         user.passwordHash !== expectedPasswordHash
       )
         throw new UnauthorizedException('Credentials changed');
@@ -115,7 +114,12 @@ export class PostgresAuthRepository implements AuthRepository {
           .where(eq(refreshSessions.familyId, current.familyId));
         return 'reused';
       }
-      if (!user || user.disabledAt || current.expiresAt <= new Date())
+      if (
+        !user ||
+        user.disabledAt ||
+        !user.emailVerifiedAt ||
+        current.expiresAt <= new Date()
+      )
         return 'invalid';
       await tx
         .update(refreshSessions)

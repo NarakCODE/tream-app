@@ -8,6 +8,29 @@ const input = {
   requestHash: 'hash',
 };
 describe('CommandBus', () => {
+  it.each([
+    { code: '23514', constraint: 'm05_team_admin' },
+    { code: '23514', constraint: 'm06_project_teams' },
+    { code: '23505', constraint: 'teams_workspace_key_permanent_idx' },
+  ])('maps commit-time team conflicts without leaking SQL', async (cause) => {
+    const failure = Object.assign(new Error('private SQL detail'), { cause });
+    const bus = new CommandBus({
+      db: { transaction: jest.fn().mockRejectedValue(failure) },
+    } as never);
+    await expect(bus.execute(input, jest.fn())).rejects.toBeInstanceOf(
+      ResourceConflictException,
+    );
+    await expect(bus.execute(input, jest.fn())).rejects.not.toThrow(
+      'private SQL detail',
+    );
+  });
+  it('preserves unrelated database failures', async () => {
+    const failure = { code: '23505', constraint: 'unrelated_unique_idx' };
+    const bus = new CommandBus({
+      db: { transaction: jest.fn().mockRejectedValue(failure) },
+    } as never);
+    await expect(bus.execute(input, jest.fn())).rejects.toBe(failure);
+  });
   function setup(existing?: Record<string, unknown>) {
     const insert = jest
       .fn()

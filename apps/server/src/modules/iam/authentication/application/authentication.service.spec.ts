@@ -22,7 +22,7 @@ describe('AuthenticationService security', () => {
       fullName: 'User',
       avatarUrl: null,
       passwordHash: await hashPassword('long-password-123'),
-      emailVerifiedAt: null,
+      emailVerifiedAt: new Date(),
       disabledAt: null,
     };
     sessions = new Map();
@@ -41,7 +41,7 @@ describe('AuthenticationService security', () => {
         const current = [...sessions.values()].find(
           (s) => s.tokenHash === hash,
         );
-        if (!current) return 'invalid';
+        if (!current || !user.emailVerifiedAt) return 'invalid';
         if (current.revokedAt) {
           for (const session of sessions.values())
             if (session.familyId === current.familyId)
@@ -88,6 +88,68 @@ describe('AuthenticationService security', () => {
       email: user.email,
     });
   });
+  it('queues verification mail but denies authentication and creates no session for an unverified login', async () => {
+    user.emailVerifiedAt = null;
+    const issueToken = jest.spyOn(repo, 'issueToken');
+    const createSession = jest.spyOn(repo, 'createSession');
+    await expect(
+      auth.login('USER@EXAMPLE.COM', 'long-password-123'),
+    ).rejects.toMatchObject({
+      status: 403,
+      code: 'EMAIL_NOT_VERIFIED',
+    });
+    expect(createSession).not.toHaveBeenCalled();
+    expect(sessions.size).toBe(0);
+
+    expect(issueToken).toHaveBeenCalledTimes(1);
+    const [userId, kind, hash, expiresAt, message] = issueToken.mock.calls[0]!;
+    expect(userId).toBe(user.id);
+    expect(kind).toBe('verify-email');
+    expect(expiresAt.getTime()).toBeGreaterThan(Date.now());
+    expect(message).toBeDefined();
+    expect(message!.to).toBe(user.email);
+    const link = new URL(
+      message!.text.replace('Use this single-use link: ', ''),
+    );
+    expect(link.pathname).toBe('/auth/verify-email');
+    expect(hash).toBe(tokenHash(link.searchParams.get('token')!));
+  });
+  it('does not queue verification mail for verified users or unsuccessful logins', async () => {
+    const issueToken = jest.spyOn(repo, 'issueToken');
+    user.emailVerifiedAt = new Date();
+    await auth.login(user.email, 'long-password-123');
+    user.emailVerifiedAt = null;
+    await expect(auth.login(user.email, 'wrong-password')).rejects.toThrow(
+      UnauthorizedException,
+    );
+    await expect(
+      auth.login('unknown@example.com', 'long-password-123'),
+    ).rejects.toThrow(UnauthorizedException);
+    user.disabledAt = new Date();
+    await expect(auth.login(user.email, 'long-password-123')).rejects.toThrow(
+      UnauthorizedException,
+    );
+    expect(issueToken).not.toHaveBeenCalled();
+  });
+  it('keeps signup verification in the atomic user creation without a second email', async () => {
+    const createUser = jest.spyOn(repo, 'createUser');
+    const issueToken = jest.spyOn(repo, 'issueToken');
+    const result = await auth.signup(
+      'NEW@EXAMPLE.COM',
+      'long-password-123',
+      'New User',
+    );
+    expect(result).toEqual({
+      message: 'Account created. Verify your email before signing in.',
+    });
+    expect(result).not.toHaveProperty('accessToken');
+    expect(result).not.toHaveProperty('refreshToken');
+    expect(sessions.size).toBe(0);
+    expect(user.emailVerifiedAt).toBeNull();
+    expect(createUser).toHaveBeenCalledTimes(1);
+    expect(createUser.mock.calls[0]![1].message.to).toBe('new@example.com');
+    expect(issueToken).not.toHaveBeenCalled();
+  });
   it('refresh replay revokes the entire family and immediately invalidates access', async () => {
     const first = await auth.login(user.email, 'long-password-123');
     const second = await auth.refresh(first.refreshToken);
@@ -129,6 +191,37 @@ describe('AuthenticationService security', () => {
     await expect(auth.login(user.email, 'long-password-123')).rejects.toThrow(
       UnauthorizedException,
     );
+  });
+  it('rejects existing access and refresh sessions if the account is unverified', async () => {
+    const result = await auth.login(user.email, 'long-password-123');
+    user.emailVerifiedAt = null;
+    await expect(auth.authenticate(result.accessToken)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    await expect(auth.refresh(result.refreshToken)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    expect(sessions.size).toBe(1);
+  });
+  it('issues a session only after a magic link atomically verifies the account', async () => {
+    user.emailVerifiedAt = null;
+    repo.consumeToken = jest
+      .fn()
+      .mockImplementation(async (_hash, _kind, _password, session: Session) => {
+        user.emailVerifiedAt = new Date();
+        sessions.set(session.id, { ...session, userId: user.id });
+        return user;
+      });
+    const result = await auth.consumeToken('mailbox-proof', 'magic-link');
+    expect(result).toHaveProperty('user.emailVerified', true);
+    expect(result).toHaveProperty('accessToken');
+  });
+  it('does not issue tokens if a magic-link repository returns an unverified account', async () => {
+    user.emailVerifiedAt = null;
+    repo.consumeToken = jest.fn().mockResolvedValue(user);
+    await expect(
+      auth.consumeToken('mailbox-proof', 'magic-link'),
+    ).rejects.toThrow(UnauthorizedException);
   });
   it('revokes all sessions and rejects unknown single-use token', async () => {
     const result = await auth.login(user.email, 'long-password-123');

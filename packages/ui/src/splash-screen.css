@@ -1,0 +1,52 @@
+.repo-splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: var(--background, #fff);
+  color: var(--foreground, #171717);
+}
+
+.repo-splash-screen__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: center;
+}
+
+.repo-splash-screen__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.repo-splash-screen__indicator {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  color: var(--muted-foreground, #737373);
+  animation: repo-splash-spin 900ms linear infinite;
+}
+
+.repo-splash-screen__label {
+  color: var(--muted-foreground, #737373);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+@keyframes repo-splash-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .repo-splash-screen__indicator {
+    animation: none;
+  }
+}

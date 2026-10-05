@@ -8,9 +8,16 @@ export const teamKeys = {
    list: (workspaceId: string) => [...teamKeys.workspace(workspaceId), 'list'] as const,
    detail: (workspaceId: string, teamId: string) =>
       [...teamKeys.workspace(workspaceId), teamId] as const,
+   members: (workspaceId: string, teamId: string) =>
+      [...teamKeys.detail(workspaceId, teamId), 'members'] as const,
+   settings: (workspaceId: string, teamId: string) =>
+      [...teamKeys.detail(workspaceId, teamId), 'settings'] as const,
+   statuses: (workspaceId: string, teamId: string) =>
+      [...teamKeys.detail(workspaceId, teamId), 'statuses'] as const,
    issues: (workspaceId: string, teamId: string) =>
       [...teamKeys.detail(workspaceId, teamId), 'issues'] as const,
 };
+
 export const teamListQueryOptions = (api: ApiClient, workspaceId: string) =>
    infiniteQueryOptions({
       queryKey: teamKeys.list(workspaceId),
@@ -22,6 +29,7 @@ export const teamListQueryOptions = (api: ApiClient, workspaceId: string) =>
       staleTime: 60_000,
       retry: false,
    });
+
 export const teamDetailQueryOptions = (api: ApiClient, workspaceId: string, teamId: string) =>
    queryOptions({
       queryKey: teamKeys.detail(workspaceId, teamId),
@@ -30,6 +38,34 @@ export const teamDetailQueryOptions = (api: ApiClient, workspaceId: string, team
       staleTime: 60_000,
       retry: false,
    });
+
+export const teamMembersQueryOptions = (api: ApiClient, workspaceId: string, teamId: string) =>
+   queryOptions({
+      queryKey: teamKeys.members(workspaceId, teamId),
+      queryFn: ({ signal }) => teamsApi.members(api, workspaceId, teamId, signal),
+      enabled: Boolean(workspaceId && teamId),
+      staleTime: 60_000,
+      retry: false,
+   });
+
+export const teamSettingsQueryOptions = (api: ApiClient, workspaceId: string, teamId: string) =>
+   queryOptions({
+      queryKey: teamKeys.settings(workspaceId, teamId),
+      queryFn: ({ signal }) => teamsApi.settings(api, workspaceId, teamId, signal),
+      enabled: Boolean(workspaceId && teamId),
+      staleTime: 60_000,
+      retry: false,
+   });
+
+export const teamStatusesQueryOptions = (api: ApiClient, workspaceId: string, teamId: string) =>
+   queryOptions({
+      queryKey: teamKeys.statuses(workspaceId, teamId),
+      queryFn: ({ signal }) => teamsApi.statuses(api, workspaceId, teamId, signal),
+      enabled: Boolean(workspaceId && teamId),
+      staleTime: 60_000,
+      retry: false,
+   });
+
 export const teamIssuesQueryOptions = (api: ApiClient, workspaceId: string, teamId: string) =>
    infiniteQueryOptions({
       queryKey: teamKeys.issues(workspaceId, teamId),

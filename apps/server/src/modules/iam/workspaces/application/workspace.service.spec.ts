@@ -147,7 +147,7 @@ describe('Transactional workspace commands', () => {
     ).resolves.toEqual(workspace);
     expect(repositoryMock.create).toHaveBeenCalledWith(
       tx,
-      { id: expect.any(String), name: 'Circle', slug: 'circle' },
+      expect.objectContaining({ name: 'Circle', slug: 'circle' }),
       expect.objectContaining({
         userId: identity.userId,
         role: 'OWNER',

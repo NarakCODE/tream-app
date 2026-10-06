@@ -39,7 +39,11 @@ export const createTeamInputSchema = z.object({
          /^[A-Z][A-Z0-9]{1,9}$/,
          'Key must be 2–10 uppercase alphanumeric characters starting with a letter'
       ),
-   description: z.string().max(2000, 'Description must be at most 2000 characters').optional().nullable(),
+   description: z
+      .string()
+      .max(2000, 'Description must be at most 2000 characters')
+      .optional()
+      .nullable(),
    visibility: teamVisibilitySchema.optional().default('WORKSPACE'),
 });
 export type CreateTeamInput = z.infer<typeof createTeamInputSchema>;
@@ -51,7 +55,11 @@ export const updateTeamInputSchema = z.object({
       .min(1, 'Name is required')
       .max(100, 'Name must be at most 100 characters')
       .optional(),
-   description: z.string().max(2000, 'Description must be at most 2000 characters').optional().nullable(),
+   description: z
+      .string()
+      .max(2000, 'Description must be at most 2000 characters')
+      .optional()
+      .nullable(),
    visibility: teamVisibilitySchema.optional(),
 });
 export type UpdateTeamInput = z.infer<typeof updateTeamInputSchema>;
@@ -86,9 +94,19 @@ export const updateTeamSettingsInputSchema = z
          .optional(),
       cyclesEnabled: z.boolean().optional(),
       cycleDurationWeeks: z.number().int().min(1, 'Min 1 week').max(8, 'Max 8 weeks').optional(),
-      cycleStartDay: z.number().int().min(0, 'Day must be 0–6').max(6, 'Day must be 0–6').optional(),
+      cycleStartDay: z
+         .number()
+         .int()
+         .min(0, 'Day must be 0–6')
+         .max(6, 'Day must be 0–6')
+         .optional(),
       cycleCooldownDays: z.number().int().min(0, 'Min 0 days').max(14, 'Max 14 days').optional(),
-      upcomingCyclesCount: z.number().int().min(1, 'Min 1 cycle').max(10, 'Max 10 cycles').optional(),
+      upcomingCyclesCount: z
+         .number()
+         .int()
+         .min(1, 'Min 1 cycle')
+         .max(10, 'Max 10 cycles')
+         .optional(),
    })
    .refine(
       (data) => {

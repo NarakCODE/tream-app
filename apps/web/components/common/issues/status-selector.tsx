@@ -18,10 +18,11 @@ import { renderStatusIcon } from '@/lib/status-utils';
 
 interface StatusSelectorProps {
    status: Status;
-   issueId: string;
+   issueId?: string;
+   onChange?: (status: Status) => void;
 }
 
-export function StatusSelector({ status, issueId }: StatusSelectorProps) {
+export function StatusSelector({ status, issueId, onChange }: StatusSelectorProps) {
    const id = useId();
    const [open, setOpen] = useState<boolean>(false);
    const [value, setValue] = useState<string>(status.id);
@@ -36,9 +37,10 @@ export function StatusSelector({ status, issueId }: StatusSelectorProps) {
       setValue(statusId);
       setOpen(false);
 
-      if (issueId) {
-         const newStatus = allStatus.find((s) => s.id === statusId);
-         if (newStatus) {
+      const newStatus = allStatus.find((s) => s.id === statusId);
+      if (newStatus) {
+         onChange?.(newStatus);
+         if (issueId) {
             updateIssueStatus(issueId, newStatus);
          }
       }
@@ -55,6 +57,7 @@ export function StatusSelector({ status, issueId }: StatusSelectorProps) {
                   variant="ghost"
                   role="combobox"
                   aria-expanded={open}
+                  aria-label={status ? `Change status from ${status.name}` : 'Set status'}
                >
                   {renderStatusIcon(value)}
                </Button>
@@ -73,6 +76,7 @@ export function StatusSelector({ status, issueId }: StatusSelectorProps) {
                               key={item.id}
                               value={item.id}
                               onSelect={handleStatusChange}
+                              onClick={() => handleStatusChange(item.id)}
                               className="flex items-center justify-between"
                            >
                               <div className="flex items-center gap-2">

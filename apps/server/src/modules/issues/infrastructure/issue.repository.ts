@@ -60,6 +60,7 @@ export class IssueRepository {
       'projectId',
       'cycleId',
       'assigneeId',
+      'createdById',
       'parentId',
       'priority',
     ] as const)

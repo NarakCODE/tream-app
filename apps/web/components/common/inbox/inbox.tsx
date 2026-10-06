@@ -1,250 +1,237 @@
 'use client';
-
 import { useState } from 'react';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import { useNotificationsStore } from '@/store/notifications-store';
-import { Button } from '@/components/ui/button';
-import {
-   DropdownMenu,
-   DropdownMenuContent,
-   DropdownMenuItem,
-   DropdownMenuSeparator,
-   DropdownMenuTrigger,
-   DropdownMenuLabel,
-   DropdownMenuCheckboxItem,
-} from '@/components/ui/dropdown-menu';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import {
-   MoreHorizontal,
-   SlidersHorizontal,
-   Trash2,
-   CheckCheck,
-   Archive,
-   ArrowUpDown,
-} from 'lucide-react';
-import NotificationPreview from './issue-preview';
-import IssueLine from './issue-line';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { useIsMobile } from '@/hooks/use-mobile';
+import type { NotificationStatus } from '@repo/schemas';
+import { ApiError } from '@repo/api-client';
 import { ChevronLeft } from 'lucide-react';
+import {
+   useNotificationList,
+   useNotificationDetail,
+   useNotificationPreferences,
+   useUpdateNotificationPreferences,
+   useUnreadCount,
+} from '@/features/notifications/hooks';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import { useIsMobile } from '@/hooks/use-mobile';
+import IssueLine from './issue-line';
+import NotificationPreview from './issue-preview';
+import { NotificationPreferences } from './notification-preferences';
+import { cn } from '@/lib/utils';
 
-export default function Inbox() {
-   const {
-      notifications,
-      selectedNotification,
-      setSelectedNotification,
-      markAsRead,
-      markAllAsRead,
-      getUnreadNotifications,
-   } = useNotificationsStore();
-
+const tabs = ['inbox', 'archived', 'snoozed', 'all'] as const;
+const empty: Record<NotificationStatus, string> = {
+   inbox: 'You’re all caught up.',
+   archived: 'No archived notifications.',
+   snoozed: 'No snoozed notifications.',
+   all: 'No notifications yet.',
+};
+export default function Inbox({ workspaceId, userId }: { workspaceId: string; userId: string }) {
+   const [status, setStatus] = useState<NotificationStatus>('inbox');
+   const [unreadOnly, setUnreadOnly] = useState(false);
+   const [selectedId, setSelectedId] = useState<string | null>(null);
    const isMobile = useIsMobile();
-   const [showRead, setShowRead] = useState(true);
-   const [showSnoozed, setShowSnoozed] = useState(false);
-   const [showUnreadFirst, setShowUnreadFirst] = useState(false);
-   const [ordering, setOrdering] = useState('newest');
-   const [showId, setShowId] = useState(true);
-   const [showStatusIcon, setShowStatusIcon] = useState(true);
-
-   // Filter and sort notifications based on settings
-   const filteredNotifications = notifications
-      .filter((notification) => {
-         if (!showRead && notification.read) return false;
-         // Add snoozed filter logic here when implemented
-         return true;
-      })
-      .sort((a, b) => {
-         if (showUnreadFirst) {
-            if (!a.read && b.read) return -1;
-            if (a.read && !b.read) return 1;
-         }
-         // Sort by timestamp (newest first by default)
-         return ordering === 'newest'
-            ? new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-            : new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
-      });
-
-   const handleDeleteAllNotifications = () => {
-      console.log('Delete all notifications');
-   };
-
-   const handleDeleteReadNotifications = () => {
-      console.log('Delete read notifications');
-   };
-
-   const handleDeleteCompletedIssues = () => {
-      console.log('Delete notifications for completed issues');
-   };
-
-   const listPane = (
-      <>
-         <div className="flex items-center justify-between px-4 h-10 border-b border-border">
-            <div className="flex items-center gap-2">
-               <SidebarTrigger className="inline-flex lg:hidden" />
-               <h2 className="text-lg font-semibold">Inbox</h2>
-               <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                     <Button variant="ghost" size="xs">
-                        <MoreHorizontal className="w-4 h-4" />
-                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                     <DropdownMenuItem onClick={handleDeleteAllNotifications}>
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete all notifications
-                     </DropdownMenuItem>
-                     <DropdownMenuItem onClick={handleDeleteReadNotifications}>
-                        <CheckCheck className="w-4 h-4 mr-2" />
-                        Delete all read notifications
-                     </DropdownMenuItem>
-                     <DropdownMenuItem onClick={handleDeleteCompletedIssues}>
-                        <Archive className="w-4 h-4 mr-2" />
-                        Delete notifications for completed issues
-                     </DropdownMenuItem>
-                  </DropdownMenuContent>
-               </DropdownMenu>
-            </div>
-
-            <div className="flex items-center gap-2">
-               <Button
-                  variant="ghost"
-                  size="xs"
-                  onClick={markAllAsRead}
-                  disabled={getUnreadNotifications().length === 0}
-               >
-                  <CheckCheck className="w-4 h-4" />
-               </Button>
-               <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                     <Button variant="ghost" size="xs">
-                        <SlidersHorizontal className="w-4 h-4" />
-                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64">
-                     <DropdownMenuLabel className="flex items-center gap-2">
-                        <ArrowUpDown className="w-4 h-4" />
-                        Ordering
-                     </DropdownMenuLabel>
-                     <DropdownMenuCheckboxItem
-                        checked={ordering === 'newest'}
-                        onCheckedChange={() => setOrdering('newest')}
-                     >
-                        Newest
-                     </DropdownMenuCheckboxItem>
-                     <DropdownMenuCheckboxItem
-                        checked={ordering === 'oldest'}
-                        onCheckedChange={() => setOrdering('oldest')}
-                     >
-                        Oldest
-                     </DropdownMenuCheckboxItem>
-
-                     <DropdownMenuSeparator />
-
-                     <div className="p-2 space-y-3">
-                        <div className="flex items-center justify-between">
-                           <Label htmlFor="show-snoozed" className="text-sm">
-                              Show snoozed
-                           </Label>
-                           <Switch
-                              id="show-snoozed"
-                              checked={showSnoozed}
-                              onCheckedChange={setShowSnoozed}
-                           />
-                        </div>
-                        <div className="flex items-center justify-between">
-                           <Label htmlFor="show-read" className="text-sm">
-                              Show read
-                           </Label>
-                           <Switch
-                              id="show-read"
-                              checked={showRead}
-                              onCheckedChange={setShowRead}
-                           />
-                        </div>
-                        <div className="flex items-center justify-between">
-                           <Label htmlFor="show-unread-first" className="text-sm">
-                              Show unread first
-                           </Label>
-                           <Switch
-                              id="show-unread-first"
-                              checked={showUnreadFirst}
-                              onCheckedChange={setShowUnreadFirst}
-                           />
-                        </div>
-                     </div>
-
-                     <DropdownMenuSeparator />
-
-                     <DropdownMenuLabel>Display properties</DropdownMenuLabel>
-                     <div className="p-2 space-y-3">
-                        <div className="flex items-center justify-between">
-                           <Label htmlFor="show-id" className="text-sm">
-                              ID
-                           </Label>
-                           <Switch id="show-id" checked={showId} onCheckedChange={setShowId} />
-                        </div>
-                        <div className="flex items-center justify-between">
-                           <Label htmlFor="show-status-icon" className="text-sm">
-                              Status and icon
-                           </Label>
-                           <Switch
-                              id="show-status-icon"
-                              checked={showStatusIcon}
-                              onCheckedChange={setShowStatusIcon}
-                           />
-                        </div>
-                     </div>
-                  </DropdownMenuContent>
-               </DropdownMenu>
-            </div>
-         </div>
-         <div className="w-full flex flex-col items-center justify-start overflow-y-scroll h-[calc(100%-40px)] pb-0.25">
-            {filteredNotifications.map((notification) => (
-               <IssueLine
-                  key={notification.id}
-                  notification={notification}
-                  isSelected={selectedNotification?.id === notification.id}
-                  onClick={() => setSelectedNotification(notification)}
-                  showId={showId}
-                  showStatusIcon={showStatusIcon}
-               />
-            ))}
-         </div>
-      </>
+   const list = useNotificationList(workspaceId, userId, {
+      status,
+      unread: unreadOnly ? 'true' : undefined,
+      limit: 25,
+   });
+   const preferences = useNotificationPreferences(workspaceId, userId);
+   const updatePreferences = useUpdateNotificationPreferences(workspaceId, userId);
+   const count = useUnreadCount(workspaceId, userId);
+   const items = list.data?.pages.flatMap((page) => page.items) ?? [];
+   const disabled = preferences.data?.inAppEnabled === false;
+   const detail = useNotificationDetail(workspaceId, userId, selectedId ?? '');
+   const visibleSelection = disabled ? undefined : items.find((item) => item.id === selectedId);
+   const detailGone = detail.error instanceof ApiError && detail.error.status === 404;
+   const selected = visibleSelection && !detailGone ? (detail.data ?? visibleSelection) : undefined;
+   const preview = (
+      <NotificationPreview
+         notification={selected}
+         workspaceId={workspaceId}
+         userId={userId}
+         emailEnabled={preferences.data?.emailEnabled === true}
+      />
    );
-
-   if (isMobile) {
-      return selectedNotification ? (
-         <div className="flex flex-col h-full w-full">
-            <button
-               onClick={() => setSelectedNotification(undefined)}
-               className="flex items-center gap-1 px-4 h-10 border-b border-border text-sm text-muted-foreground hover:text-foreground shrink-0"
+   const panel = (
+      <Tabs
+         value={status}
+         onValueChange={(value) => {
+            setStatus(value as NotificationStatus);
+            setSelectedId(null);
+         }}
+         className="flex h-full min-h-0 flex-col gap-0"
+      >
+         <div className="flex h-12 shrink-0 items-center justify-between border-b px-4">
+            <div className="flex items-center gap-2">
+               <SidebarTrigger className="lg:hidden" />
+               <h1 className="text-sm font-semibold">Inbox</h1>
+               {!disabled && count.data && count.data.unreadCount > 0 && (
+                  <span
+                     className="rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
+                     aria-label={`${count.data.unreadCount} unread notifications`}
+                  >
+                     {count.data.unreadCount}
+                  </span>
+               )}
+            </div>
+            <NotificationPreferences
+               workspaceId={workspaceId}
+               userId={userId}
+               unreadOnly={unreadOnly}
+               onUnreadOnlyChange={(checked) => {
+                  setUnreadOnly(checked);
+                  setSelectedId(null);
+               }}
+            />
+         </div>
+         <div className="shrink-0 border-b px-3 py-3">
+            <TabsList className="w-full" aria-label="Notification status">
+               {tabs.map((tab) => (
+                  <TabsTrigger key={tab} value={tab} className="flex-1 capitalize">
+                     {tab}
+                  </TabsTrigger>
+               ))}
+            </TabsList>
+         </div>
+         <TabsContent
+            value={status}
+            className="min-h-0 overflow-y-auto"
+            aria-busy={list.isFetching}
+         >
+            {preferences.isPending || (preferences.isSuccess && !disabled && list.isPending) ? (
+               <div className="space-y-5 p-4" role="status" aria-label="Loading notifications">
+                  {Array.from({ length: 5 }, (_, i) => (
+                     <div key={i} className="flex gap-3">
+                        <Skeleton className="size-8 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                           <Skeleton className="h-4 w-3/4" />
+                           <Skeleton className="h-3 w-1/2" />
+                        </div>
+                     </div>
+                  ))}
+               </div>
+            ) : preferences.isError ? (
+               <div role="alert" className="p-8 text-center text-sm">
+                  <p>Unable to load notification preferences.</p>
+                  <Button
+                     variant="outline"
+                     size="sm"
+                     className="mt-3"
+                     onClick={() => void preferences.refetch()}
+                  >
+                     Try again
+                  </Button>
+               </div>
+            ) : disabled ? (
+               <div className="p-8 text-center">
+                  <h2 className="text-sm font-medium">In-app notifications are off</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                     Turn them on to see your workspace updates.
+                  </p>
+                  <Button
+                     size="sm"
+                     className="mt-4"
+                     disabled={updatePreferences.isPending}
+                     onClick={() =>
+                        updatePreferences.mutate({
+                           preferences: preferences.data!,
+                           patch: { inAppEnabled: true },
+                        })
+                     }
+                  >
+                     {updatePreferences.isPending ? 'Turning on…' : 'Turn on in-app notifications'}
+                  </Button>
+               </div>
+            ) : list.isError && !list.data ? (
+               <div role="alert" className="p-8 text-center text-sm">
+                  <p>Unable to load notifications.</p>
+                  <Button
+                     variant="outline"
+                     size="sm"
+                     className="mt-3"
+                     onClick={() => void list.refetch()}
+                  >
+                     Try again
+                  </Button>
+               </div>
+            ) : items.length === 0 ? (
+               <div className="p-8 text-center text-sm text-muted-foreground">
+                  {unreadOnly ? 'No unread notifications in this tab.' : empty[status]}
+               </div>
+            ) : (
+               <>
+                  <ul aria-label={`${status} notifications`}>
+                     {items.map((notification) => (
+                        <IssueLine
+                           key={notification.id}
+                           notification={notification}
+                           workspaceId={workspaceId}
+                           userId={userId}
+                           isSelected={selected?.id === notification.id}
+                           onClick={() => setSelectedId(notification.id)}
+                        />
+                     ))}
+                  </ul>
+                  {list.isError && (
+                     <div role="alert" className="p-4 text-center text-xs">
+                        Unable to refresh notifications.{' '}
+                        <Button variant="ghost" size="xs" onClick={() => void list.refetch()}>
+                           Try again
+                        </Button>
+                     </div>
+                  )}
+                  {list.hasNextPage && (
+                     <div className="p-4 text-center">
+                        <Button
+                           variant="outline"
+                           size="sm"
+                           disabled={list.isFetchingNextPage}
+                           onClick={() => void list.fetchNextPage()}
+                        >
+                           {list.isFetchingNextPage ? 'Loading…' : 'Load more'}
+                        </Button>
+                     </div>
+                  )}
+               </>
+            )}
+         </TabsContent>
+      </Tabs>
+   );
+   if (isMobile)
+      return selected ? (
+         <div className="flex h-full flex-col">
+            <Button
+               variant="ghost"
+               className="h-12 shrink-0 justify-start rounded-none border-b"
+               onClick={() => setSelectedId(null)}
             >
                <ChevronLeft className="size-4" />
-               Inbox
-            </button>
-            <div className="flex-1 min-h-0">
-               <NotificationPreview notification={selectedNotification} onMarkAsRead={markAsRead} />
-            </div>
+               Back to inbox
+            </Button>
+            <div className="min-h-0 flex-1">{preview}</div>
          </div>
       ) : (
-         <div className="flex flex-col h-full w-full">{listPane}</div>
+         panel
       );
-   }
-
    return (
       <ResizablePanelGroup
          direction="horizontal"
-         autoSaveId="inbox-panel-group"
-         className="w-full h-full"
+         autoSaveId="notification-inbox-panels"
+         className="h-full w-full"
       >
-         <ResizablePanel defaultSize={350} maxSize={500}>
-            {listPane}
+         <ResizablePanel defaultSize={40} minSize={30} className="flex min-w-0 flex-col">
+            {panel}
          </ResizablePanel>
          <ResizableHandle withHandle />
-         <ResizablePanel defaultSize={350} maxSize={500}>
-            <NotificationPreview notification={selectedNotification} onMarkAsRead={markAsRead} />
+         <ResizablePanel
+            defaultSize={60}
+            minSize={30}
+            className={cn('flex min-w-0 flex-col', !selected && 'overflow-hidden overscroll-none')}
+         >
+            {preview}
          </ResizablePanel>
       </ResizablePanelGroup>
    );

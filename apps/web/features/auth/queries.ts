@@ -1,11 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { ApiClient } from '@repo/api-client';
-import {
-   activeWorkspaceResponseSchema,
-   apiEnvelopeSchema,
-   authUserSchema,
-   authSessionSchema,
-} from '@repo/schemas';
+import { apiEnvelopeSchema, authUserSchema, authSessionSchema } from '@repo/schemas';
+import { workspacesApi } from '@/features/workspaces/api';
 import { z } from 'zod';
 
 export const authKeys = {
@@ -32,14 +28,7 @@ export const currentUserQueryOptions = (api: ApiClient) =>
 export const activeWorkspaceQueryOptions = (api: ApiClient) =>
    queryOptions({
       queryKey: authKeys.activeWorkspace(),
-      queryFn: async ({ signal }) =>
-         (
-            await api.get(
-               '/api/v1/workspaces/active',
-               apiEnvelopeSchema(activeWorkspaceResponseSchema),
-               { signal, cache: 'no-store' }
-            )
-         ).data,
+      queryFn: ({ signal }) => workspacesApi.active(api, signal),
       staleTime: 5 * 60 * 1000,
       retry: false,
    });

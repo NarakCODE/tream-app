@@ -4,22 +4,16 @@ import { Issue, issueCreatorIndex } from '@/mock-data/issues';
 import { users } from '@/mock-data/users';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
-export const MY_ISSUES_TABS = ['assigned', 'created', 'subscribed', 'activity'] as const;
-export type MyIssuesTab = (typeof MY_ISSUES_TABS)[number];
+import { MY_ISSUES_TABS, MY_ISSUES_TAB_ITEMS, type MyIssuesTab } from '@/features/issues/constants';
 
-export const MY_ISSUES_TAB_ITEMS: { label: string; value: MyIssuesTab }[] = [
-   { label: 'Assigned', value: 'assigned' },
-   { label: 'Created', value: 'created' },
-   { label: 'Subscribed', value: 'subscribed' },
-   { label: 'Activity', value: 'activity' },
-];
+export { MY_ISSUES_TABS, MY_ISSUES_TAB_ITEMS, type MyIssuesTab };
 
 /** The "current" user of the mock workspace. */
 export const ME = users[0];
 
 /** Shared tab state (URL-backed) between the header and the page body. */
 export function useMyIssuesTab() {
-   return useQueryState('tab', parseAsStringLiteral(MY_ISSUES_TABS).withDefault('assigned'));
+   return useQueryState('tab', parseAsStringLiteral(MY_ISSUES_TABS).withDefault('all'));
 }
 
 const isCreatedByMe = (issue: Issue): boolean => issueCreatorIndex(issue, users.length) === 0;
@@ -29,6 +23,8 @@ const isSubscribed = (issue: Issue): boolean =>
 /** Issues shown by each My issues tab. */
 export function scopeMyIssues(issues: Issue[], tab: MyIssuesTab): Issue[] {
    switch (tab) {
+      case 'all':
+         return issues;
       case 'assigned':
          return issues.filter((issue) => issue.assignee?.id === ME.id);
       case 'created':

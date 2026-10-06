@@ -138,11 +138,21 @@ export function patchTeamSettingsInQueryCache(
    queryClient.setQueryData<TeamSettings>(teamKeys.settings(workspaceId, teamId), (existing) => {
       const patch: Partial<TeamSettings> = {
          ...(updatedSettings.timezone !== undefined && { timezone: updatedSettings.timezone }),
-         ...(updatedSettings.cyclesEnabled !== undefined && { cyclesEnabled: updatedSettings.cyclesEnabled }),
-         ...(updatedSettings.cycleDurationWeeks !== undefined && { cycleDurationWeeks: updatedSettings.cycleDurationWeeks }),
-         ...(updatedSettings.cycleStartDay !== undefined && { cycleStartDay: updatedSettings.cycleStartDay }),
-         ...(updatedSettings.cycleCooldownDays !== undefined && { cycleCooldownDays: updatedSettings.cycleCooldownDays }),
-         ...(updatedSettings.upcomingCyclesCount !== undefined && { upcomingCyclesCount: updatedSettings.upcomingCyclesCount }),
+         ...(updatedSettings.cyclesEnabled !== undefined && {
+            cyclesEnabled: updatedSettings.cyclesEnabled,
+         }),
+         ...(updatedSettings.cycleDurationWeeks !== undefined && {
+            cycleDurationWeeks: updatedSettings.cycleDurationWeeks,
+         }),
+         ...(updatedSettings.cycleStartDay !== undefined && {
+            cycleStartDay: updatedSettings.cycleStartDay,
+         }),
+         ...(updatedSettings.cycleCooldownDays !== undefined && {
+            cycleCooldownDays: updatedSettings.cycleCooldownDays,
+         }),
+         ...(updatedSettings.upcomingCyclesCount !== undefined && {
+            upcomingCyclesCount: updatedSettings.upcomingCyclesCount,
+         }),
       };
       return existing ? { ...existing, ...patch } : (patch as TeamSettings);
    });

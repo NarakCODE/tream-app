@@ -19,7 +19,9 @@ describe('mapTeamError', () => {
             code: 'HTTP_400',
             message: 'Cooldown days must be less than duration',
          });
-         expect(mapTeamError(err, 'update-settings')).toBe('Cooldown days must be less than duration');
+         expect(mapTeamError(err, 'update-settings')).toBe(
+            'Cooldown days must be less than duration'
+         );
       });
 
       it('maps 400 reorder-statuses error', () => {
@@ -28,7 +30,9 @@ describe('mapTeamError', () => {
             code: 'HTTP_400',
             message: '',
          });
-         expect(mapTeamError(err, 'reorder-statuses')).toContain('All active team statuses must be included');
+         expect(mapTeamError(err, 'reorder-statuses')).toContain(
+            'All active team statuses must be included'
+         );
       });
    });
 
@@ -39,7 +43,9 @@ describe('mapTeamError', () => {
             code: 'HTTP_404',
             message: '',
          });
-         expect(mapTeamError(err, 'update-member')).toContain('Team member or workspace membership was not found');
+         expect(mapTeamError(err, 'update-member')).toContain(
+            'Team member or workspace membership was not found'
+         );
       });
 
       it('maps 404 status error', () => {
@@ -48,7 +54,9 @@ describe('mapTeamError', () => {
             code: 'HTTP_404',
             message: '',
          });
-         expect(mapTeamError(err, 'update-status')).toContain('Workflow status or team was not found');
+         expect(mapTeamError(err, 'update-status')).toContain(
+            'Workflow status or team was not found'
+         );
       });
 
       it('maps 404 team error', () => {
@@ -68,7 +76,9 @@ describe('mapTeamError', () => {
             code: 'HTTP_409',
             message: '',
          });
-         expect(mapTeamError(err, 'create-team')).toBe('This team key is already taken in this workspace.');
+         expect(mapTeamError(err, 'create-team')).toBe(
+            'This team key is already taken in this workspace.'
+         );
       });
 
       it('maps 409 retire-team active dependencies', () => {

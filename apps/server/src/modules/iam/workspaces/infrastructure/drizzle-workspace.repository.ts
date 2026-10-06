@@ -46,8 +46,23 @@ export class DrizzleWorkspaceRepository extends WorkspaceRepository {
     cursor?: CursorTuple,
   ) {
     const query = tx
-      .select()
+      .select({
+        id: memberships.id,
+        workspaceId: memberships.workspaceId,
+        userId: memberships.userId,
+        role: memberships.role,
+        state: memberships.state,
+        createdAt: memberships.createdAt,
+        updatedAt: memberships.updatedAt,
+        user: {
+          id: users.id,
+          name: users.fullName,
+          email: users.email,
+          avatarUrl: users.avatarUrl,
+        },
+      })
       .from(memberships)
+      .innerJoin(users, eq(users.id, memberships.userId))
       .where(
         and(
           eq(memberships.workspaceId, workspaceId),

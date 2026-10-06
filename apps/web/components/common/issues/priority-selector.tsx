@@ -18,9 +18,16 @@ import { useEffect, useId, useState } from 'react';
 interface PrioritySelectorProps {
    priority: Priority;
    issueId?: string;
+   onChange?: (priority: Priority) => void;
+   ariaLabel?: string;
 }
 
-export function PrioritySelector({ priority, issueId }: PrioritySelectorProps) {
+export function PrioritySelector({
+   priority,
+   issueId,
+   onChange,
+   ariaLabel,
+}: PrioritySelectorProps) {
    const id = useId();
    const [open, setOpen] = useState<boolean>(false);
    const [value, setValue] = useState<string>(priority.id);
@@ -35,9 +42,10 @@ export function PrioritySelector({ priority, issueId }: PrioritySelectorProps) {
       setValue(priorityId);
       setOpen(false);
 
-      if (issueId) {
-         const newPriority = priorities.find((p) => p.id === priorityId);
-         if (newPriority) {
+      const newPriority = priorities.find((p) => p.id === priorityId);
+      if (newPriority) {
+         onChange?.(newPriority);
+         if (issueId) {
             updateIssuePriority(issueId, newPriority);
          }
       }
@@ -54,6 +62,12 @@ export function PrioritySelector({ priority, issueId }: PrioritySelectorProps) {
                   variant="ghost"
                   role="combobox"
                   aria-expanded={open}
+                  aria-label={
+                     ariaLabel ??
+                     (priority
+                        ? `Change priority from ${priority.id.toUpperCase()}`
+                        : 'Set priority')
+                  }
                >
                   {(() => {
                      const selectedItem = priorities.find((item) => item.id === value);
@@ -79,6 +93,7 @@ export function PrioritySelector({ priority, issueId }: PrioritySelectorProps) {
                               key={item.id}
                               value={item.id}
                               onSelect={handlePriorityChange}
+                              onClick={() => handlePriorityChange(item.id)}
                               className="flex items-center justify-between"
                            >
                               <div className="flex items-center gap-2">

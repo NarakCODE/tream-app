@@ -51,9 +51,16 @@ The notification module provides durable, multi-channel notification fan-out, li
 
 ### Idempotency & Transactional Commands
 
+- Every mutation requires an `Idempotency-Key` header containing a UUID v4. Missing or invalid keys return `400 Bad Request`. Reuse a key only when resending the identical method, route and body; a changed revision or payload is a new command with a new key. The delivery retry body has no `expectedRevision`.
 - All mutation endpoints (`PATCH`, `POST`) are decorated with [`@TransactionalCommand()`](file:///Users/narak/Documents/narakcode/turbo-repo/tream-app/apps/server/src/common/decorators/transactional-command.decorator.ts) and executed through [`CommandBus`](file:///Users/narak/Documents/narakcode/turbo-repo/tream-app/apps/server/src/common/idempotency/command-bus.service.ts) to guarantee idempotency and audit trail creation.
 
 ---
+
+### HTTP Response Envelopes
+
+The examples below describe application DTOs. On the wire, the global response interceptor wraps ordinary results in `{ "data": result, "meta": { "requestId": "...", "timestamp": "..." } }`. This includes nullable actor results and delivery arrays.
+
+Cursor lists are sent as `{ "data": [...items], "meta": { "requestId": "...", "timestamp": "...", "total": 0, "limit": 25, "cursor": null, "nextCursor": null, "hasNext": false } }`; `paginationType` and `items` are application-service fields, not wire fields.
 
 ## 3. Endpoints Summary
 
@@ -64,6 +71,7 @@ The notification module provides durable, multi-channel notification fan-out, li
 | `GET`   | `/api/v1/workspaces/:workspaceId/notifications/preferences`          | Member         | No         | Get member's notification channel preferences.                |
 | `PATCH` | `/api/v1/workspaces/:workspaceId/notifications/preferences`          | Member         | Yes        | Update member's notification channel preferences.             |
 | `GET`   | `/api/v1/workspaces/:workspaceId/notifications/:id`                  | Member (Owner) | No         | Get metadata for a single notification by ID.                 |
+| `GET`   | `/api/v1/workspaces/:workspaceId/notifications/:id/actor`            | Member (Owner) | No         | Resolve safe actor display information.                       |
 | `PATCH` | `/api/v1/workspaces/:workspaceId/notifications/:id/read`             | Member (Owner) | Yes        | Mark a notification as read or unread.                        |
 | `PATCH` | `/api/v1/workspaces/:workspaceId/notifications/:id/archive`          | Member (Owner) | Yes        | Archive or unarchive a notification.                          |
 | `PATCH` | `/api/v1/workspaces/:workspaceId/notifications/:id/snooze`           | Member (Owner) | Yes        | Snooze a notification until a future timestamp (or unsnooze). |
@@ -163,7 +171,7 @@ Fetches notification delivery preferences (in-app and email channels) for the ca
     "updatedAt": "2026-10-04T10:00:00.000Z"
   }
   ```
-- **Notes**: If no preferences row has been persisted yet, returns defaults (`inAppEnabled: true`, `emailEnabled: false`, `revision: 0`).
+- **Notes**: If no preferences row has been persisted yet, returns `{ "workspaceId": "...", "recipientMembershipId": "...", "inAppEnabled": true, "emailEnabled": false, "revision": 0 }`. The default omits `id`, `createdAt` and `updatedAt`; these fields appear after persistence.
 
 ---
 
@@ -204,6 +212,19 @@ Fetches metadata for a single notification.
   - `404 Not Found`: Notification does not exist, belongs to another member, or referenced source entity has been deleted/inaccessible.
 
 ---
+
+### 4.5.1 Get Notification Actor
+
+- **HTTP Method**: `GET`
+- **Route**: `/api/v1/workspaces/:workspaceId/notifications/:id/actor`
+- **Authorization**: Same recipient ownership and current target visibility as getting the notification. Active guests with `workspace.read` are supported; `members.read` is not required.
+- **Success Response** (`200 OK`, application DTO):
+  ```json
+  { "membershipId": "mem_01J0...", "name": "Alex Chen", "avatarUrl": null }
+  ```
+- **Privacy**: Returns only membership ID, current full name and nullable avatar URL. No email, user ID, role, authentication or other profile fields are exposed. Actor lookup is scoped to the notification workspace and requires an active membership and a non-disabled user.
+- **Missing actor**: Returns `null` when the notification has no actor, or that actor is absent, inactive or disabled.
+- **Errors**: `404 Not Found` when the notification is missing, belongs to another recipient, or its target is inaccessible. The actor is not queried until these checks pass.
 
 ### 4.6 Mark Notification Read/Unread
 

@@ -17,9 +17,20 @@ import { StatusSelector } from './status-selector';
 import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { IssueContextMenu } from './issue-context-menu';
 
+import type { Priority } from '@/mock-data/priorities';
+import type { Status } from '@/mock-data/status';
+import type { User } from '@/mock-data/users';
+
 export const IssueDragType = 'ISSUE';
 type IssueGridProps = {
    issue: Issue;
+   onStatusChange?: (issue: Issue, newStatus: Status) => void;
+   onPriorityChange?: (issue: Issue, newPriority: Priority) => void;
+   onAssigneeChange?: (issue: Issue, newAssignee: User | null) => void | Promise<unknown>;
+   onArchive?: (issue: Issue) => void;
+   onRestore?: (issue: Issue) => void;
+   onDelete?: (issue: Issue) => void;
+   workspaceId?: string;
 };
 
 // Custom DragLayer component to render the drag preview
@@ -45,7 +56,7 @@ function IssueDragPreview({ issue }: { issue: Issue }) {
             <span className="text-xs text-muted-foreground">
                {format(new Date(issue.createdAt), 'MMM dd')}
             </span>
-            <AssigneeUser user={issue.assignee} />
+            <AssigneeUser user={issue.assignee} issueId={issue.id} />
          </div>
       </div>
    );
@@ -77,10 +88,20 @@ export function CustomDragLayer() {
    );
 }
 
-export function IssueGrid({ issue }: IssueGridProps) {
+export function IssueGrid({
+   issue,
+   onStatusChange,
+   onPriorityChange,
+   onAssigneeChange,
+   onArchive,
+   onRestore,
+   onDelete,
+   workspaceId,
+}: IssueGridProps) {
    const ref = useRef<HTMLDivElement>(null);
    const { orgId } = useParams<{ orgId: string }>();
    const { displayProperties } = useDisplaySettingsStore();
+   const issueHref = orgId ? `/${orgId}/issue/${issue.identifier}` : `/issue/${issue.identifier}`;
 
    // Set up drag functionality.
    const [{ isDragging }, drag, preview] = useDrag(() => ({
@@ -119,7 +140,11 @@ export function IssueGrid({ issue }: IssueGridProps) {
                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-1.5">
                      {displayProperties.priority && (
-                        <PrioritySelector priority={issue.priority} issueId={issue.id} />
+                        <PrioritySelector
+                           priority={issue.priority}
+                           issueId={issue.id}
+                           onChange={(p) => onPriorityChange?.(issue, p)}
+                        />
                      )}
                      {displayProperties.id && (
                         <span className="text-xs text-muted-foreground font-medium">
@@ -128,11 +153,17 @@ export function IssueGrid({ issue }: IssueGridProps) {
                      )}
                   </div>
                   {displayProperties.status && (
-                     <StatusSelector status={issue.status} issueId={issue.id} />
+                     <StatusSelector
+                        status={issue.status}
+                        issueId={issue.id}
+                        onChange={(s) => onStatusChange?.(issue, s)}
+                     />
                   )}
                </div>
-               <Link href={`/${orgId ?? 'lndev-ui'}/issue/${issue.identifier}`}>
-                  <h3 className="text-sm font-semibold mb-3 line-clamp-2">{issue.title}</h3>
+               <Link href={issueHref}>
+                  <h3 className="text-sm font-semibold mb-3 line-clamp-2 hover:text-primary transition-colors">
+                     {issue.title}
+                  </h3>
                </Link>
                <div className="flex flex-wrap gap-1.5 mb-3 min-h-[1.5rem]">
                   {displayProperties.labels && <LabelBadge label={issue.labels} />}
@@ -141,18 +172,43 @@ export function IssueGrid({ issue }: IssueGridProps) {
                   )}
                </div>
                <div className="flex items-center justify-between mt-auto pt-2">
-                  {displayProperties.created ? (
-                     <span className="text-xs text-muted-foreground">
-                        {format(new Date(issue.createdAt), 'MMM dd')}
-                     </span>
-                  ) : (
-                     <span />
+                  <div className="flex items-center gap-2">
+                     {displayProperties.created && (
+                        <span className="text-xs text-muted-foreground">
+                           {format(new Date(issue.createdAt), 'MMM dd')}
+                        </span>
+                     )}
+                     {issue.estimate !== null && issue.estimate !== undefined && (
+                        <span
+                           className="font-mono px-1.5 py-0.5 rounded-sm bg-muted/80 text-muted-foreground text-[11px]"
+                           title={`Estimate: ${issue.estimate}`}
+                        >
+                           {issue.estimate} pts
+                        </span>
+                     )}
+                  </div>
+                  {displayProperties.assignee && (
+                     <AssigneeUser
+                        user={issue.assignee}
+                        issueId={issue.id}
+                        workspaceId={workspaceId}
+                        onChange={(newAssignee) => onAssigneeChange?.(issue, newAssignee)}
+                     />
                   )}
-                  {displayProperties.assignee && <AssigneeUser user={issue.assignee} />}
                </div>
             </motion.div>
          </ContextMenuTrigger>
-         <IssueContextMenu issueId={issue.id} />
+         <IssueContextMenu
+            issueId={issue.id}
+            issue={issue}
+            onStatusChange={onStatusChange}
+            onPriorityChange={onPriorityChange}
+            onAssigneeChange={onAssigneeChange}
+            onArchive={onArchive}
+            onRestore={onRestore}
+            onDelete={onDelete}
+            workspaceId={workspaceId}
+         />
       </ContextMenu>
    );
 }

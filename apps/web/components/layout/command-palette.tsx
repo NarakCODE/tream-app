@@ -31,6 +31,7 @@ import {
    Compass,
    ContactRound,
    FileText,
+   FolderKanban,
    GitBranch,
    Inbox,
    Layers,
@@ -405,6 +406,10 @@ export function CommandPalette() {
                            <CommandItem onSelect={() => go('/my-issues')}>
                               <ClipboardList className="text-muted-foreground" /> My issues
                               <Keys keys={['G', 'M']} />
+                           </CommandItem>
+                           <CommandItem onSelect={() => go('/issues')}>
+                              <FolderKanban className="text-muted-foreground" /> All issues
+                              <Keys keys={['G', 'A']} />
                            </CommandItem>
                            <CommandItem onSelect={() => go('/reviews')}>
                               <GitBranch className="text-muted-foreground" /> Reviews

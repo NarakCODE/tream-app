@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/context-menu';
 import {
    CircleCheck,
-   User,
+   User as UserIcon,
    BarChart3,
    Tag,
    Folder,
@@ -33,20 +33,47 @@ import {
    MessageSquare,
    Clipboard,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect, useContext } from 'react';
+import { QueryClientContext } from '@tanstack/react-query';
 import { useIssuesStore } from '@/store/issues-store';
 import { status } from '@/mock-data/status';
 import { priorities } from '@/mock-data/priorities';
-import { users } from '@/mock-data/users';
+import { type User, users } from '@/mock-data/users';
 import { labels } from '@/mock-data/labels';
 import { projects } from '@/mock-data/projects';
 import { toast } from 'sonner';
+import { useWorkspaceId } from '@/features/workspaces/context';
+import { useWorkspaceMembers } from '@/features/workspaces/hooks';
+import { registerKnownAssignees } from '@/features/issues/mapping';
+
+import type { Issue } from '@/mock-data/issues';
+import type { Status } from '@/mock-data/status';
+import type { Priority } from '@/mock-data/priorities';
+import { Archive, ArchiveRestore } from 'lucide-react';
 
 interface IssueContextMenuProps {
    issueId?: string;
+   issue?: Issue;
+   onStatusChange?: (issue: Issue, newStatus: Status) => void;
+   onPriorityChange?: (issue: Issue, newPriority: Priority) => void;
+   onAssigneeChange?: (issue: Issue, newAssignee: User | null) => void | Promise<unknown>;
+   onArchive?: (issue: Issue) => void;
+   onRestore?: (issue: Issue) => void;
+   onDelete?: (issue: Issue) => void;
+   workspaceId?: string;
 }
 
-export function IssueContextMenu({ issueId }: IssueContextMenuProps) {
+function InnerIssueContextMenu({
+   issueId,
+   issue,
+   onStatusChange,
+   onPriorityChange,
+   onAssigneeChange,
+   onArchive,
+   onRestore,
+   onDelete,
+   availableUsers = users,
+}: IssueContextMenuProps & { availableUsers?: User[] }) {
    const [isSubscribed, setIsSubscribed] = useState(false);
    const [isFavorite, setIsFavorite] = useState(false);
 
@@ -58,31 +85,74 @@ export function IssueContextMenu({ issueId }: IssueContextMenuProps) {
       removeIssueLabel,
       updateIssueProject,
       updateIssue,
+      deleteIssue,
       getIssueById,
    } = useIssuesStore();
 
+   const targetIssue = issue ?? (issueId ? getIssueById(issueId) : undefined);
+   const effectiveIssueId = targetIssue?.id ?? issueId;
+
    const handleStatusChange = (statusId: string) => {
-      if (!issueId) return;
+      if (!effectiveIssueId) return;
       const newStatus = status.find((s) => s.id === statusId);
       if (newStatus) {
-         updateIssueStatus(issueId, newStatus);
+         if (targetIssue && onStatusChange) {
+            onStatusChange(targetIssue, newStatus);
+         } else {
+            updateIssueStatus(effectiveIssueId, newStatus);
+         }
          toast.success(`Status updated to ${newStatus.name}`);
       }
    };
 
    const handlePriorityChange = (priorityId: string) => {
-      if (!issueId) return;
+      if (!effectiveIssueId) return;
       const newPriority = priorities.find((p) => p.id === priorityId);
       if (newPriority) {
-         updateIssuePriority(issueId, newPriority);
+         if (targetIssue && onPriorityChange) {
+            onPriorityChange(targetIssue, newPriority);
+         } else {
+            updateIssuePriority(effectiveIssueId, newPriority);
+         }
          toast.success(`Priority updated to ${newPriority.name}`);
       }
    };
 
-   const handleAssigneeChange = (userId: string | null) => {
-      if (!issueId) return;
-      const newAssignee = userId ? users.find((u) => u.id === userId) || null : null;
-      updateIssueAssignee(issueId, newAssignee);
+   const handleArchive = () => {
+      if (!targetIssue) return;
+      if (onArchive) {
+         onArchive(targetIssue);
+      }
+      toast.success('Issue archived');
+   };
+
+   const handleRestore = () => {
+      if (!targetIssue) return;
+      if (onRestore) {
+         onRestore(targetIssue);
+      }
+      toast.success('Issue restored');
+   };
+
+   const handleDelete = () => {
+      if (!targetIssue && !effectiveIssueId) return;
+      if (targetIssue && onDelete) {
+         onDelete(targetIssue);
+      } else if (effectiveIssueId) {
+         deleteIssue(effectiveIssueId);
+      }
+      toast.success('Issue deleted');
+   };
+
+   const handleAssigneeChange = async (userId: string | null) => {
+      const targetId = effectiveIssueId ?? issueId;
+      if (!targetId) return;
+      const newAssignee = userId ? availableUsers.find((u) => u.id === userId) || null : null;
+      if (targetIssue && onAssigneeChange) {
+         await onAssigneeChange(targetIssue, newAssignee);
+      } else {
+         updateIssueAssignee(targetId, newAssignee);
+      }
       toast.success(newAssignee ? `Assigned to ${newAssignee.name}` : 'Unassigned');
    };
 
@@ -183,26 +253,26 @@ export function IssueContextMenu({ issueId }: IssueContextMenuProps) {
 
             <ContextMenuSub>
                <ContextMenuSubTrigger>
-                  <User className="mr-2 size-4" /> Assignee
+                  <UserIcon className="mr-2 size-4" /> Assignee
                </ContextMenuSubTrigger>
-               <ContextMenuSubContent className="w-48">
+               <ContextMenuSubContent className="w-48 max-h-[300px] overflow-y-auto">
                   <ContextMenuItem onClick={() => handleAssigneeChange(null)}>
-                     <User className="size-4" /> Unassigned
+                     <UserIcon className="size-4" /> Unassigned
                   </ContextMenuItem>
-                  {users
-                     .filter((user) => user.teamIds.includes('CORE'))
-                     .map((user) => (
-                        <ContextMenuItem
-                           key={user.id}
-                           onClick={() => handleAssigneeChange(user.id)}
-                        >
-                           <Avatar className="size-4">
-                              <AvatarImage src={user.avatarUrl} alt={user.name} />
-                              <AvatarFallback>{user.name[0]}</AvatarFallback>
-                           </Avatar>
-                           {user.name}
-                        </ContextMenuItem>
-                     ))}
+                  {availableUsers.map((user) => (
+                     <ContextMenuItem
+                        key={user.id}
+                        onClick={() => handleAssigneeChange(user.id)}
+                     >
+                        <Avatar className="size-4">
+                           <AvatarImage src={user.avatarUrl} alt={user.name} />
+                           <AvatarFallback className="text-[9px]">
+                              {user.name[0]?.toUpperCase() ?? 'U'}
+                           </AvatarFallback>
+                        </Avatar>
+                        <span className="truncate">{user.name}</span>
+                     </ContextMenuItem>
+                  ))}
                </ContextMenuSubContent>
             </ContextMenuSub>
 
@@ -345,10 +415,72 @@ export function IssueContextMenu({ issueId }: IssueContextMenuProps) {
 
          <ContextMenuSeparator />
 
-         <ContextMenuItem variant="destructive">
+         {targetIssue?.archivedAt ? (
+            <ContextMenuItem onClick={handleRestore}>
+               <ArchiveRestore className="size-4" /> Restore to active
+            </ContextMenuItem>
+         ) : (
+            <ContextMenuItem onClick={handleArchive}>
+               <Archive className="size-4" /> Archive...
+            </ContextMenuItem>
+         )}
+
+         <ContextMenuItem variant="destructive" onClick={handleDelete}>
             <Trash2 className="size-4" /> Delete...
             <ContextMenuShortcut>⌘⌫</ContextMenuShortcut>
          </ContextMenuItem>
       </ContextMenuContent>
    );
+}
+
+function ConnectedIssueContextMenu(props: IssueContextMenuProps) {
+   const domainWorkspaceId = useWorkspaceId(props.workspaceId);
+   const { data: membersData } = useWorkspaceMembers(domainWorkspaceId, 100);
+
+   const dynamicUsers = useMemo<User[]>(() => {
+      if (!membersData?.pages) return [];
+      const allMembers = membersData.pages.flatMap((page) => page?.data ?? []);
+      return allMembers
+         .filter((m) => m && m.state === 'ACTIVE' && m.role !== 'GUEST')
+         .map((m) => {
+            const displayName =
+               m.user?.name?.trim() ||
+               (m.user?.email ? m.user.email.split('@')[0] : '') ||
+               (m.role === 'OWNER' ? 'Owner' : 'Member');
+            return {
+               id: m.id,
+               name: displayName,
+               email: m.user?.email || '',
+               avatarUrl:
+                  m.user?.avatarUrl ||
+                  `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(m.id)}`,
+               status: 'online' as const,
+               role: (m.role === 'OWNER' || m.role === 'ADMIN' ? 'Admin' : 'Member') as User['role'],
+               joinedDate: m.createdAt,
+               timezone: 'UTC',
+               teamIds: [],
+            };
+         });
+   }, [membersData]);
+
+   useEffect(() => {
+      if (dynamicUsers.length > 0) {
+         registerKnownAssignees(dynamicUsers);
+      }
+   }, [dynamicUsers]);
+
+   const availableUsers = useMemo(() => {
+      if (dynamicUsers.length > 0) return dynamicUsers;
+      return users;
+   }, [dynamicUsers]);
+
+   return <InnerIssueContextMenu {...props} availableUsers={availableUsers} />;
+}
+
+export function IssueContextMenu(props: IssueContextMenuProps) {
+   const queryClient = useContext(QueryClientContext);
+   if (!queryClient) {
+      return <InnerIssueContextMenu {...props} availableUsers={users} />;
+   }
+   return <ConnectedIssueContextMenu {...props} />;
 }

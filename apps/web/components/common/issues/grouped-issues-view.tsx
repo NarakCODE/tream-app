@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Issue, sortIssuesByPriority } from '@/mock-data/issues';
-import { priorities } from '@/mock-data/priorities';
+import { priorities, Priority } from '@/mock-data/priorities';
 import { Status } from '@/mock-data/status';
 import { useDisplaySettingsStore } from '@/store/display-settings-store';
 import { useFilterStore } from '@/store/filter-store';
@@ -14,6 +14,8 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { GroupIssues, IssueGroupDescriptor } from './group-issues';
 import { CustomDragLayer } from './issue-grid';
 
+import type { User as AssigneeUserType } from '@/mock-data/users';
+
 interface GroupedIssuesViewProps {
    /** Issues to display (after the filter bar has been applied). */
    issues: Issue[];
@@ -22,6 +24,13 @@ interface GroupedIssuesViewProps {
    /** Statuses to render when grouping by status (empty groups are skipped unless enabled). */
    statuses: Status[];
    isViewTypeGrid: boolean;
+   onStatusChange?: (issue: Issue, newStatus: Status) => void;
+   onPriorityChange?: (issue: Issue, newPriority: Priority) => void;
+   onAssigneeChange?: (issue: Issue, newAssignee: AssigneeUserType | null) => void | Promise<unknown>;
+   onArchive?: (issue: Issue) => void;
+   onRestore?: (issue: Issue) => void;
+   onDelete?: (issue: Issue) => void;
+   workspaceId?: string;
 }
 
 interface GroupEntry {
@@ -128,6 +137,13 @@ export const GroupedIssuesView: FC<GroupedIssuesViewProps> = ({
    totalIssues,
    statuses,
    isViewTypeGrid,
+   onStatusChange,
+   onPriorityChange,
+   onAssigneeChange,
+   onArchive,
+   onRestore,
+   onDelete,
+   workspaceId,
 }) => {
    const { grouping, ordering, completedIssues, showEmptyGroups } = useDisplaySettingsStore();
    const { filters } = useFilterStore();
@@ -223,7 +239,7 @@ export const GroupedIssuesView: FC<GroupedIssuesViewProps> = ({
             }
             case 'status':
             default: {
-               return statuses.map((statusItem) => ({
+               const statusGroups = statuses.map((statusItem) => ({
                   group: {
                      id: statusItem.id,
                      name: statusItem.name,
@@ -234,6 +250,34 @@ export const GroupedIssuesView: FC<GroupedIssuesViewProps> = ({
                   issues: visibleIssues.filter((issue) => issue.status.id === statusItem.id),
                   total: scopeIssues.filter((issue) => issue.status.id === statusItem.id).length,
                }));
+
+               const knownStatusIds = new Set(statuses.map((s) => s.id));
+               const extraIssues = visibleIssues.filter((issue) => !knownStatusIds.has(issue.status.id));
+               const extraScopeIssues = scopeIssues.filter((issue) => !knownStatusIds.has(issue.status.id));
+
+               if (extraIssues.length > 0 || extraScopeIssues.length > 0) {
+                  const extraMap = groupByKey(extraScopeIssues, (issue) => issue.status.id);
+                  const extraVisibleMap = groupByKey(extraIssues, (issue) => issue.status.id);
+
+                  for (const [statusId, totalGroup] of extraMap.entries()) {
+                     const sample = totalGroup[0];
+                     const sampleStatus = sample?.status;
+                     const Icon = sampleStatus?.icon ?? Box;
+                     statusGroups.push({
+                        group: {
+                           id: statusId,
+                           name: sampleStatus?.name ?? statusId,
+                           color: sampleStatus?.color ?? '#8f9299',
+                           icon: <Icon />,
+                           status: sampleStatus,
+                        },
+                        issues: extraVisibleMap.get(statusId) ?? [],
+                        total: totalGroup.length,
+                     });
+                  }
+               }
+
+               return statusGroups;
             }
          }
       };
@@ -269,6 +313,13 @@ export const GroupedIssuesView: FC<GroupedIssuesViewProps> = ({
                            group={entry.group}
                            issues={entry.issues}
                            count={entry.issues.length}
+                           onStatusChange={onStatusChange}
+                           onPriorityChange={onPriorityChange}
+                           onAssigneeChange={onAssigneeChange}
+                           onArchive={onArchive}
+                           onRestore={onRestore}
+                           onDelete={onDelete}
+                           workspaceId={workspaceId}
                         />
                      ))}
                      {hiddenGroups.length > 0 && <HiddenColumns entries={hiddenGroups} />}
@@ -307,6 +358,13 @@ export const GroupedIssuesView: FC<GroupedIssuesViewProps> = ({
                   group={entry.group}
                   issues={entry.issues}
                   count={entry.issues.length}
+                  onStatusChange={onStatusChange}
+                  onPriorityChange={onPriorityChange}
+                  onAssigneeChange={onAssigneeChange}
+                  onArchive={onArchive}
+                  onRestore={onRestore}
+                  onDelete={onDelete}
+                  workspaceId={workspaceId}
                />
             ))}
             {showFooter && <HiddenByFiltersFooter hiddenCount={hiddenCount} />}

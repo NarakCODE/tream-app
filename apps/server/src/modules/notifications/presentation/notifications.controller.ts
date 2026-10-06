@@ -64,6 +64,13 @@ export class NotificationsController {
   ) {
     return this.service.get(r.user.id, w, id);
   }
+  @Get(':id/actor') actor(
+    @Req() r: Request,
+    @Param('workspaceId') w: string,
+    @Param('id') id: string,
+  ) {
+    return this.service.actor(r.user.id, w, id);
+  }
   @Patch(':id/read') @TransactionalCommand() read(
     @Req() r: Request,
     @Param('workspaceId') w: string,

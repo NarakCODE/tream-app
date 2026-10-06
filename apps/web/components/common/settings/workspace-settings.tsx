@@ -9,20 +9,11 @@ import Link from 'next/link';
 
 import { useActiveWorkspace } from '@/features/auth/hooks';
 import { useUpdateWorkspace, useLeaveWorkspace } from '@/features/workspaces/hooks';
+import { DestructiveConfirmationDialog } from '@/components/common/destructive-confirmation-dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-   AlertDialog,
-   AlertDialogAction,
-   AlertDialogCancel,
-   AlertDialogContent,
-   AlertDialogDescription,
-   AlertDialogFooter,
-   AlertDialogHeader,
-   AlertDialogTitle,
-   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { SettingsCard, SettingsRow, SettingsSection, SettingsShell } from './shared';
 
 export default function WorkspaceSettings() {
@@ -84,9 +75,9 @@ export default function WorkspaceSettings() {
       );
    };
 
-   const handleLeaveWorkspace = () => {
+   const handleLeaveWorkspace = async () => {
       if (!workspace) return;
-      leaveWorkspace.mutate(
+      await leaveWorkspace.mutateAsync(
          { id: workspace.id, key: crypto.randomUUID() },
          {
             onSuccess: () => {
@@ -250,8 +241,8 @@ export default function WorkspaceSettings() {
                   title="Leave workspace"
                   description="Revoke your membership and access to this workspace"
                   trailing={
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
+                     <DestructiveConfirmationDialog
+                        trigger={
                            <Button
                               size="sm"
                               variant="destructive"
@@ -259,33 +250,29 @@ export default function WorkspaceSettings() {
                            >
                               Leave workspace
                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                           <AlertDialogHeader>
-                              <AlertDialogTitle>Leave workspace?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                 Are you sure you want to leave &quot;{workspace.name}&quot;? You
-                                 will lose access to all issues, projects, and documents in this
-                                 workspace.
-                                 {isOwner && (
-                                    <span className="block mt-2 font-medium text-amber-500">
-                                       Note: If you are the last active owner, you must assign
-                                       another owner before leaving.
-                                    </span>
-                                 )}
-                              </AlertDialogDescription>
-                           </AlertDialogHeader>
-                           <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                 onClick={handleLeaveWorkspace}
-                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                 Leave
-                              </AlertDialogAction>
-                           </AlertDialogFooter>
-                        </AlertDialogContent>
-                     </AlertDialog>
+                        }
+                        title="Leave workspace?"
+                        description={
+                           <>
+                              Are you sure you want to leave &quot;{workspace.name}&quot;? You will
+                              lose access to all issues, projects, and documents in this workspace.
+                           </>
+                        }
+                        notice={
+                           isOwner && (
+                              <Alert variant="destructive">
+                                 <AlertTitle>Last active owner</AlertTitle>
+                                 <AlertDescription>
+                                    If you are the last active owner, you must assign another owner
+                                    before leaving.
+                                 </AlertDescription>
+                              </Alert>
+                           )
+                        }
+                        confirmLabel="Leave"
+                        pendingLabel="Leaving…"
+                        onConfirm={handleLeaveWorkspace}
+                     />
                   }
                />
             </SettingsCard>

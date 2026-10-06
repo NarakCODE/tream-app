@@ -9,7 +9,7 @@ function Avatar({ className, ...props }: React.ComponentProps<typeof AvatarPrimi
    return (
       <AvatarPrimitive.Root
          data-slot="avatar"
-         className={cn('relative flex size-8 shrink-0 overflow-hidden rounded-full', className)}
+         className={cn('relative flex size-8 shrink-0 rounded-full', className)}
          {...props}
       />
    );
@@ -19,7 +19,7 @@ function AvatarImage({ className, ...props }: React.ComponentProps<typeof Avatar
    return (
       <AvatarPrimitive.Image
          data-slot="avatar-image"
-         className={cn('aspect-square size-full', className)}
+         className={cn('aspect-square size-full rounded-full object-cover', className)}
          {...props}
       />
    );
@@ -41,4 +41,17 @@ function AvatarFallback({
    );
 }
 
-export { Avatar, AvatarImage, AvatarFallback };
+function AvatarBadge({ className, ...props }: React.ComponentProps<'span'>) {
+   return (
+      <span
+         data-slot="avatar-badge"
+         className={cn(
+            'absolute bottom-0 right-0 z-10 size-2.5 rounded-full bg-primary ring-2 ring-background',
+            className
+         )}
+         {...props}
+      />
+   );
+}
+
+export { Avatar, AvatarImage, AvatarFallback, AvatarBadge };

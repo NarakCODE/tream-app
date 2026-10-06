@@ -12,3 +12,6 @@ export * from "./auth";
 export * from "./permissions";
 export * from "./envelope";
 export * from "./invitation";
+export * from "./notification";
+export * from "./initiative";
+export * from "./document";

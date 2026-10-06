@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { parseDomainFromHost } from '@/lib/domain-url';
 
 const AUTH_COOKIE_NAME = 'tream_access';
 
@@ -13,6 +14,7 @@ const PUBLIC_PATHS = new Set([
    '/auth/verify-email',
    '/auth/magic-link',
 ]);
+
 export function middleware(request: NextRequest) {
    const { pathname, search } = request.nextUrl;
    const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
@@ -35,7 +37,35 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
    }
 
-   return NextResponse.next();
+   // Dynamic domain URL support: check host for subdomain tenant slug
+   const hostname = request.headers.get('host') || request.nextUrl.hostname;
+   const domainSlug = parseDomainFromHost(hostname);
+   const requestHeaders = new Headers(request.headers);
+
+   if (domainSlug) {
+      requestHeaders.set('x-workspace-slug', domainSlug);
+      // Rewrite subdomain request to /{domainSlug}{pathname} if not already path-scoped
+      if (
+         !pathname.startsWith(`/${domainSlug}`) &&
+         !isPublicAuthPath &&
+         pathname !== '/workspaces' &&
+         pathname !== '/onboarding'
+      ) {
+         const url = request.nextUrl.clone();
+         url.pathname = `/${domainSlug}${pathname === '/' ? '/my-issues' : pathname}`;
+         return NextResponse.rewrite(url, {
+            request: {
+               headers: requestHeaders,
+            },
+         });
+      }
+   }
+
+   return NextResponse.next({
+      request: {
+         headers: requestHeaders,
+      },
+   });
 }
 
 export const config = {

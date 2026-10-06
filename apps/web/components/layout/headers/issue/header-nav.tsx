@@ -10,6 +10,9 @@ import { ChevronDown, ChevronRight, ChevronUp, MoreHorizontal, Star } from 'luci
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
+import { useActiveWorkspace } from '@/features/auth/hooks';
+import { useIssueDetail, useIssueLookup } from '@/features/issues/hooks';
+
 /**
  * Issue page header: breadcrumb (team › cycle › identifier + title) and
  * previous / next navigation across the issue list.
@@ -17,11 +20,24 @@ import { useParams } from 'next/navigation';
 export default function HeaderNav() {
    const { orgId, issueId } = useParams<{ orgId: string; issueId: string }>();
    const { issues } = useIssuesStore();
+   const { data: activeWorkspace } = useActiveWorkspace();
+   const workspaceId = activeWorkspace?.workspace?.id ?? '';
+
+   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      issueId ?? ''
+   );
+   const detailQuery = useIssueDetail(workspaceId, isUuid ? (issueId ?? '') : '');
+   const lookupQuery = useIssueLookup(workspaceId, !isUuid ? (issueId ?? '') : '');
+   const serverIssue = isUuid ? detailQuery.data : lookupQuery.data;
 
    const team = teams[0];
-   const index = issues.findIndex((candidate) => candidate.identifier === issueId);
-   const issue = index >= 0 ? issues[index] : undefined;
-   const cycle = issue?.cycleId ? getCycleById(issue.cycleId) : undefined;
+   const index = issues.findIndex(
+      (candidate) => candidate.identifier === issueId || candidate.id === issueId
+   );
+   const mockIssue = index >= 0 ? issues[index] : undefined;
+   const issueTitle = serverIssue?.title ?? mockIssue?.title;
+   const issueIdentifier = serverIssue?.identifier ?? mockIssue?.identifier ?? issueId;
+   const cycle = mockIssue?.cycleId ? getCycleById(mockIssue.cycleId) : undefined;
 
    const previousIssue = index > 0 ? issues[index - 1] : undefined;
    const nextIssue = index >= 0 && index < issues.length - 1 ? issues[index + 1] : undefined;
@@ -52,12 +68,12 @@ export default function HeaderNav() {
                </>
             )}
             <ChevronRight className="size-3.5 text-muted-foreground shrink-0" />
-            {issue && (
+            {(issueTitle || issueIdentifier) && (
                <span className="text-sm min-w-0 truncate">
                   <span className="font-medium text-muted-foreground mr-1.5">
-                     {issue.identifier}
+                     {issueIdentifier}
                   </span>
-                  <span className="font-medium">{issue.title}</span>
+                  <span className="font-medium">{issueTitle}</span>
                </span>
             )}
             <Star className="size-3.5 text-muted-foreground shrink-0" />

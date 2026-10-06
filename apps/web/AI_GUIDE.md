@@ -118,7 +118,6 @@ Two flavors live side by side and expose hook-shaped APIs:
 | Store                                                                         | Kind                | Role                                                                                                                                                                                                                                                                                                                                   | Mutates data?             |
 | ----------------------------------------------------------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
 | `issues-store.ts`                                                             | Zustand             | Holds the issues array + `issuesByStatus`; CRUD (`addIssue`, `updateIssue`, `deleteIssue`, `updateIssueStatus/Priority/Assignee/Project`, label add/remove); read filters (`filterByStatus/Priority/Assignee/Label/Project/Cycle`, `searchIssues`, `filterIssues` — supports status/assignee/priority/labels/project/cycle/statusType) | ✅ the main mutable store |
-| `notifications-store.ts`                                                      | Zustand             | Inbox items, selection, read/unread                                                                                                                                                                                                                                                                                                    | ✅                        |
 | `filter-store.ts`                                                             | **nuqs**            | Issue filters in the URL under a single `?filters=` param — the state is bazza/ui's `FiltersState` (`{ columnId, type, operator, values }[]`), so operators like _is not_ / _exclude_ survive in shareable URLs                                                                                                                        | URL state                 |
 | `projects-filter-store.ts`, `team-filter-store.ts`, `members-filter-store.ts` | **nuqs**            | Per-page filters + sorting in the URL (`?sort=…`)                                                                                                                                                                                                                                                                                      | URL state                 |
 | `display-settings-store.ts`                                                   | Zustand (persisted) | Linear-style "Display" options: grouping (status/assignee/priority/project/none), ordering (priority/created/title), completed-issue visibility, show empty groups, per-row display properties (ID, status, priority, labels, project, due date, created, assignee, cycle)                                                             | UI state                  |
@@ -174,11 +173,11 @@ Each feature is self-contained under `components/common/<feature>` + its header 
   `mock-data/cycles.ts`, recharts, the issues feature.
 - **Team Home** (`components/common/teams/team-{overview,documents,members}.tsx`
    - `components/layout/headers/team/`) — needs `mock-data/{teams,documents}`.
-- **Inbox** (`components/common/inbox/`) — resizable two-pane notifications (single-pane
-  with back navigation on mobile). Notifications reference REAL issues by identifier
-  (`InboxItem extends Issue`) and the preview pane renders the actual issue (live store
-  data + rich description + properties column). Needs `notifications-store`,
-  `mock-data/inbox.ts`, `react-resizable-panels`, the issue-details renderer.
+- **Inbox** (`components/common/inbox/`) — cursor-paginated workspace notifications via
+  `features/notifications/` and TanStack Query, with read/archive/snooze actions,
+  channel preferences, delivery retries and metadata-driven issue/project/initiative/
+  document previews. Selection is local UI state; notification server state is cached
+  in scoped query keys.
 - **Projects / Teams / Members tables** (`components/common/{projects,teams,members}/`)
   — plain sorted/filtered tables + their filter stores.
 - **Member profile** (`components/common/members/member-profile.tsx` +
@@ -297,11 +296,10 @@ The mock layer was designed to be swapped. The seams:
      directly (`import { projects } from '@/mock-data/projects'` etc.). Replace these
      imports with your fetching layer (React Query, server components, SWR…), keeping
      the same shapes.
-3. **Replace writes.** All issue mutations funnel through `issues-store` actions
-   (`addIssue`, `updateIssue`, `deleteIssue`, `updateIssueStatus`, …) and notification
-   mutations through `notifications-store`. Add your API calls inside those actions
-   (optimistic update = keep the current `set(...)`, then call the API and roll back
-   on failure). No component calls a mutation outside these stores.
+3. **Replace writes.** Issue mutations funnel through `issues-store` actions
+   (`addIssue`, `updateIssue`, `deleteIssue`, `updateIssueStatus`, …). Notifications
+   use TanStack Query mutation hooks in `features/notifications/hooks.ts` with scoped
+   optimistic cache updates and rollback.
 4. **Search & filters** are pure client-side functions in `issues-store`
    (`searchIssues`, `filterIssues`). Point them at your API if you need server-side
    search. Filter **selections** already live in the URL (nuqs) — deep links keep

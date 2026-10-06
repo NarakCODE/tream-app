@@ -5,7 +5,15 @@ export type SidebarVisibility = 'always' | 'badged' | 'never';
 export type SidebarBadgeStyle = 'count' | 'dot';
 
 export type SidebarItemKey =
-   'inbox' | 'reviews' | 'my-issues' | 'initiatives' | 'projects' | 'views' | 'teams' | 'members';
+   | 'inbox'
+   | 'reviews'
+   | 'my-issues'
+   | 'issues'
+   | 'initiatives'
+   | 'projects'
+   | 'views'
+   | 'teams'
+   | 'members';
 
 export type SidebarSection = 'personal' | 'workspace';
 
@@ -23,6 +31,7 @@ const DEFAULT_VISIBILITY: Record<SidebarItemKey, SidebarVisibility> = {
    'inbox': 'always',
    'reviews': 'always',
    'my-issues': 'always',
+   'issues': 'always',
    'initiatives': 'always',
    'projects': 'always',
    'views': 'always',
@@ -37,7 +46,7 @@ const DEFAULT_VISIBILITY: Record<SidebarItemKey, SidebarVisibility> = {
  */
 const DEFAULT_ORDER: Record<SidebarSection, SidebarItemKey[]> = {
    personal: ['inbox', 'reviews', 'my-issues'],
-   workspace: ['initiatives', 'projects', 'views', 'teams', 'members'],
+   workspace: ['issues', 'initiatives', 'projects', 'views', 'teams', 'members'],
 };
 
 export const useSidebarPrefsStore = create<SidebarPrefsState>()(

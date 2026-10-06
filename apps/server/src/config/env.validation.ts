@@ -109,8 +109,7 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  MAGIC_LINK_BASE_URL =
-    'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002';
+  MAGIC_LINK_BASE_URL = 'http://localhost:3000';
 
   @IsOptional() @IsIn(['filesystem', 's3']) FILES_STORAGE_DRIVER = 'filesystem';
   @IsOptional() @IsString() @IsNotEmpty() FILES_LOCAL_ROOT?: string;

@@ -25,6 +25,7 @@ interface IssuesState {
    getAllIssues: () => Issue[];
 
    // Actions
+   setIssues: (issues: Issue[]) => void;
    addIssue: (issue: Issue) => void;
    updateIssue: (id: string, updatedIssue: Partial<Issue>) => void;
    deleteIssue: (id: string) => void;
@@ -68,6 +69,13 @@ export const useIssuesStore = create<IssuesState>((set, get) => ({
    getAllIssues: () => get().issues,
 
    // Actions
+   setIssues: (issues: Issue[]) => {
+      set({
+         issues,
+         issuesByStatus: groupIssuesByStatus(issues),
+      });
+   },
+
    addIssue: (issue: Issue) => {
       set((state) => {
          const newIssues = [...state.issues, issue];

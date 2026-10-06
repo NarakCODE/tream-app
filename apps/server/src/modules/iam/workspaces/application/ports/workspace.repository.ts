@@ -7,7 +7,15 @@ import type {
 } from '../../../../../database/schema/workspace.schema';
 import type { CursorTuple } from '../../../../../common/pagination/cursor';
 export type Workspace = typeof workspaces.$inferSelect;
-export type Membership = typeof memberships.$inferSelect;
+export type MembershipUser = {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+};
+export type Membership = typeof memberships.$inferSelect & {
+  user?: MembershipUser;
+};
 export type Invitation = typeof workspaceInvitations.$inferSelect;
 export type Preferences = typeof workspacePreferences.$inferInsert.preferences;
 export abstract class WorkspaceRepository {

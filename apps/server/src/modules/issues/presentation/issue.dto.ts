@@ -62,6 +62,7 @@ export class IssueListDto extends CursorPaginationQueryDto {
   @ValidateIf(optional) @IsString() @MaxLength(100) projectId?: string;
   @ValidateIf(optional) @IsString() @MaxLength(100) cycleId?: string;
   @ValidateIf(optional) @IsString() @MaxLength(100) assigneeId?: string;
+  @ValidateIf(optional) @IsString() @MaxLength(100) createdById?: string;
   @ValidateIf(optional) @IsString() @MaxLength(100) parentId?: string;
   @ValidateIf(optional)
   @IsIn(['NO_PRIORITY', 'LOW', 'MEDIUM', 'HIGH', 'URGENT'])

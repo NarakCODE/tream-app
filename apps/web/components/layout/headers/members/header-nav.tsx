@@ -5,6 +5,8 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { users } from '@/mock-data/users';
 import { Plus } from 'lucide-react';
 
+import { InviteMembersDialog } from '@/components/common/members/invite-members-dialog';
+
 export default function HeaderNav() {
    return (
       <div className="w-full flex justify-between items-center border-b py-1.5 px-6 h-10">
@@ -16,10 +18,14 @@ export default function HeaderNav() {
             </div>
          </div>
          <div className="flex items-center gap-2">
-            <Button className="relative" size="xs" variant="secondary">
-               <Plus className="size-4" />
-               Invite
-            </Button>
+            <InviteMembersDialog
+               trigger={
+                  <Button className="relative gap-1.5" size="xs" variant="secondary">
+                     <Plus className="size-4" />
+                     Invite
+                  </Button>
+               }
+            />
          </div>
       </div>
    );

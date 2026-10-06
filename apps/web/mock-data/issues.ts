@@ -21,6 +21,12 @@ export interface Issue {
    subissues?: string[];
    rank: string;
    dueDate?: string;
+   estimate?: number | null;
+   revision?: number;
+   archivedAt?: string | null;
+   workspaceId?: string;
+   teamId?: string;
+   statusId?: string;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -1,6 +1,7 @@
 'use client';
 
-import { useActiveWorkspace } from '@/features/auth/hooks';
+import { useActiveWorkspace, useCurrentUser } from '@/features/auth/hooks';
+import { useUnreadCount } from '@/features/notifications/hooks';
 
 import {
    SidebarGroup,
@@ -10,7 +11,6 @@ import {
 } from '@/components/ui/sidebar';
 import { forYouReviews } from '@/mock-data/reviews';
 import { inboxItems } from '@/mock-data/side-bar-nav';
-import { useNotificationsStore } from '@/store/notifications-store';
 import {
    isSidebarItemVisible,
    resolveOrder,
@@ -30,11 +30,12 @@ export function NavInbox() {
    const active = useActiveWorkspace();
    const slug = active.data?.workspace.slug;
    const { visibility, badgeStyle, order } = useSidebarPrefsStore();
-   const { getUnreadCount } = useNotificationsStore();
+   const user = useCurrentUser();
+   const unreadCount = useUnreadCount(active.data?.workspaceId ?? '', user.data?.id ?? '');
    const [mounted, setMounted] = useState(false);
    useEffect(() => setMounted(true), []);
 
-   const unread = mounted ? getUnreadCount() : 0;
+   const unread = mounted ? (unreadCount.data?.unreadCount ?? 0) : 0;
 
    const orderedItems = mounted
       ? resolveOrder(order.personal, inboxItems.map((item) => ITEM_KEYS[item.name]).filter(Boolean))

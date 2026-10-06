@@ -9,6 +9,7 @@ interface MainLayoutProps {
    children: React.ReactNode;
    header?: React.ReactNode;
    headersNumber?: 1 | 2;
+   className?: string;
 }
 
 const isEmptyHeader = (header: React.ReactNode | undefined): boolean => {
@@ -27,7 +28,12 @@ const isEmptyHeader = (header: React.ReactNode | undefined): boolean => {
    return false;
 };
 
-export default function MainLayout({ children, header, headersNumber = 2 }: MainLayoutProps) {
+export default function MainLayout({
+   children,
+   header,
+   headersNumber = 2,
+   className,
+}: MainLayoutProps) {
    const height = {
       1: 'h-[calc(100svh-40px)] lg:h-[calc(100svh-56px)]',
       2: 'h-[calc(100svh-80px)] lg:h-[calc(100svh-96px)]',
@@ -43,7 +49,10 @@ export default function MainLayout({ children, header, headersNumber = 2 }: Main
                <div
                   className={cn(
                      'overflow-auto w-full',
-                     isEmptyHeader(header) ? 'h-full' : height[headersNumber as keyof typeof height]
+                     isEmptyHeader(header)
+                        ? 'h-full'
+                        : height[headersNumber as keyof typeof height],
+                     className
                   )}
                >
                   {children}

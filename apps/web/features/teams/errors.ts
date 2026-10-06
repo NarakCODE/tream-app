@@ -50,7 +50,9 @@ export function mapTeamError(error: unknown, action: TeamActionContext): string 
             case 'retire-status':
                return error.message || 'Workflow status or team was not found.';
             default:
-               return error.message || 'The requested team was not found or is no longer accessible.';
+               return (
+                  error.message || 'The requested team was not found or is no longer accessible.'
+               );
          }
       }
 
@@ -68,8 +70,7 @@ export function mapTeamError(error: unknown, action: TeamActionContext): string 
             case 'update-member':
             case 'remove-member':
                return (
-                  error.message ||
-                  'Cannot demote or remove the sole administrator of the team.'
+                  error.message || 'Cannot demote or remove the sole administrator of the team.'
                );
             case 'update-status':
                return (

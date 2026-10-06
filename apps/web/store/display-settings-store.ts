@@ -48,6 +48,7 @@ interface DisplaySettingsState {
    showSubIssues: boolean;
    showEmptyGroups: boolean;
    displayProperties: Record<DisplayPropertyKey, boolean>;
+   collapsedGroups: Record<string, boolean>;
 
    setGrouping: (grouping: GroupingKey) => void;
    setOrdering: (ordering: OrderingKey) => void;
@@ -56,6 +57,8 @@ interface DisplaySettingsState {
    setShowSubIssues: (value: boolean) => void;
    setShowEmptyGroups: (value: boolean) => void;
    toggleDisplayProperty: (key: DisplayPropertyKey) => void;
+   toggleGroupCollapsed: (groupId: string) => void;
+   setGroupCollapsed: (groupId: string, collapsed: boolean) => void;
    resetDisplaySettings: () => void;
 }
 
@@ -65,8 +68,9 @@ const DEFAULTS = {
    orderCompletedByRecency: false,
    completedIssues: 'all' as CompletedIssuesFilter,
    showSubIssues: true,
-   showEmptyGroups: false,
+   showEmptyGroups: true,
    displayProperties: DEFAULT_DISPLAY_PROPERTIES,
+   collapsedGroups: {} as Record<string, boolean>,
 };
 
 /**
@@ -90,6 +94,20 @@ export const useDisplaySettingsStore = create<DisplaySettingsState>()(
                displayProperties: {
                   ...state.displayProperties,
                   [key]: !state.displayProperties[key],
+               },
+            })),
+         toggleGroupCollapsed: (groupId) =>
+            set((state) => ({
+               collapsedGroups: {
+                  ...state.collapsedGroups,
+                  [groupId]: !state.collapsedGroups[groupId],
+               },
+            })),
+         setGroupCollapsed: (groupId, collapsed) =>
+            set((state) => ({
+               collapsedGroups: {
+                  ...state.collapsedGroups,
+                  [groupId]: collapsed,
                },
             })),
          resetDisplaySettings: () => set({ ...DEFAULTS }),

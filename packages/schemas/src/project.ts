@@ -18,6 +18,13 @@ export const projectSchema = z.object({
 });
 export type Project = z.infer<typeof projectSchema>;
 
+export const projectDetailSchema = projectSchema.omit({ status: true }).extend({
+  workspaceId: z.string(),
+  statusId: z.string(),
+  revision: z.number().int().min(1),
+  teamIds: z.array(z.string()),
+});
+
 export const createProjectSchema = z.object({
   name: z.string().min(1).max(200),
   key: z.string().optional(),

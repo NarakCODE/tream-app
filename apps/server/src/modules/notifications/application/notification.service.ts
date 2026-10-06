@@ -4,12 +4,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import {
   notifications,
   notificationPreferences,
   notificationDeliveryJobs,
+  memberships,
+  users,
 } from '../../../database/schema';
 import { DatabaseService } from '../../../database/database.service';
 import type { DatabaseTransaction as Tx } from '../../../database/transaction';
@@ -73,6 +75,30 @@ export class NotificationService {
       void title;
       void body;
       return metadata;
+    });
+  }
+  actor(userId: string, w: string, id: string) {
+    return this.db.db.transaction(async (tx) => {
+      const { row } = await this.access.owned(tx, userId, w, id);
+      if (!row.actorMembershipId) return null;
+      const [actor] = await tx
+        .select({
+          membershipId: memberships.id,
+          name: users.fullName,
+          avatarUrl: users.avatarUrl,
+        })
+        .from(memberships)
+        .innerJoin(users, eq(users.id, memberships.userId))
+        .where(
+          and(
+            eq(memberships.workspaceId, w),
+            eq(memberships.id, row.actorMembershipId),
+            eq(memberships.state, 'ACTIVE'),
+            isNull(users.disabledAt),
+          ),
+        )
+        .limit(1);
+      return actor ?? null;
     });
   }
   change(

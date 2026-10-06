@@ -4,28 +4,30 @@
 
 The table describes ownership, not a claim that every listed capability is implemented. See [M01–M04](../../docs/M01-M04.md), [M05](../../docs/M05.md) and [M06](../../docs/M06.md) and [M07–M09](../../docs/M07-M09.md) and [M10](../../docs/M10.md) for mounted routes and guarantees. Team settings configure cycle planning; M08 owns cycle APIs and workers. Issue creation and transfers use the exported transactional team allocator.
 
-| Module        | Responsibility                                                 |
-| ------------- | -------------------------------------------------------------- |
-| IAM           | Authentication, users, workspaces, memberships and invitations |
-| Teams         | Teams, team memberships and workflow statuses                  |
-| Projects      | Projects, milestones, memberships and updates                  |
-| Issues        | Issues, identifiers, assignments and relationships             |
-| Cycles        | Iterations and rollover                                        |
-| Collaboration | Comments, reactions, labels, subscribers and activity          |
-| Initiatives   | Initiatives and project associations                           |
-| Documents     | Documents and ownership                                        |
-| Files         | Uploads, storage and attachments                               |
-| Views         | Saved views, favorites and display preferences                 |
-| Notifications | Inbox, preferences and delivery                                |
-| Reviews       | Pull requests, reviews and viewed-file progress                |
-| Audit         | Audit history                                                  |
-| Eventing      | Versioned events, outbox and consumer receipts                 |
-| Integrations  | External integrations, OAuth and webhooks                      |
-| Contacts      | CRM contacts                                                   |
-| Companies     | CRM companies                                                  |
-| Deals         | CRM deals and stages                                           |
-| Tasks         | CRM follow-up tasks, separate from work-management issues      |
-| Dynamic Data  | Custom databases, fields and records                           |
+For the mounted issue routes, DTOs, visibility rules, revision and idempotency behavior, see the [Issues API reference](../../../../docs/issue-api.md). It also maps the server contract to the existing `apps/web/features/issues` feature and records current client gaps.
+
+| Module        | Responsibility                                                                            |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| IAM           | Authentication, users, workspaces, memberships and invitations                            |
+| Teams         | Teams, team memberships and workflow statuses                                             |
+| Projects      | Projects, milestones, memberships and updates                                             |
+| Issues        | Issues, identifiers, assignments and relationships ([API](../../../../docs/issue-api.md)) |
+| Cycles        | Iterations and rollover                                                                   |
+| Collaboration | Comments, reactions, labels, subscribers and activity                                     |
+| Initiatives   | Initiatives and project associations                                                      |
+| Documents     | Documents and ownership                                                                   |
+| Files         | Uploads, storage and attachments                                                          |
+| Views         | Saved views, favorites and display preferences                                            |
+| Notifications | Inbox, preferences and delivery                                                           |
+| Reviews       | Pull requests, reviews and viewed-file progress                                           |
+| Audit         | Audit history                                                                             |
+| Eventing      | Versioned events, outbox and consumer receipts                                            |
+| Integrations  | External integrations, OAuth and webhooks                                                 |
+| Contacts      | CRM contacts                                                                              |
+| Companies     | CRM companies                                                                             |
+| Deals         | CRM deals and stages                                                                      |
+| Tasks         | CRM follow-up tasks, separate from work-management issues                                 |
+| Dynamic Data  | Custom databases, fields and records                                                      |
 
 Feature code follows this layout:
 

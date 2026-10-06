@@ -31,7 +31,7 @@ The integration suite creates a separate temporary database and applies migratio
 
 `AppModule` composes `CoreModule` and `ApiModule`. Core owns configuration, logging, request context, database connections, common idempotency and health. IAM owns authentication and workspaces. Teams owns visibility, scoped team administration, workflow catalogs and cycle settings. Projects owns cross-team project visibility, lifecycle, scoped members, milestones and health update history. Eventing owns versioned contracts, event writing, consumer registration, leases/receipts and outbox monitoring. Audit exposes a transactional writer; general audit search is deferred to M14.
 
-Feature code uses application, domain, infrastructure and presentation boundaries. See [module inventory](./src/modules/README.md), [architecture](./docs/architecture.md) and the [backend roadmap](../../docs/roadmap/BACKEND_MILESTONES.md) for later milestones and release gates.
+Feature code uses application, domain, infrastructure and presentation boundaries. See [module inventory](./src/modules/README.md), the [Issues API reference](../../docs/issue-api.md), [architecture](./docs/architecture.md) and the [backend roadmap](../../docs/roadmap/BACKEND_MILESTONES.md) for module ownership, mounted issue routes, later milestones and release gates.
 
 ## Database and production setup
 

@@ -15,8 +15,10 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
-export interface SidebarSkeletonProps
-   extends Omit<React.ComponentProps<typeof Sidebar>, 'variant'> {
+export interface SidebarSkeletonProps extends Omit<
+   React.ComponentProps<typeof Sidebar>,
+   'variant'
+> {
    variant?: 'app' | 'settings';
    sidebarVariant?: React.ComponentProps<typeof Sidebar>['variant'];
 }

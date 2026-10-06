@@ -5,16 +5,27 @@ import { Button } from '@/components/ui/button';
 import { getCycleById } from '@/mock-data/cycles';
 import { IssueDetail } from '@/mock-data/issue-details';
 import { Issue } from '@/mock-data/issues';
-import { Ban, GitPullRequestArrow, Plus } from 'lucide-react';
+import { Archive, ArchiveRestore, Ban, GitPullRequestArrow, Plus, Trash2 } from 'lucide-react';
 import { AssigneeUser } from '../assignee-user';
 import { LabelBadge } from '../label-badge';
 import { PrioritySelector } from '../priority-selector';
 import { StatusSelector } from '../status-selector';
 import { IssueRefRow } from './content-blocks';
+import type { Priority } from '@/mock-data/priorities';
+import type { Status } from '@/mock-data/status';
+import type { User } from '@/mock-data/users';
 
 interface IssuePropertiesPanelProps {
    issue: Issue;
    detail: IssueDetail;
+   onStatusChange?: (status: Status) => void;
+   onPriorityChange?: (priority: Priority) => void;
+   onAssigneeChange?: (assignee: User | null) => void;
+   onArchive?: () => void;
+   onRestore?: () => void;
+   onDelete?: () => void;
+   isArchived?: boolean;
+   isMutating?: boolean;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -30,7 +41,18 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  * Right sidebar of the issue page: editable properties (status, priority,
  * assignee), cycle, labels, project + milestone, relations and linked PRs.
  */
-export function IssuePropertiesPanel({ issue, detail }: IssuePropertiesPanelProps) {
+export function IssuePropertiesPanel({
+   issue,
+   detail,
+   onStatusChange,
+   onPriorityChange,
+   onAssigneeChange,
+   onArchive,
+   onRestore,
+   onDelete,
+   isArchived,
+   isMutating,
+}: IssuePropertiesPanelProps) {
    const cycle = issue.cycleId ? getCycleById(issue.cycleId) : undefined;
 
    return (
@@ -38,15 +60,27 @@ export function IssuePropertiesPanel({ issue, detail }: IssuePropertiesPanelProp
          <Section title="Properties">
             <div className="flex flex-col gap-1.5">
                <div className="flex items-center gap-1.5 -ml-1.5">
-                  <StatusSelector status={issue.status} issueId={issue.id} />
+                  <StatusSelector
+                     status={issue.status}
+                     issueId={issue.id}
+                     onChange={onStatusChange}
+                  />
                   <span className="text-sm">{issue.status.name}</span>
                </div>
                <div className="flex items-center gap-1.5 -ml-1.5">
-                  <PrioritySelector priority={issue.priority} issueId={issue.id} />
+                  <PrioritySelector
+                     priority={issue.priority}
+                     issueId={issue.id}
+                     onChange={onPriorityChange}
+                  />
                   <span className="text-sm">{issue.priority.name}</span>
                </div>
                <div className="flex items-center gap-2 mt-0.5">
-                  <AssigneeUser user={issue.assignee} />
+                  <AssigneeUser
+                     user={issue.assignee}
+                     issueId={issue.id}
+                     onChange={onAssigneeChange}
+                  />
                   <span className="text-sm">{issue.assignee ? issue.assignee.name : 'Assign'}</span>
                </div>
                {cycle && (
@@ -123,6 +157,48 @@ export function IssuePropertiesPanel({ issue, detail }: IssuePropertiesPanelProp
                         </span>
                      </div>
                   ))}
+               </div>
+            </Section>
+         )}
+
+         {(onArchive || onRestore || onDelete) && (
+            <Section title="Actions">
+               <div className="flex flex-col gap-1.5">
+                  {isArchived ? (
+                     <Button
+                        variant="outline"
+                        size="sm"
+                        className="justify-start text-xs h-7"
+                        disabled={isMutating}
+                        onClick={onRestore}
+                     >
+                        <ArchiveRestore className="size-3.5 mr-1.5" />
+                        Restore issue
+                     </Button>
+                  ) : (
+                     <Button
+                        variant="outline"
+                        size="sm"
+                        className="justify-start text-xs h-7"
+                        disabled={isMutating}
+                        onClick={onArchive}
+                     >
+                        <Archive className="size-3.5 mr-1.5" />
+                        Archive issue
+                     </Button>
+                  )}
+                  {onDelete && (
+                     <Button
+                        variant="ghost"
+                        size="sm"
+                        className="justify-start text-xs h-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        disabled={isMutating}
+                        onClick={onDelete}
+                     >
+                        <Trash2 className="size-3.5 mr-1.5" />
+                        Delete issue
+                     </Button>
+                  )}
                </div>
             </Section>
          )}

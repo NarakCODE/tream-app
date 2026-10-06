@@ -2,11 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Heart } from 'lucide-react';
+import { Heart, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { RiEditLine } from '@remixicon/react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Issue } from '@/mock-data/issues';
 import { priorities } from '@/mock-data/priorities';
 import { status } from '@/mock-data/status';
@@ -21,11 +21,52 @@ import { ProjectSelector } from './project-selector';
 import { LabelSelector } from './label-selector';
 import { ranks } from '@/mock-data/issues';
 import { DialogTitle } from '@radix-ui/react-dialog';
+import { useWorkspaceId } from '@/features/workspaces/context';
+import { useActiveWorkspace } from '@/features/auth/hooks';
+import { useTeamList, useTeamStatuses } from '@/features/teams/hooks';
+import { useCreateIssue } from '@/features/issues/hooks';
+import { findTeamStatusIdForUiStatus, issueItemToUiIssue } from '@/features/issues/mapping';
+import type { WorkPriority } from '@repo/schemas';
+
+const priorityToBackend: Record<string, WorkPriority> = {
+   'urgent': 'URGENT',
+   'high': 'HIGH',
+   'medium': 'MEDIUM',
+   'low': 'LOW',
+   'no-priority': 'NO_PRIORITY',
+};
 
 export function CreateNewIssue() {
    const [createMore, setCreateMore] = useState<boolean>(false);
    const { isOpen, defaultStatus, openModal, closeModal } = useCreateIssueStore();
    const { addIssue, getAllIssues } = useIssuesStore();
+
+   const domainWorkspaceId = useWorkspaceId();
+   const { data: activeWorkspace } = useActiveWorkspace();
+   const workspaceId = domainWorkspaceId || activeWorkspace?.workspaceId || '';
+   const { data: teamListData } = useTeamList(workspaceId);
+
+   const teams = useMemo(() => {
+      if (!teamListData?.pages) return [];
+      return teamListData.pages.flatMap((page) => page.data);
+   }, [teamListData]);
+
+   const [selectedTeamId, setSelectedTeamId] = useState<string>('');
+
+   useEffect(() => {
+      if (teams.length > 0 && !selectedTeamId) {
+         setSelectedTeamId(teams[0]?.id ?? '');
+      }
+   }, [teams, selectedTeamId]);
+
+   const selectedTeam = useMemo(
+      () => teams.find((t) => t.id === selectedTeamId) || teams[0],
+      [teams, selectedTeamId]
+   );
+
+   const { data: teamStatuses } = useTeamStatuses(workspaceId, selectedTeam?.id ?? '');
+
+   const createIssueMutation = useCreateIssue(workspaceId);
 
    const generateUniqueIdentifier = useCallback(() => {
       const identifiers = getAllIssues().map((issue) => issue.identifier);
@@ -62,20 +103,50 @@ export function CreateNewIssue() {
    const [addIssueForm, setAddIssueForm] = useState<Issue>(createDefaultData());
 
    useEffect(() => {
-      setAddIssueForm(createDefaultData());
-   }, [createDefaultData]);
+      if (isOpen) {
+         setAddIssueForm(createDefaultData());
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [isOpen, defaultStatus]);
 
-   const createIssue = () => {
-      if (!addIssueForm.title) {
+   const createIssue = async () => {
+      const title = addIssueForm.title.trim();
+      if (!title) {
          toast.error('Title is required');
          return;
       }
-      toast.success('Issue created');
-      addIssue(addIssueForm);
-      if (!createMore) {
-         closeModal();
+
+      if (workspaceId && selectedTeam) {
+         try {
+            const targetStatusId = teamStatuses
+               ? findTeamStatusIdForUiStatus(teamStatuses, addIssueForm.status)
+               : undefined;
+
+            const created = await createIssueMutation.mutateAsync({
+               teamId: selectedTeam.id,
+               title,
+               description: addIssueForm.description?.trim() || undefined,
+               statusId: targetStatusId,
+               priority: priorityToBackend[addIssueForm.priority.id] ?? 'NO_PRIORITY',
+            });
+            // Update local mock store for UI consistency with mock views
+            addIssue(created ? issueItemToUiIssue(created, teamStatuses) : addIssueForm);
+            if (!createMore) {
+               closeModal();
+            }
+            setAddIssueForm(createDefaultData());
+         } catch {
+            // Error notification is already handled in useCreateIssue onError
+         }
+      } else {
+         // Local store fallback if workspace is not connected
+         toast.success('Issue created');
+         addIssue(addIssueForm);
+         if (!createMore) {
+            closeModal();
+         }
+         setAddIssueForm(createDefaultData());
       }
-      setAddIssueForm(createDefaultData());
    };
 
    return (
@@ -91,7 +162,7 @@ export function CreateNewIssue() {
                   <div className="flex items-center px-4 pt-4 gap-2">
                      <Button size="sm" variant="outline" className="gap-1.5">
                         <Heart className="size-4 text-orange-500 fill-orange-500" />
-                        <span className="font-medium">CORE</span>
+                        <span className="font-medium">{selectedTeam?.key || 'CORE'}</span>
                      </Button>
                   </div>
                </DialogTitle>
@@ -160,11 +231,21 @@ export function CreateNewIssue() {
                </div>
                <Button
                   size="sm"
+                  disabled={
+                     createIssueMutation.isPending || (Boolean(workspaceId) && !selectedTeam)
+                  }
                   onClick={() => {
-                     createIssue();
+                     void createIssue();
                   }}
                >
-                  Create issue
+                  {createIssueMutation.isPending ? (
+                     <>
+                        <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                        Creating...
+                     </>
+                  ) : (
+                     'Create issue'
+                  )}
                </Button>
             </div>
          </DialogContent>

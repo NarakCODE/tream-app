@@ -24,7 +24,7 @@ export function Filter() {
 
    const Identifiers: Team['id'][] = useMemo(() => {
       return teams.map((team) => team.id);
-   }, [teams]);
+   }, []);
 
    const { filters, sort, toggleFilter, clearFilters, getActiveFiltersCount, setSort } =
       useTeamsFilterStore();

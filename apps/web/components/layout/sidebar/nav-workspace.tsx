@@ -4,6 +4,7 @@ import {
    Box,
    Compass,
    ContactRound,
+   FolderKanban,
    Layers,
    LayoutList,
    LucideIcon,
@@ -48,6 +49,13 @@ interface WorkspaceNavItem {
 }
 
 const WORKSPACE_NAV: WorkspaceNavItem[] = [
+   {
+      key: 'issues',
+      name: 'Issues',
+      icon: FolderKanban,
+      url: '/issues',
+      detailUrl: '/issue',
+   },
    {
       key: 'initiatives',
       name: 'Initiatives',

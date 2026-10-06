@@ -1,29 +1,17 @@
 import { api } from '@/lib/api';
-import {
-   acceptInvitationInputSchema,
-   apiEnvelopeSchema,
-   createInvitationInputSchema,
-   invitationSchema,
-   membershipSchema,
-} from '@repo/schemas';
+import { workspacesApi } from '@/features/workspaces/api';
+import type { CreateInvitationInput } from '@repo/schemas';
 
 export const invitationApi = {
-   async create(workspaceId: string, email: string, key: string) {
-      const response = await api.post(
-         `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/invitations`,
-         apiEnvelopeSchema(invitationSchema),
-         createInvitationInputSchema.parse({ email, role: 'MEMBER' }),
-         { headers: { 'Idempotency-Key': key } }
-      );
-      return response.data;
+   create(workspaceId: string, input: CreateInvitationInput, key: string) {
+      return workspacesApi.invite(api, workspaceId, input, key);
    },
-   async accept(token: string, key: string) {
-      const response = await api.post(
-         '/api/v1/workspaces/invitations/accept',
-         apiEnvelopeSchema(membershipSchema),
-         acceptInvitationInputSchema.parse({ token }),
-         { headers: { 'Idempotency-Key': key } }
-      );
-      return response.data;
+
+   accept(token: string, key: string) {
+      return workspacesApi.acceptInvitation(api, token, key);
+   },
+
+   revoke(workspaceId: string, invitationId: string, key: string) {
+      return workspacesApi.revokeInvitation(api, workspaceId, invitationId, key);
    },
 };

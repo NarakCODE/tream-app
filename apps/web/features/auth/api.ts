@@ -1,6 +1,5 @@
 import { api, AUTH_COOKIE_NAME, deleteClientCookie, setClientCookie } from '@/lib/api';
 import {
-   activeWorkspaceResponseSchema,
    apiEnvelopeSchema,
    authMessageSchema,
    authResponseSchema,
@@ -17,6 +16,7 @@ import {
    type SignupInput,
    type TokenInput,
 } from '@repo/schemas';
+import { workspacesApi } from '@/features/workspaces/api';
 import { z } from 'zod';
 
 const sessionListSchema = z.array(authSessionSchema);
@@ -141,11 +141,6 @@ export const authApi = {
    },
 
    async getActiveWorkspace(signal?: AbortSignal): Promise<ActiveWorkspaceResponse> {
-      const envelope = await api.get(
-         '/api/v1/workspaces/active',
-         apiEnvelopeSchema(activeWorkspaceResponseSchema),
-         { signal }
-      );
-      return envelope.data;
+      return workspacesApi.active(api, signal);
    },
 };

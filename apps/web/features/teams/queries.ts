@@ -24,7 +24,7 @@ export const teamListQueryOptions = (api: ApiClient, workspaceId: string) =>
       initialPageParam: undefined as string | undefined,
       queryFn: ({ signal, pageParam }) => teamsApi.list(api, workspaceId, pageParam, signal),
       getNextPageParam: (page) =>
-         page.meta.hasNext ? (page.meta.nextCursor ?? undefined) : undefined,
+         page?.meta?.hasNext ? (page.meta.nextCursor ?? undefined) : undefined,
       enabled: Boolean(workspaceId),
       staleTime: 60_000,
       retry: false,
@@ -73,7 +73,7 @@ export const teamIssuesQueryOptions = (api: ApiClient, workspaceId: string, team
       queryFn: ({ signal, pageParam }) =>
          teamsApi.issues(api, workspaceId, teamId, pageParam, signal),
       getNextPageParam: (page) =>
-         page.meta.hasNext ? (page.meta.nextCursor ?? undefined) : undefined,
+         page?.meta?.hasNext ? (page.meta.nextCursor ?? undefined) : undefined,
       enabled: Boolean(workspaceId && teamId),
       staleTime: 60_000,
       retry: false,

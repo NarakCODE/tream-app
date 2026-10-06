@@ -58,7 +58,7 @@ describe('InviteMembersDialog', () => {
       fireEvent.click(inviteBtn);
 
       expect(await screen.findByText('Invite people to workspace')).toBeTruthy();
-      expect(screen.getByLabelText(/Email addresses/i)).toBeTruthy();
+      expect(screen.getByLabelText(/^Email/i)).toBeTruthy();
       expect(screen.getByRole('button', { name: 'Send invitation' })).toBeTruthy();
    });
 
@@ -67,7 +67,7 @@ describe('InviteMembersDialog', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Invite' }));
 
-      const emailInput = await screen.findByLabelText(/Email addresses/i);
+      const emailInput = await screen.findByLabelText(/^Email/i);
       fireEvent.change(emailInput, { target: { value: 'not-an-email' } });
 
       const submitBtn = screen.getByRole('button', { name: 'Send invitation' });
@@ -97,7 +97,7 @@ describe('InviteMembersDialog', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Invite' }));
 
-      const emailInput = await screen.findByLabelText(/Email addresses/i);
+      const emailInput = await screen.findByLabelText(/^Email/i);
       fireEvent.change(emailInput, { target: { value: 'newbie@example.com' } });
 
       const submitBtn = screen.getByRole('button', { name: 'Send invitation' });

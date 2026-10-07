@@ -13,9 +13,11 @@ import { invitationStorageError, readInvitationDraft, saveInvitationDraft } from
 export function InvitationStep({
    workspaceId,
    onContinue,
+   completing = false,
 }: {
    workspaceId: string;
    onContinue: () => void;
+   completing?: boolean;
 }) {
    const user = useCurrentUser();
    const create = useCreateInvitation(workspaceId);
@@ -140,7 +142,7 @@ export function InvitationStep({
                id="onboarding-invitations"
                value={emails}
                onChange={(event) => changeEmails(event.target.value)}
-               disabled={busy || !scope || readyScope !== scope}
+               disabled={completing || busy || !scope || readyScope !== scope}
                placeholder="teammate@example.com"
                rows={4}
                autoCapitalize="none"
@@ -167,12 +169,21 @@ export function InvitationStep({
          <div className="flex flex-col gap-2">
             <Button
                type="submit"
-               disabled={busy || !user.data || readyScope !== scope || !emails.trim()}
+               disabled={completing || busy || !user.data || readyScope !== scope || !emails.trim()}
             >
                {busy ? 'Queuing invitations…' : 'Send invitations'}
             </Button>
-            <Button type="button" variant="ghost" disabled={busy} onClick={onContinue}>
-               {queued.length ? 'Continue to workspace' : 'Skip for now'}
+            <Button
+               type="button"
+               variant="ghost"
+               disabled={completing || busy}
+               onClick={onContinue}
+            >
+               {completing
+                  ? 'Opening workspace…'
+                  : queued.length
+                    ? 'Continue to workspace'
+                    : 'Skip for now'}
             </Button>
          </div>
       </form>

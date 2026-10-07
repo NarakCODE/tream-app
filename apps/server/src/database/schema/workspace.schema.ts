@@ -70,6 +70,9 @@ export const memberships = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     role: workspaceRole('role').notNull(),
     state: membershipState('state').default('ACTIVE').notNull(),
+    onboardingCompletedAt: timestamp('onboarding_completed_at', {
+      withTimezone: true,
+    }),
     createdAt: timestamp('created_at', { withTimezone: true })
       .defaultNow()
       .notNull(),

@@ -25,6 +25,10 @@ const mockNotification = (overrides: Partial<Notification> = {}): Notification =
    ...overrides,
 });
 
+const mockActorData = vi.hoisted(() => ({
+   current: { name: 'John Doe', avatarUrl: 'https://example.com/avatar.png' as string | null },
+}));
+
 vi.mock('@/features/notifications/hooks', () => ({
    useNotificationTarget: () => ({
       data: { identifier: 'TRE-123', title: 'Fix compiler issue' },
@@ -32,13 +36,16 @@ vi.mock('@/features/notifications/hooks', () => ({
       error: null,
    }),
    useNotificationActor: () => ({
-      data: { name: 'John Doe', avatarUrl: 'https://example.com/avatar.png' },
+      data: mockActorData.current,
       isPending: false,
       error: null,
    }),
 }));
 
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+   vi.resetAllMocks();
+   mockActorData.current = { name: 'John Doe', avatarUrl: 'https://example.com/avatar.png' };
+});
 afterEach(cleanup);
 
 function renderWithClient(ui: React.ReactElement) {
@@ -102,5 +109,25 @@ describe('IssueLine component with AvatarBadge', () => {
       expect(screen.getByText('John Doe')).toBeTruthy();
       expect(screen.getByText(/assigned you to this issue/)).toBeTruthy();
       expect(screen.getByText('1h')).toBeTruthy();
+   });
+
+   it('renders gracefully with fallback avatar when actor avatarUrl is missing', () => {
+      mockActorData.current = { name: 'Alice Smith', avatarUrl: null };
+      renderWithClient(
+         <IssueLine
+            notification={mockNotification({
+               id: 'notif-2',
+               actorMembershipId: 'member-2',
+               readAt: null,
+            })}
+            workspaceId="ws-1"
+            userId="user-1"
+            isSelected={false}
+            onClick={() => {}}
+         />
+      );
+
+      expect(screen.getByText('Alice Smith')).toBeTruthy();
+      expect(screen.getByText('AS')).toBeTruthy();
    });
 });

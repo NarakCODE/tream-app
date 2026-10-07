@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCurrentUser } from '@/features/auth/hooks';
-import { activeWorkspaceQueryOptions, authKeys } from '@/features/auth/queries';
+import { authKeys } from '@/features/auth/queries';
+import { bootstrapKeys, bootstrapQueryOptions, seedBootstrap } from '@/features/bootstrap/queries';
 import { api } from '@/lib/api';
 import { useCreateWorkspace } from './hooks';
 import { workspaceKeys } from './queries';
@@ -63,7 +64,10 @@ export function WorkspaceSetup({
                refetchType: 'none',
             }),
          ]);
-         const active = await queryClient.fetchQuery(activeWorkspaceQueryOptions(api));
+         await queryClient.invalidateQueries({ queryKey: bootstrapKeys.all, refetchType: 'none' });
+         const bootstrap = await queryClient.fetchQuery(bootstrapQueryOptions(api));
+         seedBootstrap(queryClient, bootstrap);
+         const active = bootstrap.activeWorkspace;
          if (!active)
             throw new Error('Your workspace could not be loaded. Retry to finish opening it.');
          try {

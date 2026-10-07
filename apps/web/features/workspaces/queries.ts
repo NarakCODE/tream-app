@@ -1,11 +1,12 @@
 import type { ApiClient } from '@repo/api-client';
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
-import { workspacesApi } from './api';
+import { workspacesApi, type WorkspacePageOptions } from './api';
 
 export {
    workspaceInvitationListResponseSchema,
    workspaceListResponseSchema,
    workspaceMemberListResponseSchema,
+   type WorkspacePageOptions,
 } from './api';
 
 export const workspaceKeys = {
@@ -53,6 +54,19 @@ export const workspaceMembersQueryOptions = (api: ApiClient, workspaceId: string
          workspacesApi.members(api, workspaceId, { signal, limit, cursor: pageParam }),
       getNextPageParam: (page) =>
          page?.meta?.hasNext ? (page.meta.nextCursor ?? undefined) : undefined,
+      enabled: Boolean(workspaceId),
+      staleTime: 30_000,
+      retry: false,
+   });
+
+export const workspaceMemberListQueryOptions = (
+   api: ApiClient,
+   workspaceId: string,
+   options: WorkspacePageOptions = {}
+) =>
+   queryOptions({
+      queryKey: [...workspaceKeys.memberLists(workspaceId), options] as const,
+      queryFn: ({ signal }) => workspacesApi.members(api, workspaceId, { ...options, signal }),
       enabled: Boolean(workspaceId),
       staleTime: 30_000,
       retry: false,

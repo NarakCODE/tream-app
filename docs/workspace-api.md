@@ -1,5 +1,8 @@
 # Workspaces API Reference
 
+For per-membership onboarding completion and bootstrap readiness, see
+[Bootstrap and onboarding API](./onboarding-api.md).
+
 API definition, domain invariants, and architectural reference for the NestJS [`WorkspacesController`](file:///Users/narak/Documents/narakcode/turbo-repo/tream-app/apps/server/src/modules/iam/workspaces/presentation/workspaces.controller.ts) and IAM Workspace subsystem, covering workspace provisioning, slug allocation, membership administration, role hierarchies, invitations, member preferences, soft deletion, and 30-day retention policies under `/api/v1/workspaces`.
 
 ---

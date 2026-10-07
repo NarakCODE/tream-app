@@ -8,7 +8,11 @@ export default defineConfig({
    },
    test: {
       environment: 'jsdom',
-      include: ['features/**/*.test.{ts,tsx}', 'components/**/*.test.{ts,tsx}'],
+      include: [
+         'features/**/*.test.{ts,tsx}',
+         'components/**/*.test.{ts,tsx}',
+         'lib/**/*.test.{ts,tsx}',
+      ],
       clearMocks: true,
    },
 });

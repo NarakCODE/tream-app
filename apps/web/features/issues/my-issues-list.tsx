@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
    AlertCircle,
    BarChart3,
@@ -69,8 +68,6 @@ export function MyIssuesList({
    initialFilters = {},
    className,
 }: MyIssuesListProps) {
-   const params = useParams<{ orgId?: string }>();
-   const orgId = params?.orgId ?? '';
    const searchInputId = useId();
    const activeWorkspace = useActiveWorkspace();
 
@@ -150,8 +147,32 @@ export function MyIssuesList({
       return f;
    }, [initialFilters, lifecycle, priority, effectiveMemberId, tab]);
 
-   const { data, isPending, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
-      useIssueList(workspaceId, queryFilters);
+   const {
+      data,
+      isPending,
+      isError,
+      refetch,
+      fetchNextPage,
+      hasNextPage,
+      isFetching,
+      isFetchingNextPage,
+      isFetchNextPageError,
+   } = useIssueList(workspaceId, queryFilters);
+
+   const isFetchingNextPageRef = useRef(false);
+   const loadNextPage = useCallback(() => {
+      if (!hasNextPage || isFetching || isFetchingNextPageRef.current) return;
+
+      isFetchingNextPageRef.current = true;
+      void fetchNextPage({ cancelRefetch: false }).then(
+         () => {
+            isFetchingNextPageRef.current = false;
+         },
+         () => {
+            isFetchingNextPageRef.current = false;
+         }
+      );
+   }, [fetchNextPage, hasNextPage, isFetching]);
 
    const allIssues = useMemo<IssueItem[]>(() => {
       const issues = data?.pages.flatMap((page) => page?.data ?? []) ?? [];
@@ -442,7 +463,7 @@ export function MyIssuesList({
                      </div>
                   ))}
                </div>
-            ) : isError ? (
+            ) : isError && !data ? (
                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
                   <AlertCircle className="size-8 text-destructive mb-3" />
                   <h3 className="text-sm font-semibold text-foreground mb-1">
@@ -486,30 +507,12 @@ export function MyIssuesList({
                            onRestore={handleRestore}
                            onDelete={handleDelete}
                            workspaceId={workspaceId}
+                           onLoadMore={
+                              hasNextPage && !isFetchNextPageError ? loadNextPage : undefined
+                           }
+                           isInfiniteScrollBusy={isFetching}
                         />
                      </div>
-
-                     {/* Pagination / Load More button */}
-                     {hasNextPage && (
-                        <div className="shrink-0 flex items-center justify-center p-4 border-t bg-container">
-                           <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => void fetchNextPage()}
-                              disabled={isFetchingNextPage}
-                              className="text-xs gap-2"
-                           >
-                              {isFetchingNextPage ? (
-                                 <>
-                                    <Loader2 className="size-3.5 animate-spin" />
-                                    Loading more issues…
-                                 </>
-                              ) : (
-                                 `Load more issues (${allIssues.length} of ${totalIssues})`
-                              )}
-                           </Button>
-                        </div>
-                     )}
                   </div>
 
                   {openPanel === 'insights' && (
@@ -523,6 +526,27 @@ export function MyIssuesList({
                         <BreakdownPanel issues={displayedUiIssues} />
                      </aside>
                   )}
+               </div>
+            )}
+            {isFetchingNextPage && (
+               <div
+                  role="status"
+                  aria-live="polite"
+                  className="shrink-0 flex items-center justify-center gap-2 border-t bg-container p-3 text-xs text-muted-foreground"
+               >
+                  <Loader2 className="size-3.5 animate-spin" />
+                  <span>Loading more issues…</span>
+               </div>
+            )}
+            {isFetchNextPageError && (
+               <div
+                  role="alert"
+                  className="shrink-0 flex items-center justify-center gap-3 border-t bg-container p-3 text-xs"
+               >
+                  <span className="text-muted-foreground">Unable to load more issues.</span>
+                  <Button variant="outline" size="sm" onClick={loadNextPage} disabled={isFetching}>
+                     Try again
+                  </Button>
                </div>
             )}
          </main>

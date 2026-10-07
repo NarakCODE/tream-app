@@ -1,23 +1,24 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Check, ArrowRight } from 'lucide-react';
-import { z } from 'zod';
-import { hasPermission, type Team } from '@repo/schemas';
+import { hasPermission } from '@repo/schemas';
+import { ApiError } from '@repo/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useActiveWorkspace, useCurrentUser } from '@/features/auth/hooks';
+import { useBootstrap, useCompleteOnboarding } from '@/features/bootstrap/hooks';
+import { verificationDestination } from '@/features/auth/redirect';
+import { useSelectWorkspace, useWorkspaceList } from '@/features/workspaces/hooks';
 import { WorkspaceSetup } from '@/features/workspaces/workspace-setup';
-import { useCreateTeam, useTeamList } from '@/features/teams/hooks';
+import { useCreateTeam } from '@/features/teams/hooks';
 import { teamCreationInputSchema as teamInputSchema } from '@/features/teams/api';
 import { InvitationStep } from '@/features/invitations/invitation-step';
 import { onboardingAttempt, readOnboardingDraft } from './storage';
 
-const progressSchema = z.object({ teamId: z.string(), complete: z.boolean() });
-const steps = ['Account', 'Workspace', 'First team', 'Optional invitations', 'Team issues'];
+const steps = ['Account', 'Workspace', 'First team', 'Optional invitations', 'My Issues'];
 
 function message(error: unknown) {
    return error instanceof Error ? error.message : 'Something went wrong. Please try again.';
@@ -25,58 +26,47 @@ function message(error: unknown) {
 
 export function Onboarding() {
    const router = useRouter();
-   const user = useCurrentUser();
-   const active = useActiveWorkspace();
-   const workspace = active.data?.workspace;
-   const list = useTeamList(workspace?.id ?? '');
+   const bootstrap = useBootstrap();
+   const user = bootstrap.data?.user;
+   const active = bootstrap.data?.activeWorkspace;
+   const workspace = active?.workspace;
+   const nextStep = bootstrap.data?.onboarding.nextStep;
    const create = useCreateTeam(workspace?.id ?? '');
+   const complete = useCompleteOnboarding(workspace?.id ?? '');
+   const select = useSelectWorkspace();
    const [name, setName] = useState('');
    const [key, setKey] = useState('');
    const [keyEdited, setKeyEdited] = useState(false);
    const [error, setError] = useState<string | null>(null);
-   const [progress, setProgress] = useState<z.infer<typeof progressSchema> | null>(null);
-   const [createdTeam, setCreatedTeam] = useState<Pick<Team, 'id' | 'name' | 'workspaceId'> | null>(
-      null
-   );
-   const [loadedScope, setLoadedScope] = useState('');
-   const scope = `${user.data?.id}:${workspace?.id}`;
-   const teams = list.data?.pages.flatMap((page) => page.data) ?? [];
-   const team =
-      teams.find((item) => item.id === progress?.teamId) ??
-      (createdTeam?.workspaceId === workspace?.id ? createdTeam : null) ??
-      teams[0];
-   const step = !workspace ? 0 : !team ? 1 : 2;
+   const completionKey = useRef<{ scope: string; key: string } | null>(null);
+   const finishing = useRef(false);
+   const scope = `${user?.id}:${workspace?.id}`;
    const teamScope = `team:${scope}`;
-   const busy = create.isPending;
+   const step =
+      nextStep === 'CREATE_WORKSPACE' || nextStep === 'SELECT_WORKSPACE'
+         ? 0
+         : nextStep === 'CREATE_TEAM' || nextStep === 'WAIT_FOR_TEAM'
+           ? 1
+           : 2;
+   const busy = create.isPending || complete.isPending || select.isPending;
 
    useEffect(() => {
-      if (!user.data?.id || !workspace?.id) return;
-      let saved: z.infer<typeof progressSchema> | null = null;
-      try {
-         const raw = localStorage.getItem(`tream:onboarding:progress:${scope}`);
-         const parsed = progressSchema.safeParse(raw ? JSON.parse(raw) : null);
-         if (parsed.success) saved = parsed.data;
-      } catch {
-         // Server state still determines which setup steps are complete.
-      }
-      setProgress(saved);
-      setCreatedTeam(null);
+      if (!user?.id || !workspace?.id) return;
       const draft = readOnboardingDraft(teamScope, teamInputSchema);
       setName(draft?.name ?? '');
       setKey(draft?.key ?? '');
       setKeyEdited(Boolean(draft));
-      setLoadedScope(scope);
-   }, [scope, teamScope, user.data?.id, workspace?.id]);
+   }, [teamScope, user?.id, workspace?.id]);
 
    useEffect(() => {
-      if (loadedScope === scope && progress?.complete && team && workspace) {
-         router.replace(`/${encodeURIComponent(workspace.slug)}`);
-      }
-   }, [loadedScope, scope, progress?.complete, team, workspace, router]);
+      if (nextStep === 'VERIFY_EMAIL') router.replace(verificationDestination('/onboarding'));
+      if (nextStep === 'DONE' && workspace)
+         router.replace(`/${encodeURIComponent(workspace.slug)}/my-issues`);
+   }, [nextStep, workspace, router]);
 
    async function createTeam(event: FormEvent) {
       event.preventDefault();
-      if (busy || !workspace || !user.data) return;
+      if (busy || !workspace || !user) return;
       setError(null);
       const parsed = teamInputSchema.safeParse({ name, key, visibility: 'WORKSPACE' });
       if (!parsed.success) {
@@ -85,51 +75,45 @@ export function Onboarding() {
       }
       try {
          const commandKey = onboardingAttempt(teamScope, parsed.data);
-         const created = await create.mutateAsync({ input: parsed.data, key: commandKey });
-         setCreatedTeam(created);
-         const next = { teamId: created.id, complete: false };
-         setProgress(next);
-         try {
-            localStorage.setItem(`tream:onboarding:progress:${scope}`, JSON.stringify(next));
-         } catch {
-            // The created team remains discoverable through the API on reload.
-         }
+         await create.mutateAsync({ input: parsed.data, key: commandKey });
+         await bootstrap.refetch({ throwOnError: true });
       } catch (cause) {
          setError(message(cause));
       }
    }
 
-   function finish() {
-      if (!team || !workspace) return;
-      const next = { teamId: team.id, complete: true };
+   async function finish() {
+      if (!workspace || busy || finishing.current) return;
+      finishing.current = true;
+      setError(null);
+      if (completionKey.current?.scope !== scope)
+         completionKey.current = { scope, key: crypto.randomUUID() };
       try {
-         localStorage.setItem(`tream:onboarding:progress:${scope}`, JSON.stringify(next));
-      } catch {
-         // Completion does not require browser storage; resources are persisted by the API.
+         const result = await complete.mutateAsync(completionKey.current.key);
+         if (
+            result.onboarding.nextStep !== 'DONE' ||
+            result.activeWorkspace?.workspaceId !== workspace.id
+         )
+            throw new Error('Your setup changed. Review the remaining steps before continuing.');
+         router.replace(`/${encodeURIComponent(result.activeWorkspace.workspace.slug)}/my-issues`);
+         router.refresh();
+      } catch (cause) {
+         setError(message(cause));
+         if (cause instanceof ApiError && (cause.status === 409 || cause.status === 403))
+            await bootstrap.refetch();
+      } finally {
+         finishing.current = false;
       }
-      setProgress(next);
-      router.replace(`/${encodeURIComponent(workspace.slug)}`);
-      router.refresh();
    }
 
-   if (
-      user.isPending ||
-      active.isPending ||
-      (workspace && (list.isPending || loadedScope !== scope))
-   ) {
+   if (bootstrap.isPending || nextStep === 'DONE' || nextStep === 'VERIFY_EMAIL') {
       return (
          <main className="grid min-h-svh place-items-center p-6">
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
-               <div
-                  aria-hidden="true"
-                  className="size-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent motion-reduce:animate-none"
-               />
-               <span role="status">Loading your setup…</span>
-            </div>
+            <p role="status">Loading your setup…</p>
          </main>
       );
    }
-   const failure = user.error ?? active.error ?? list.error;
+   const failure = bootstrap.error;
    if (failure) {
       return (
          <main className="mx-auto flex min-h-svh max-w-lg flex-col justify-center gap-4 p-6">
@@ -190,7 +174,22 @@ export function Onboarding() {
             </div>
          )}
 
-         {step === 0 && <WorkspaceSetup embedded onComplete={() => setError(null)} />}
+         {nextStep === 'CREATE_WORKSPACE' && (
+            <WorkspaceSetup embedded onComplete={() => setError(null)} />
+         )}
+         {nextStep === 'SELECT_WORKSPACE' && (
+            <WorkspaceSelection
+               onSelect={async (id) => {
+                  setError(null);
+                  try {
+                     await select.mutateAsync({ id, key: crypto.randomUUID() });
+                  } catch (cause) {
+                     setError(message(cause));
+                  }
+               }}
+               busy={busy}
+            />
+         )}
 
          {step === 1 && (
             <div className="space-y-6">
@@ -203,7 +202,7 @@ export function Onboarding() {
                   </p>
                </div>
 
-               {hasPermission(active.data?.membership.role ?? null, 'team.manage') ? (
+               {nextStep === 'CREATE_TEAM' ? (
                   <form onSubmit={createTeam} className="space-y-5">
                      <div className="space-y-2">
                         <Label htmlFor="first-team-name">Team name</Label>
@@ -253,29 +252,41 @@ export function Onboarding() {
                      </Button>
                   </form>
                ) : (
-                  <p className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground">
                      Your workspace administrator needs to create a team. You can return here once
                      it’s ready.
-                  </p>
+                     <Button
+                        variant="outline"
+                        className="mt-4 block"
+                        disabled={bootstrap.isFetching}
+                        onClick={() => void bootstrap.refetch()}
+                     >
+                        Check again
+                     </Button>
+                  </div>
                )}
             </div>
          )}
 
-         {step === 2 && workspace && team && (
+         {step === 2 && workspace && (
             <div className="space-y-6">
                <div className="space-y-2">
                   <h1 className="text-2xl font-semibold tracking-tight text-foreground">
                      Invite teammates
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                     {team.name} is ready. Invite people now, or do this later.
+                     {workspace.name} is ready. Invite people now, or do this later.
                   </p>
                </div>
 
-               {hasPermission(active.data?.membership.role ?? null, 'membership.invite') ? (
-                  <InvitationStep workspaceId={workspace.id} onContinue={finish} />
+               {hasPermission(active?.membership.role ?? null, 'membership.invite') ? (
+                  <InvitationStep
+                     workspaceId={workspace.id}
+                     onContinue={() => void finish()}
+                     completing={complete.isPending}
+                  />
                ) : (
-                  <Button onClick={finish} className="w-full">
+                  <Button onClick={() => void finish()} disabled={busy} className="w-full">
                      Open workspace
                      <ArrowRight aria-hidden="true" className="ml-2 size-4" />
                   </Button>
@@ -283,5 +294,50 @@ export function Onboarding() {
             </div>
          )}
       </main>
+   );
+}
+
+function WorkspaceSelection({
+   onSelect,
+   busy,
+}: {
+   onSelect: (id: string) => Promise<void>;
+   busy: boolean;
+}) {
+   const list = useWorkspaceList();
+   if (list.isPending) return <p role="status">Loading workspaces…</p>;
+   if (list.isError)
+      return (
+         <div>
+            <p role="alert">{message(list.error)}</p>
+            <Button onClick={() => void list.refetch()}>Retry</Button>
+         </div>
+      );
+   return (
+      <div className="space-y-4">
+         <h1 className="text-2xl font-semibold">Choose a workspace</h1>
+         {list.data.pages
+            .flatMap((page) => page.data)
+            .map((workspace) => (
+               <Button
+                  key={workspace.id}
+                  variant="outline"
+                  disabled={busy}
+                  className="w-full"
+                  onClick={() => void onSelect(workspace.id)}
+               >
+                  {workspace.name}
+               </Button>
+            ))}
+         {list.hasNextPage && (
+            <Button
+               variant="ghost"
+               disabled={list.isFetchingNextPage}
+               onClick={() => void list.fetchNextPage()}
+            >
+               Load more
+            </Button>
+         )}
+      </div>
    );
 }

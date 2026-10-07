@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { Notification } from '@repo/schemas';
 import { ApiError } from '@repo/api-client';
 import { Bell, Calendar, Compass, FileText, Target, UserPlus } from 'lucide-react';
@@ -8,6 +9,7 @@ import type { NotificationTarget } from '@/features/notifications/api';
 import { Avatar, AvatarFallback, AvatarImage, AvatarBadge } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusPieIcon } from '@/mock-data/status';
+import { getRandomAvatarUrl } from '@/lib/avatar';
 import { cn } from '@/lib/utils';
 
 export const kindLabels: Record<Notification['kind'], string> = {
@@ -109,6 +111,14 @@ export default function IssueLine({
    const actor = useNotificationActor(workspaceId, userId, notification.id);
    const name =
       actor.data?.name ?? (notification.actorMembershipId ? 'Workspace member' : 'System');
+   const avatarUrl = useMemo(
+      () =>
+         actor.data?.avatarUrl ||
+         getRandomAvatarUrl(
+            actor.data?.membershipId ?? notification.actorMembershipId ?? notification.id
+         ),
+      [actor.data?.avatarUrl, actor.data?.membershipId, notification.actorMembershipId, notification.id]
+   );
 
    if (
       [target.error, actor.error].some((error) => error instanceof ApiError && error.status === 404)
@@ -157,7 +167,7 @@ export default function IssueLine({
             {/* Left: Avatar + Badges */}
             <div className="relative shrink-0">
                <Avatar className="size-8">
-                  <AvatarImage src={actor.data?.avatarUrl ?? undefined} alt="" />
+                  <AvatarImage src={avatarUrl} alt="" />
                   <AvatarFallback className="text-xs font-medium">
                      {name
                         .split(' ')

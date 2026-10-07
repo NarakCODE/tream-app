@@ -1,3 +1,4 @@
+import { OnboardingModule } from './onboarding/onboarding.module';
 import { Module } from '@nestjs/common';
 import { AuditModule } from './audit/audit.module';
 import { AuditHistoryModule } from './audit-history/audit-history.module';
@@ -25,6 +26,7 @@ import { ViewsModule } from './views/views.module';
 @Module({
   imports: [
     IamModule,
+    OnboardingModule,
     TeamsModule,
     ProjectsModule,
     IssuesModule,

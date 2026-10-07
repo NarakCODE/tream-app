@@ -52,6 +52,7 @@ export class DrizzleWorkspaceRepository extends WorkspaceRepository {
         userId: memberships.userId,
         role: memberships.role,
         state: memberships.state,
+        onboardingCompletedAt: memberships.onboardingCompletedAt,
         createdAt: memberships.createdAt,
         updatedAt: memberships.updatedAt,
         user: {

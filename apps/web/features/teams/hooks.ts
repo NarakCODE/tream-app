@@ -10,6 +10,7 @@ import {
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
+import { bootstrapKeys } from '@/features/bootstrap/queries';
 import { useWorkspaceId, useParentIds } from '@/features/workspaces/context';
 import type { TeamStatus } from './types';
 import {
@@ -84,7 +85,10 @@ export function useTeamStatuses(explicitWorkspaceId?: string, explicitTeamId?: s
 export function useTeamStatusesMap(explicitWorkspaceId?: string, teamIds: string[] = []) {
    const workspaceId = useWorkspaceId(explicitWorkspaceId);
    const sortedKey = useMemo(
-      () => Array.from(new Set(teamIds.filter(Boolean))).sort().join(','),
+      () =>
+         Array.from(new Set(teamIds.filter(Boolean)))
+            .sort()
+            .join(','),
       [teamIds]
    );
    const uniqueIds = useMemo(() => (sortedKey ? sortedKey.split(',') : []), [sortedKey]);
@@ -148,6 +152,7 @@ export function useCreateTeam(explicitWorkspaceId?: string) {
       },
       onSettled: () => {
          void invalidateTeamLists(queryClient, workspaceId);
+         void queryClient.invalidateQueries({ queryKey: bootstrapKeys.all });
       },
    });
 }
@@ -176,6 +181,7 @@ export function useUpdateTeam(explicitWorkspaceId?: string) {
       },
       onSettled: () => {
          void invalidateTeamLists(queryClient, workspaceId);
+         void queryClient.invalidateQueries({ queryKey: bootstrapKeys.all });
       },
    });
 }
@@ -197,6 +203,7 @@ export function useRetireTeam(explicitWorkspaceId?: string) {
       },
       onSettled: () => {
          void invalidateTeamLists(queryClient, workspaceId);
+         void queryClient.invalidateQueries({ queryKey: bootstrapKeys.all });
       },
    });
 }

@@ -13,6 +13,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { GroupIssues, IssueGroupDescriptor } from './group-issues';
 import { CustomDragLayer } from './issue-grid';
+import { InfiniteScrollTrigger } from './infinite-scroll-trigger';
 
 import type { User as AssigneeUserType } from '@/mock-data/users';
 
@@ -26,11 +27,16 @@ interface GroupedIssuesViewProps {
    isViewTypeGrid: boolean;
    onStatusChange?: (issue: Issue, newStatus: Status) => void;
    onPriorityChange?: (issue: Issue, newPriority: Priority) => void;
-   onAssigneeChange?: (issue: Issue, newAssignee: AssigneeUserType | null) => void | Promise<unknown>;
+   onAssigneeChange?: (
+      issue: Issue,
+      newAssignee: AssigneeUserType | null
+   ) => void | Promise<unknown>;
    onArchive?: (issue: Issue) => void;
    onRestore?: (issue: Issue) => void;
    onDelete?: (issue: Issue) => void;
    workspaceId?: string;
+   onLoadMore?: () => void;
+   isInfiniteScrollBusy?: boolean;
 }
 
 interface GroupEntry {
@@ -144,8 +150,11 @@ export const GroupedIssuesView: FC<GroupedIssuesViewProps> = ({
    onRestore,
    onDelete,
    workspaceId,
+   onLoadMore,
+   isInfiniteScrollBusy = false,
 }) => {
-   const { grouping, ordering, completedIssues, showEmptyGroups } = useDisplaySettingsStore();
+   const { grouping, ordering, completedIssues, showEmptyGroups, collapsedGroups } =
+      useDisplaySettingsStore();
    const { filters } = useFilterStore();
    const hasActiveFilters = filters.length > 0;
 
@@ -252,8 +261,12 @@ export const GroupedIssuesView: FC<GroupedIssuesViewProps> = ({
                }));
 
                const knownStatusIds = new Set(statuses.map((s) => s.id));
-               const extraIssues = visibleIssues.filter((issue) => !knownStatusIds.has(issue.status.id));
-               const extraScopeIssues = scopeIssues.filter((issue) => !knownStatusIds.has(issue.status.id));
+               const extraIssues = visibleIssues.filter(
+                  (issue) => !knownStatusIds.has(issue.status.id)
+               );
+               const extraScopeIssues = scopeIssues.filter(
+                  (issue) => !knownStatusIds.has(issue.status.id)
+               );
 
                if (extraIssues.length > 0 || extraScopeIssues.length > 0) {
                   const extraMap = groupByKey(extraScopeIssues, (issue) => issue.status.id);
@@ -320,6 +333,8 @@ export const GroupedIssuesView: FC<GroupedIssuesViewProps> = ({
                            onRestore={onRestore}
                            onDelete={onDelete}
                            workspaceId={workspaceId}
+                           onLoadMore={onLoadMore}
+                           isInfiniteScrollBusy={isInfiniteScrollBusy}
                         />
                      ))}
                      {hiddenGroups.length > 0 && <HiddenColumns entries={hiddenGroups} />}
@@ -328,6 +343,13 @@ export const GroupedIssuesView: FC<GroupedIssuesViewProps> = ({
                            No issues to show.
                         </div>
                      )}
+                     {onLoadMore &&
+                        !boardGroups.some((entry) => !collapsedGroups[entry.group.id]) && (
+                           <InfiniteScrollTrigger
+                              onLoadMore={onLoadMore}
+                              isBusy={isInfiniteScrollBusy}
+                           />
+                        )}
                   </div>
                </div>
                {showFooter && (
@@ -367,6 +389,9 @@ export const GroupedIssuesView: FC<GroupedIssuesViewProps> = ({
                   workspaceId={workspaceId}
                />
             ))}
+            {onLoadMore && (
+               <InfiniteScrollTrigger onLoadMore={onLoadMore} isBusy={isInfiniteScrollBusy} />
+            )}
             {showFooter && <HiddenByFiltersFooter hiddenCount={hiddenCount} />}
          </div>
       </DndProvider>

@@ -27,6 +27,7 @@ describe('Transactional workspace commands', () => {
     userId: 'actor',
     role: 'OWNER',
     state: 'ACTIVE',
+    onboardingCompletedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

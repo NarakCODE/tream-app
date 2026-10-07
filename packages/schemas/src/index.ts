@@ -9,6 +9,7 @@ export * from "./cycle";
 export * from "./comment";
 export * from "./label";
 export * from "./auth";
+export * from "./bootstrap";
 export * from "./permissions";
 export * from "./envelope";
 export * from "./invitation";

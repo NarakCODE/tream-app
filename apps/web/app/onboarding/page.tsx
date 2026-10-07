@@ -3,8 +3,7 @@ import { getQueryClient } from '@repo/query';
 import { ApiError } from '@repo/api-client';
 import { redirect } from 'next/navigation';
 import { createServerApiClient } from '@/lib/server-api';
-import { activeWorkspaceQueryOptions, currentUserQueryOptions } from '@/features/auth/queries';
-import { teamListQueryOptions } from '@/features/teams/queries';
+import { bootstrapQueryOptions, seedBootstrap } from '@/features/bootstrap/queries';
 import { Onboarding } from '@/features/onboarding/onboarding';
 import { verificationDestination } from '@/features/auth/redirect';
 
@@ -16,10 +15,12 @@ export default async function OnboardingPage() {
    const timer = setTimeout(() => controller.abort(), 10_000);
    try {
       const api = await createServerApiClient(controller.signal);
-      const user = await client.fetchQuery(currentUserQueryOptions(api));
-      if (!user.emailVerified) redirect(verificationDestination('/onboarding'));
-      const active = await client.fetchQuery(activeWorkspaceQueryOptions(api));
-      if (active) await client.fetchInfiniteQuery(teamListQueryOptions(api, active.workspaceId));
+      const bootstrap = await client.fetchQuery(bootstrapQueryOptions(api));
+      seedBootstrap(client, bootstrap);
+      if (bootstrap.onboarding.nextStep === 'VERIFY_EMAIL')
+         redirect(verificationDestination('/onboarding'));
+      if (bootstrap.onboarding.nextStep === 'DONE' && bootstrap.activeWorkspace)
+         redirect(`/${encodeURIComponent(bootstrap.activeWorkspace.workspace.slug)}/my-issues`);
    } catch (error) {
       if (error instanceof ApiError && error.status === 401)
          redirect('/login?redirect=/onboarding');

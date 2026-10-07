@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ExternalLink } from 'lucide-react';
@@ -9,6 +9,8 @@ import { ApiError } from '@repo/api-client';
 import { useNotificationActor, useNotificationTarget } from '@/features/notifications/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getRandomAvatarUrl } from '@/lib/avatar';
 import { NotificationActions } from './notification-actions';
 import { NotificationDeliveries } from './notification-deliveries';
 import { kindLabels } from './issue-line';
@@ -88,6 +90,14 @@ function SelectedPreview({
    const actor = useNotificationActor(workspaceId, userId, notification.id);
    const name =
       actor.data?.name ?? (notification.actorMembershipId ? 'Workspace member' : 'System');
+   const avatarUrl = useMemo(
+      () =>
+         actor.data?.avatarUrl ||
+         getRandomAvatarUrl(
+            actor.data?.membershipId ?? notification.actorMembershipId ?? notification.id
+         ),
+      [actor.data?.avatarUrl, actor.data?.membershipId, notification.actorMembershipId, notification.id]
+   );
    if (
       [target.error, actor.error].some((error) => error instanceof ApiError && error.status === 404)
    )
@@ -117,8 +127,8 @@ function SelectedPreview({
                {targetUrl && (
                   <Button variant="outline" size="xs" asChild>
                      <Link href={targetUrl} className="flex items-center gap-1.5 text-xs">
-                        <span className="capitalize">Open {target.data?.type ?? 'item'}</span>
-                        <ExternalLink className="size-3" />
+                         <span className="capitalize">Open {target.data?.type ?? 'item'}</span>
+                         <ExternalLink className="size-3" />
                      </Link>
                   </Button>
                )}
@@ -131,15 +141,29 @@ function SelectedPreview({
          </div>
          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-8">
             <div className="mx-auto max-w-2xl">
-               <p className="text-xs text-muted-foreground">
-                  {kindLabels[notification.kind]} · {actor.isPending ? 'Loading actor…' : name}
-               </p>
-               <time
-                  className="mt-1 block text-xs text-muted-foreground"
-                  dateTime={notification.createdAt}
-               >
-                  {new Date(notification.createdAt).toLocaleString()}
-               </time>
+               <div className="flex items-center gap-3">
+                  <Avatar className="size-8 shrink-0">
+                     <AvatarImage src={avatarUrl} alt="" />
+                     <AvatarFallback className="text-xs font-medium">
+                        {name
+                           .split(' ')
+                           .map((n) => n[0])
+                           .slice(0, 2)
+                           .join('')}
+                     </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                     <p className="text-xs text-muted-foreground truncate">
+                        {kindLabels[notification.kind]} · {actor.isPending ? 'Loading actor…' : name}
+                     </p>
+                     <time
+                        className="block text-xs text-muted-foreground"
+                        dateTime={notification.createdAt}
+                     >
+                        {new Date(notification.createdAt).toLocaleString()}
+                     </time>
+                  </div>
+               </div>
                {target.isPending ? (
                   <div
                      className="mt-6 space-y-4"

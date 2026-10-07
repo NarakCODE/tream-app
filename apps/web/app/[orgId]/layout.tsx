@@ -3,7 +3,7 @@ import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { getQueryClient } from '@repo/query';
 import { ApiError } from '@repo/api-client';
 import { createServerApiClient } from '@/lib/server-api';
-import { currentUserQueryOptions } from '@/features/auth/queries';
+import { bootstrapQueryOptions, seedBootstrap } from '@/features/bootstrap/queries';
 import { verificationDestination } from '@/features/auth/redirect';
 import { AppBootstrap } from '@/features/bootstrap/app-bootstrap';
 import { WorkspaceProvider } from '@/features/workspaces/context';
@@ -26,7 +26,9 @@ export default async function WorkspaceLayout({
    let user;
    let workspace;
    try {
-      user = await queryClient.fetchQuery(currentUserQueryOptions(api));
+      const bootstrap = await queryClient.fetchQuery(bootstrapQueryOptions(api));
+      seedBootstrap(queryClient, bootstrap);
+      user = bootstrap.user;
       if (!user.emailVerified) {
          redirect(verificationDestination(`/${encodeURIComponent(orgId)}`));
       }
@@ -35,6 +37,12 @@ export default async function WorkspaceLayout({
       if (!workspace) {
          notFound();
       }
+      // Only gate the selected workspace; a valid direct route may target another membership.
+      if (
+         bootstrap.activeWorkspace?.workspaceId === workspace.id &&
+         bootstrap.onboarding.nextStep !== 'DONE'
+      )
+         redirect('/onboarding');
    } catch (error) {
       if (error instanceof ApiError && error.status === 401) redirect('/login');
       if (error instanceof ApiError && (error.status === 403 || error.status === 404)) notFound();
@@ -45,7 +53,7 @@ export default async function WorkspaceLayout({
 
    return (
       <HydrationBoundary state={dehydrate(queryClient)}>
-         <AppBootstrap remainingMs={1}>
+         <AppBootstrap remainingMs={1} requireOnboardingWorkspaceId={workspace.id}>
             <WorkspaceProvider workspace={workspace} workspaceId={workspace.id} orgId={orgId}>
                <WorkspaceRouteBoundary workspaceId={workspace.id} userId={user.id}>
                   {children}

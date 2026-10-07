@@ -15,10 +15,11 @@ import { ArrowUpDown, CheckIcon, ChevronRight, ListFilter, Shield } from 'lucide
 
 type FilterType = 'role' | 'sort';
 
-const ROLES: Array<'Guest' | 'Member' | 'Admin' | 'Application'> = [
-   'Guest',
-   'Member',
+const ROLES: Array<'Owner' | 'Admin' | 'Member' | 'Guest' | 'Application'> = [
+   'Owner',
    'Admin',
+   'Member',
+   'Guest',
    'Application',
 ];
 

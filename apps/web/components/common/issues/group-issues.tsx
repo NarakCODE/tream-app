@@ -15,6 +15,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Button } from '../../ui/button';
 import { IssueDragType, IssueGrid } from './issue-grid';
 import { IssueLine } from './issue-line';
+import { InfiniteScrollTrigger } from './infinite-scroll-trigger';
 
 /**
  * Generic descriptor of an issue group. Groups are usually statuses but the
@@ -43,6 +44,8 @@ interface GroupIssuesProps {
    onRestore?: (issue: Issue) => void;
    onDelete?: (issue: Issue) => void;
    workspaceId?: string;
+   onLoadMore?: () => void;
+   isInfiniteScrollBusy?: boolean;
 }
 
 export function GroupIssues({
@@ -56,6 +59,8 @@ export function GroupIssues({
    onRestore,
    onDelete,
    workspaceId,
+   onLoadMore,
+   isInfiniteScrollBusy = false,
 }: GroupIssuesProps) {
    const { viewType } = useViewStore();
    const isViewTypeGrid = viewType === 'grid';
@@ -177,40 +182,40 @@ export function GroupIssues({
             )}
          </div>
 
-         {viewType === 'list' ? (
-            !isCollapsed && (
-               <div className="space-y-0">
-                  {issues.map((issue) => (
-                     <IssueLine
-                        key={issue.id}
-                        issue={issue}
-                        layoutId={true}
-                        onStatusChange={onStatusChange}
-                        onPriorityChange={onPriorityChange}
-                        onAssigneeChange={onAssigneeChange}
-                        onArchive={onArchive}
-                        onRestore={onRestore}
-                        onDelete={onDelete}
-                        workspaceId={workspaceId}
-                     />
-                  ))}
-               </div>
-            )
-         ) : (
-            !isCollapsed && (
-               <IssueGridList
-                  issues={issues}
-                  status={group.status}
-                  onStatusChange={onStatusChange}
-                  onPriorityChange={onPriorityChange}
-                  onAssigneeChange={onAssigneeChange}
-                  onArchive={onArchive}
-                  onRestore={onRestore}
-                  onDelete={onDelete}
-                  workspaceId={workspaceId}
-               />
-            )
-         )}
+         {viewType === 'list'
+            ? !isCollapsed && (
+                 <div className="space-y-0">
+                    {issues.map((issue) => (
+                       <IssueLine
+                          key={issue.id}
+                          issue={issue}
+                          layoutId={true}
+                          onStatusChange={onStatusChange}
+                          onPriorityChange={onPriorityChange}
+                          onAssigneeChange={onAssigneeChange}
+                          onArchive={onArchive}
+                          onRestore={onRestore}
+                          onDelete={onDelete}
+                          workspaceId={workspaceId}
+                       />
+                    ))}
+                 </div>
+              )
+            : !isCollapsed && (
+                 <IssueGridList
+                    issues={issues}
+                    status={group.status}
+                    onStatusChange={onStatusChange}
+                    onPriorityChange={onPriorityChange}
+                    onAssigneeChange={onAssigneeChange}
+                    onArchive={onArchive}
+                    onRestore={onRestore}
+                    onDelete={onDelete}
+                    workspaceId={workspaceId}
+                    onLoadMore={onLoadMore}
+                    isInfiniteScrollBusy={isInfiniteScrollBusy}
+                 />
+              )}
       </div>
    );
 }
@@ -225,6 +230,8 @@ const IssueGridList: FC<{
    onRestore?: (issue: Issue) => void;
    onDelete?: (issue: Issue) => void;
    workspaceId?: string;
+   onLoadMore?: () => void;
+   isInfiniteScrollBusy?: boolean;
 }> = ({
    issues,
    status,
@@ -235,6 +242,8 @@ const IssueGridList: FC<{
    onRestore,
    onDelete,
    workspaceId,
+   onLoadMore,
+   isInfiniteScrollBusy = false,
 }) => {
    const ref = useRef<HTMLDivElement>(null);
    const { updateIssueStatus } = useIssuesStore();
@@ -296,6 +305,9 @@ const IssueGridList: FC<{
                workspaceId={workspaceId}
             />
          ))}
+         {onLoadMore && (
+            <InfiniteScrollTrigger onLoadMore={onLoadMore} isBusy={isInfiniteScrollBusy} />
+         )}
       </div>
    );
 };

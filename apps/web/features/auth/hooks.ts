@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tansta
 import { useRouter } from 'next/navigation';
 import { AUTH_COOKIE_NAME, deleteClientCookie, getCurrentSessionId } from '@/lib/api';
 import { authApi } from './api';
+import { bootstrapKeys } from '@/features/bootstrap/queries';
 import { api } from '@/lib/api';
 import {
    authKeys,
@@ -134,7 +135,11 @@ export function useConfirmEmailVerificationMutation() {
    const queryClient = useQueryClient();
    return useMutation({
       mutationFn: (input: TokenInput) => authApi.confirmEmailVerification(input),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.currentUser() }),
+      onSuccess: () =>
+         Promise.all([
+            queryClient.invalidateQueries({ queryKey: authKeys.currentUser() }),
+            queryClient.invalidateQueries({ queryKey: bootstrapKeys.all }),
+         ]),
    });
 }
 
@@ -167,7 +172,10 @@ export function useUpdateProfileMutation() {
       mutationFn: (input: ProfileInput) => authApi.updateProfile(input),
       onSuccess: async (user) => {
          queryClient.setQueryData(authKeys.currentUser(), user);
-         await queryClient.invalidateQueries({ queryKey: authKeys.currentUser() });
+         await Promise.all([
+            queryClient.invalidateQueries({ queryKey: authKeys.currentUser() }),
+            queryClient.invalidateQueries({ queryKey: bootstrapKeys.all }),
+         ]);
       },
    });
 }

@@ -1,11 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { SplashScreen } from '@repo/ui/splash-screen';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
-import { activeWorkspaceQueryOptions, currentUserQueryOptions } from '@/features/auth/queries';
+import { useBootstrap } from './hooks';
 import { verificationDestination } from '@/features/auth/redirect';
 
 function CircleMark() {
@@ -19,31 +17,42 @@ function CircleMark() {
 export function AppBootstrap({
    children,
    remainingMs = 10_000,
+   requireOnboardingWorkspaceId,
 }: {
    children: ReactNode;
    remainingMs?: number;
+   requireOnboardingWorkspaceId?: string;
 }) {
    const router = useRouter();
-   const user = useQuery(currentUserQueryOptions(api));
-   const workspace = useQuery(activeWorkspaceQueryOptions(api));
+   const bootstrap = useBootstrap();
    const [timedOut, setTimedOut] = useState(false);
 
    useEffect(() => {
-      if (user.data && !user.data.emailVerified)
+      if (bootstrap.data?.user && !bootstrap.data?.user.emailVerified)
          router.replace(
             verificationDestination(`${window.location.pathname}${window.location.search}`)
          );
-   }, [user.data, router]);
+   }, [bootstrap.data?.user, router]);
+
+   const needsOnboarding = Boolean(
+      requireOnboardingWorkspaceId &&
+      bootstrap.data?.activeWorkspace?.workspaceId === requireOnboardingWorkspaceId &&
+      bootstrap.data.onboarding.nextStep !== 'DONE'
+   );
+   useEffect(() => {
+      if (bootstrap.data?.user.emailVerified && needsOnboarding) router.replace('/onboarding');
+   }, [bootstrap.data?.user.emailVerified, needsOnboarding, router]);
 
    useEffect(() => {
       const timer = window.setTimeout(() => setTimedOut(true), Math.max(0, remainingMs));
       return () => window.clearTimeout(timer);
    }, [remainingMs]);
 
-   const ready = user.isSuccess && user.data.emailVerified && workspace.isSuccess;
-   if (user.data && !user.data.emailVerified)
+   const ready = bootstrap.isSuccess && bootstrap.data.user.emailVerified;
+   if (bootstrap.data?.user && !bootstrap.data?.user.emailVerified)
       return <SplashScreen brand={<CircleMark />} label="Opening email verification…" />;
-   const failed = user.isError || workspace.isError || timedOut;
+   if (needsOnboarding) return <SplashScreen brand={<CircleMark />} label="Opening your setup…" />;
+   const failed = bootstrap.isError || timedOut;
    if (failed && !ready) {
       return (
          <div className="flex min-h-svh items-center justify-center bg-background p-6">

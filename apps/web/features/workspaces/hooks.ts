@@ -15,13 +15,16 @@ import type {
 } from '@repo/schemas';
 import { api } from '@/lib/api';
 import { authKeys } from '@/features/auth/queries';
+import { bootstrapKeys } from '@/features/bootstrap/queries';
 import { workspacesApi } from './api';
 import {
    workspaceDetailQueryOptions,
    workspaceListQueryOptions,
    workspaceMembersQueryOptions,
+   workspaceMemberListQueryOptions,
    workspacePreferencesQueryOptions,
    workspaceKeys,
+   type WorkspacePageOptions,
 } from './queries';
 import { useWorkspaceId } from './context';
 
@@ -39,6 +42,14 @@ export function useWorkspaceMembers(explicitWorkspaceId?: string, limit = 50) {
    return useInfiniteQuery(workspaceMembersQueryOptions(api, workspaceId, limit));
 }
 
+export function useWorkspaceMemberList(
+   explicitWorkspaceId?: string,
+   options: WorkspacePageOptions = {}
+) {
+   const workspaceId = useWorkspaceId(explicitWorkspaceId);
+   return useQuery(workspaceMemberListQueryOptions(api, workspaceId, options));
+}
+
 export function useWorkspacePreferences(explicitWorkspaceId?: string) {
    const workspaceId = useWorkspaceId(explicitWorkspaceId);
    return useQuery(workspacePreferencesQueryOptions(api, workspaceId));
@@ -51,6 +62,7 @@ function invalidateWorkspaceState(queryClient: QueryClient, workspaceId?: string
       }),
       queryClient.invalidateQueries({ queryKey: workspaceKeys.list() }),
       queryClient.invalidateQueries({ queryKey: authKeys.activeWorkspace() }),
+      queryClient.invalidateQueries({ queryKey: bootstrapKeys.all }),
    ]);
 }
 
@@ -63,6 +75,7 @@ export function useCreateWorkspace() {
          await Promise.all([
             queryClient.invalidateQueries({ queryKey: workspaceKeys.list() }),
             queryClient.invalidateQueries({ queryKey: authKeys.activeWorkspace() }),
+            queryClient.invalidateQueries({ queryKey: bootstrapKeys.all }),
          ]);
       },
    });
@@ -72,7 +85,11 @@ export function useSelectWorkspace() {
    const queryClient = useQueryClient();
    return useMutation({
       mutationFn: ({ id, key }: { id: string; key: string }) => workspacesApi.select(api, id, key),
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.activeWorkspace() }),
+      onSuccess: () =>
+         Promise.all([
+            queryClient.invalidateQueries({ queryKey: authKeys.activeWorkspace() }),
+            queryClient.invalidateQueries({ queryKey: bootstrapKeys.all }),
+         ]),
    });
 }
 
@@ -127,6 +144,7 @@ export function useUpdateWorkspaceMember(explicitWorkspaceId?: string) {
          await Promise.all([
             queryClient.invalidateQueries({ queryKey: workspaceKeys.memberLists(targetId) }),
             queryClient.invalidateQueries({ queryKey: authKeys.activeWorkspace() }),
+            queryClient.invalidateQueries({ queryKey: bootstrapKeys.all }),
          ]);
       },
    });
@@ -150,6 +168,7 @@ export function useRemoveWorkspaceMember(explicitWorkspaceId?: string) {
          await Promise.all([
             queryClient.invalidateQueries({ queryKey: workspaceKeys.memberLists(targetId) }),
             queryClient.invalidateQueries({ queryKey: authKeys.activeWorkspace() }),
+            queryClient.invalidateQueries({ queryKey: bootstrapKeys.all }),
          ]);
       },
    });

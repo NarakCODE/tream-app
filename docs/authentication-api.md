@@ -1,5 +1,8 @@
 # Authentication & Profile API Reference
 
+For the authenticated setup decision and persisted welcome completion, see
+[Bootstrap and onboarding API](./onboarding-api.md).
+
 API definition and architectural summary for the NestJS [`AuthenticationModule`](file:///Users/narak/Documents/narakcode/turbo-repo/tream-app/apps/server/src/modules/iam/authentication.module.ts#L27), covering authentication endpoints (`/api/v1/auth`) and user profile management (`/api/v1/me`).
 
 ---

@@ -4,7 +4,7 @@ import { ApiError } from '@repo/api-client';
 import { redirect } from 'next/navigation';
 import { AppBootstrap } from './app-bootstrap';
 import { createServerApiClient } from '@/lib/server-api';
-import { activeWorkspaceQueryOptions, currentUserQueryOptions } from '@/features/auth/queries';
+import { bootstrapQueryOptions, seedBootstrap } from './queries';
 import { verificationDestination } from '@/features/auth/redirect';
 
 export async function ServerBootstrap({ children }: { children: React.ReactNode }) {
@@ -14,9 +14,9 @@ export async function ServerBootstrap({ children }: { children: React.ReactNode 
    const queryClient = getQueryClient();
    let needsVerification = false;
    try {
-      const user = await queryClient.fetchQuery(currentUserQueryOptions(api));
-      needsVerification = !user.emailVerified;
-      if (!needsVerification) await queryClient.fetchQuery(activeWorkspaceQueryOptions(api));
+      const bootstrap = await queryClient.fetchQuery(bootstrapQueryOptions(api));
+      seedBootstrap(queryClient, bootstrap);
+      needsVerification = !bootstrap.user.emailVerified;
    } catch (error) {
       if (error instanceof ApiError && error.status === 401) redirect('/login');
       return <AppBootstrap remainingMs={0}>{children}</AppBootstrap>;

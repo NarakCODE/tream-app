@@ -19,15 +19,17 @@ const SORTS: MembersSort[] = [
    'teams-desc',
 ];
 
+export type MemberRoleFilter = 'Owner' | 'Guest' | 'Member' | 'Admin' | 'Application';
+
 export interface MembersFilterState {
    filters: {
-      role: ('Guest' | 'Member' | 'Admin' | 'Application')[];
+      role: MemberRoleFilter[];
    };
    sort: MembersSort;
 
    setSort: (sort: MembersSort) => void;
    setFilter: (type: 'role', ids: string[]) => void;
-   toggleFilter: (type: 'role', id: 'Guest' | 'Member' | 'Admin' | 'Application') => void;
+   toggleFilter: (type: 'role', id: MemberRoleFilter) => void;
    clearFilters: () => void;
    clearFilterType: (type: 'role') => void;
 
@@ -44,7 +46,7 @@ const parsers = {
 export function useMembersFilterStore(): MembersFilterState {
    const [state, setState] = useQueryStates(parsers, { history: 'replace' });
 
-   const filters = { role: state.role as ('Guest' | 'Member' | 'Admin' | 'Application')[] };
+   const filters = { role: state.role as MemberRoleFilter[] };
 
    return {
       filters,
